@@ -2,22 +2,16 @@
 #define BUTTON_H
 
 #include <raylib.h>
+
 #include <stdbool.h>
 
 struct Button {
-    Rectangle rect;
-    const char* title;
-    bool isPressed;
-    Color colorText;
-    Color color;
-    Color colorLine;
-    Color colorActive;
+    Rectangle bounds;
+    const char* label;
 };
 
-void buttonInit(struct Button *button, float posX, float posY, float width, float height, const char* title, Color colorText, Color color, Color colorLine, Color colorActive);
+struct Button buttonInit(Rectangle bounds, const char* label);
 
-void buttonDraw(struct Button *button);
-
-bool buttonCheckClick(struct Button *button);
+int buttonDrawUpdt(struct Button *button);
 
 #endif //BUTTON_H

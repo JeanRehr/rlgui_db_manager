@@ -2,17 +2,20 @@
 #define DB_MANAGER_H
 
 #include <sqlite3.h>
+#include "Person.h"
 
-struct DatabaseManager {
-    sqlite3* db;
-};
+int db_init();
 
-int dbmanInit(struct DatabaseManager *dbManager, const char *name);
+int db_insert_person(const char *cpf, const char *name, int age, const char *healthStatus, const char *needs, int gender);
 
-void dbmanClose(struct DatabaseManager *dbManager);
+int db_update_person(const char *cpf, const char *name_input, int age_input, const char *healthStatus_input, const char *needs_input, int gender_input);
 
-int dbmanInsertUser(struct DatabaseManager *dbManager, const char *name);
+bool db_check_cpf_exists(const char *cpf);
 
-int dbmanRetrieveUser(struct DatabaseManager *dbManager);
+bool db_get_person_by_cpf(const char *cpf, struct Person *person);
+
+void db_get_all_persons();
+
+int db_insert_food(const char *name, int quantity, const char *expirationDate);
 
 #endif // DB_MANAGER_H

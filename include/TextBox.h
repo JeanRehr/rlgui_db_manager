@@ -2,30 +2,25 @@
 #define TEXTBOX_H
 
 #include <raylib.h>
-#include <stdbool.h>
 
 #include "CONSTANTS.h"
 
-struct TextBox {
-    Rectangle rect;
-    char input[MAX_INPUT];
-    int key;
-    int currentCountChar;
-    int framesCounter;
-    const char* title;
-    bool isActive;
-    Color colorText;
-    Color color;
-    Color colorLine;
-    Color colorLineActive;
+enum InputType {
+	INPUT_INTEGER = 0,
+	INPUT_TEXT
 };
 
-void textBoxInit(struct TextBox *TextBox, float posX, float posY, float width, float height, const char* title, Color colorText, Color color, Color colorLine, Color colorLineActive);
+struct Textbox {
+	Rectangle bounds;
+	char input[MAX_INPUT];
+	bool editMode;
+	const char *label;
+	enum InputType type;
+	int maxLength;
+};
 
-void textBoxDraw(struct TextBox *TextBox);
+struct Textbox textBoxInit(Rectangle bounds, const char *label, enum InputType type, int maxLength);
 
-void textBoxGetInput(struct TextBox *TextBox);
-
-void textBoxCheckFocus(struct TextBox *TextBox);
+void textBoxDraw(struct Textbox *textbox);
 
 #endif //TEXTBOX_H
