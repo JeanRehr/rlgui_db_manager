@@ -7,7 +7,7 @@
 
 enum InputType {
 	INPUT_INTEGER = 0,
-	INPUT_TEXT
+	INPUT_TEXT,
 };
 
 struct Textbox {
@@ -16,10 +16,10 @@ struct Textbox {
 	bool editMode;
 	const char *label;
 	enum InputType type;
-	int maxLength;
+	int maxLengthIntInput;
 };
 
-struct Textbox textBoxInit(Rectangle bounds, const char *label, enum InputType type, int maxLength);
+struct Textbox textBoxInit(Rectangle bounds, const char *label, enum InputType type, int maxLengthIntInput);
 
 void textBoxDraw(struct Textbox *textbox);
 

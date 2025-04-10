@@ -8,7 +8,7 @@ typedef enum InputType InputType;
 
 typedef struct Textbox Textbox;
 
-Textbox textBoxInit(Rectangle bounds, const char *label, enum InputType type, int maxLength)
+Textbox textBoxInit(Rectangle bounds, const char *label, enum InputType type, int maxLengthIntInput)
 {
 	Textbox textbox = {0}; // Initialize struct with zeroed memory
 	// input already initialized to 0 with above
@@ -16,7 +16,7 @@ Textbox textBoxInit(Rectangle bounds, const char *label, enum InputType type, in
 	textbox.editMode = false;
 	textbox.label = label;
 	textbox.type = type;
-	textbox.maxLength = maxLength;
+	textbox.maxLengthIntInput = maxLengthIntInput;
 	return textbox;
 }
 
@@ -34,7 +34,7 @@ void textBoxDraw(Textbox *textbox)
 	if (textbox->editMode) {
 		switch (textbox->type) {
 		case INPUT_INTEGER:
-			filterIntegerInput(textbox->input, textbox->maxLength);
+			filterIntegerInput(textbox->input, textbox->maxLengthIntInput);
 			break;
 		case INPUT_TEXT:
 			// No filtering needed for general text

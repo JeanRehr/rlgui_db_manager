@@ -48,6 +48,26 @@ typedef struct FoodItem {
 
 // END FOOD
 
+// To manage the state of the insert person screen
+typedef struct INSERT_PERSON_UIElements {
+	Textbox tbName;
+	Textbox tbCpf;
+	Textbox tbAge;
+	Textbox tbHealthStatus;
+	Textbox tbNeeds;
+
+	Dropdownbox ddbGender;
+
+	Button buttonBack;
+	Button buttonSubmit;
+	Button buttonRetrieve;
+
+	bool showHealthPopup;
+	bool showNeedsPopup;
+	Rectangle panelBounds;	
+	Person personRetrieved;
+} INSERT_PERSON_UIElements;
+
 typedef enum ErrorCode {
 	NIL = 0,
 	NO_ERROR,
@@ -61,91 +81,85 @@ typedef enum ErrorCode {
 typedef enum AppState {
 	STATE_MAIN_MENU = 0,
 	STATE_INSERT_PERSON,
+	STATE_INSERT_FOOD,
 } AppState;
 
 int window_width = 1600;
 int window_height = 800;
+
+void DrawInsertPersonScreen(INSERT_PERSON_UIElements *ui, AppState *state, ErrorCode *error);
 
 int main()
 {
 	// Initialization
 	//--------------------------------------------------------------------------------------
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-	InitWindow(window_width, window_height, "Raylib + SQLite Example"); // Initialize window with specified dimensions
-	GuiSetStyle(DEFAULT, TEXT_SIZE, 15);
-	int fontSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
-
-	// Initialize databases
-	if (db_init() != SQLITE_OK) { // Check for successful database initialization
-		CloseWindow(); // Close window if database initialization fails
-		return -1; // Exit program indicating error
+	InitWindow(window_width, window_height, "Shelter Management");
+	
+	// Initialize databases, close window and program if database initialization fails
+	if (db_init() != SQLITE_OK) {
+		CloseWindow(); 
+		return -1;
 	}
 
-	SetTargetFPS(60); // Set target frames per second for smooth interface
+	GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
+	int fontSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
 
-	// TEXTBOXES
+	SetTargetFPS(60);
 
-	Textbox tbName = textBoxInit(
-		(Rectangle){20, 20 + fontSize, 300, 30},
+	// Start initializing the insert person screen in order as they appear
+
+	INSERT_PERSON_UIElements insertPersonUIScreen;
+
+	insertPersonUIScreen.buttonBack = buttonInit((Rectangle) {20, 20, 100, 30}, "Back");
+	insertPersonUIScreen.tbName = textBoxInit(
+		(Rectangle){20, insertPersonUIScreen.buttonBack.bounds.height + fontSize + 30, 300, 30},
 		"Name:",
 		INPUT_TEXT,
 		0
 	);
-	Textbox tbCpf = textBoxInit(
-		(Rectangle){20, tbName.bounds.y + tbName.bounds.height + fontSize + 10, 300, 30},
+	insertPersonUIScreen.tbCpf = textBoxInit(
+		(Rectangle){20, insertPersonUIScreen.tbName.bounds.y + insertPersonUIScreen.tbName.bounds.height + fontSize + 10, 300, 30},
 		"CPF:",
 		INPUT_INTEGER,
 		11
 	);
-	Textbox tbAge = textBoxInit(
-		(Rectangle){20, tbCpf.bounds.y + tbCpf.bounds.height + fontSize + 10, 300, 30},
+	insertPersonUIScreen.tbAge = textBoxInit(
+		(Rectangle){20, insertPersonUIScreen.tbCpf.bounds.y + insertPersonUIScreen.tbCpf.bounds.height + fontSize + 10, 300, 30},
 		"Age:",
 		INPUT_INTEGER,
 		3
 	);
-	Textbox tbHealthStatus = textBoxInit(
-		(Rectangle){20, tbAge.bounds.y + tbAge.bounds.height + fontSize + 10, 300, 30},
+	insertPersonUIScreen.tbHealthStatus = textBoxInit(
+		(Rectangle){20, insertPersonUIScreen.tbAge.bounds.y + insertPersonUIScreen.tbAge.bounds.height + fontSize + 10, 300, 30},
 		"Health Status:",
 		INPUT_TEXT,
 		0
 	);
-	Textbox tbNeeds = textBoxInit(
-		(Rectangle){20, tbHealthStatus.bounds.y + tbHealthStatus.bounds.height + fontSize + 10, 300, 30}, 
+	insertPersonUIScreen.tbNeeds = textBoxInit(
+		(Rectangle){20, insertPersonUIScreen.tbHealthStatus.bounds.y + insertPersonUIScreen.tbHealthStatus.bounds.height + fontSize + 10, 300, 30}, 
 		"Needs:",
 		INPUT_TEXT,
 		0
 	);
-
-	// END TEXTBOXES
-
-	// DROPDOWNBOXES
-
-	Dropdownbox ddbGender = dropDownBoxInit(
-		(Rectangle){20, tbNeeds.bounds.y + tbNeeds.bounds.height + fontSize + 10, 200, 30},
+	insertPersonUIScreen.ddbGender = dropDownBoxInit(
+		(Rectangle){20, insertPersonUIScreen.tbNeeds.bounds.y + insertPersonUIScreen.tbNeeds.bounds.height + fontSize + 10, 200, 30},
 		"Other;Male;Female",
 		"Gender"
 	);
+	insertPersonUIScreen.buttonSubmit = buttonInit((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
+	insertPersonUIScreen.buttonRetrieve = buttonInit((Rectangle) {insertPersonUIScreen.buttonSubmit.bounds.x + insertPersonUIScreen.buttonSubmit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
+	insertPersonUIScreen.showHealthPopup = false;
+	insertPersonUIScreen.showNeedsPopup = false;
+    memset(&insertPersonUIScreen.personRetrieved, 0, sizeof(Person));
+	// Only set the bounds of the panel, draw everything inside based on it on the draw insert person screen function
+	insertPersonUIScreen.panelBounds = (Rectangle) {window_width / 2 - 200, 10, 275, 200};
 
-	// END DROPDOWNBOXES
+	// End initializing the insert person screen
 
-	// BUTTONS
-
-	Button buttonSubmit = buttonInit((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
-	Button buttonRetrieve = buttonInit((Rectangle) {buttonSubmit.bounds.x + buttonSubmit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
-
-	// END BUTTONS
-
-	// PANEL INFO
-
-	Person personRetrieved = {0};
-	bool showHealthPopup = false;
-	bool showNeedsPopup = false;
-
-	Rectangle panelBounds = {window_width / 2 - 200, 10, 275, 200};
-
-	// END PANEL INFO
-
+	// Setting the initial state for screen and error code
 	ErrorCode error = NIL;
+	AppState appState = STATE_MAIN_MENU;
 
 	while (!WindowShouldClose()) {
 		// Update
@@ -153,9 +167,9 @@ int main()
 		if (IsWindowResized()) {
 			window_width = GetScreenWidth();
 			window_height = GetScreenHeight();
-			buttonSubmit.bounds.y = window_height - 100;
-			buttonRetrieve.bounds.y = window_height - 100;
-			panelBounds.x = window_width / 2 - 200;
+			insertPersonUIScreen.buttonSubmit.bounds.y = window_height - 100;
+			insertPersonUIScreen.buttonRetrieve.bounds.y = window_height - 100;
+			insertPersonUIScreen.panelBounds.x = window_width / 2 - 200;
 		}
 
 		//----------------------------------------------------------------------------------
@@ -163,128 +177,31 @@ int main()
 		// Draw
 		//----------------------------------------------------------------------------------
 		BeginDrawing();
-		ClearBackground(RAYWHITE);
+		ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
 
-		// Start draw UI elements
-		textBoxDraw(&tbName);
-		textBoxDraw(&tbCpf);
-		textBoxDraw(&tbAge);
+		// Visuals options
+		GuiLabel(styleOptionsLabelBounds, "Style:");
+		GuiComboBox(styleOptionsBounds, "default;Jungle;Candy;Lavanda;Cyber;Terminal;Ashes;Bluish;Dark;Cherry;Sunny;Enefete", &visualStyleActive);
 
-		dropDownBoxDraw(&ddbGender);
-
-		textBoxDraw(&tbHealthStatus);
-		textBoxDraw(&tbNeeds);
-
-		// Info Panel
-		GuiPanel(panelBounds, TextFormat("CPF info retrieved: %s", personRetrieved.cpf));
-		GuiLabel((Rectangle){panelBounds.x + 10, panelBounds.y + 30, 280, 20}, TextFormat("Name: %s", personRetrieved.name));
-		GuiLabel((Rectangle){panelBounds.x + 10, panelBounds.y + 60, 280, 20}, TextFormat("Age: %d", personRetrieved.age));
-
-		if (GuiButton((Rectangle){panelBounds.x + 10 + 235, panelBounds.y + 90, 20, 20}, "?")) {showHealthPopup = true;}
-		GuiLabel((Rectangle){panelBounds.x + 10, panelBounds.y + 90, 280, 20}, TextFormat("Health Status: %.15s...", personRetrieved.healthStatus));
+		switch (appState) {
+        case STATE_MAIN_MENU:
+            // Draw main menu
+            GuiLabel((Rectangle){20, 20, 120, 30}, "Main Menu");
+            if (GuiButton((Rectangle){20, 60, 120, 30}, "Insert Person")) {
+                appState = STATE_INSERT_PERSON;
+            }
+            break;
+        
+        case STATE_INSERT_PERSON:
+            DrawInsertPersonScreen(&insertPersonUIScreen, &appState, &error);
+            break;
 		
-		if (GuiButton((Rectangle){panelBounds.x + 10 + 235, panelBounds.y + 120, 20, 20}, "?")) {showNeedsPopup = true;}
-		GuiLabel((Rectangle){panelBounds.x + 10, panelBounds.y + 120, 280, 20}, TextFormat("Needs: %.15s...", personRetrieved.needs));
+		case STATE_INSERT_FOOD:
+			break;
 
-		GuiLabel((Rectangle){panelBounds.x + 10, panelBounds.y + 150, 280, 20}, TextFormat("Gender: %s", personRetrieved.gender == GENDER_OTHER ? "Other" : personRetrieved.gender == GENDER_MALE ? "Male" : "Female"));
-		
-		if (showHealthPopup) {
-			char wrappedText[MAX_INPUT] = {0};
-			WrapText(personRetrieved.healthStatus, wrappedText, 35);
-			int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 250},
-									   "#191#Full Health Status", wrappedText, "Close");
-			if (result >= 0) showHealthPopup = false;  // Close popup when "Close" is pressed
-		}
-
-		if (showNeedsPopup) {
-			char wrappedText[MAX_INPUT] = {0};
-			WrapText(personRetrieved.needs, wrappedText, 35);
-			int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2, 300, 250},
-									   "#191#Full Needs", wrappedText, "Close");
-			if (result >= 0) showNeedsPopup = false;  // Close popup when "Close" is pressed
-		}
-
-		// End draw UI elements
-
-		// Start button actions
-		if (buttonDrawUpdt(&buttonSubmit)) {
-			if (*tbCpf.input == '\0') {
-				error = ERROR_CPF_EMPTY;
-				fprintf(stderr, "CPF must not be empty.\n");
-			} else if (!isValidIntegerInput(tbCpf.input, 11, 11)) {
-				error = ERROR_CPF_NOT_VALID;
-				fprintf(stderr, "CPF must be 11 digits.\n");
-			} else if (db_check_cpf_exists(tbCpf.input)) {
-				error = ERROR_CPF_ALERADY_EXISTS;
-			} else if (db_insert_person(tbCpf.input, tbName.input, atoi(tbAge.input), tbHealthStatus.input, tbNeeds.input, ddbGender.activeOption) != SQLITE_OK) {
-				error = ERROR_DATABASE;
-				fprintf(stderr, "Error submitting to database.\n");
-			} else {
-				error = NO_ERROR;
-			}
-		}
-
-		if (buttonDrawUpdt(&buttonRetrieve)) {
-			if (db_get_person_by_cpf(tbCpf.input, &personRetrieved)) {
-				printf("Retrieved Person - Name: %s, Age: %d, Health Status: %s, Needs: %s, Gender: %d\n", personRetrieved.name, personRetrieved.age, personRetrieved.healthStatus, personRetrieved.needs, personRetrieved.gender);
-				error = NO_ERROR;
-			} else {
-				error = ERROR_CPF_NOT_FOUND;
-			}
-			
-		}
-
-		// End button actions
-
-		// Start show warning/error boxes
-
-		// In case updating person
-		if (error == ERROR_CPF_ALERADY_EXISTS) {
-			int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
-			if (result == 1) {
-				if (db_update_person(tbCpf.input, tbName.input, atoi(tbAge.input), tbHealthStatus.input, tbNeeds.input, ddbGender.activeOption) != SQLITE_OK) {
-					error = ERROR_DATABASE;
-				}
-			}
-			if (result >= 0) {
-				error = NO_ERROR;
-			}
-		}
-		
-
-		if (error == ERROR_CPF_EMPTY) {
-			int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF must not be empty.", "OK");
-			if (result >= 0) {
-				error = NO_ERROR;
-			}
-		} else if (error == ERROR_CPF_NOT_VALID) {
-			int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF must be 11 digits.", "OK");
-			if (result >= 0) {
-				error = NO_ERROR;
-			}
-		} else if (error == ERROR_CPF_NOT_FOUND) {
-			int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF not found.", "OK");
-			if (result >= 0) {
-				error = NO_ERROR;
-			}
-		} else if (error == ERROR_DATABASE) {
-			int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "Error submitting to database.", "OK");
-			if (result >= 0) {
-				error = NO_ERROR;
-			}
-		}
-
-		// End show warning/error boxes
-
-		// Clear the text buffer after handling everything
-		if (error == NO_ERROR) {
-			tbName.input[0] = '\0';
-			tbCpf.input[0] = '\0';
-			tbAge.input[0] = '\0';
-			tbHealthStatus.input[0] = '\0';
-			tbNeeds.input[0] = '\0';
-			error = NIL;
-		}
+        default:
+            break;
+	    }
 
 		EndDrawing();
 		//----------------------------------------------------------------------------------
@@ -295,4 +212,133 @@ int main()
 	CloseWindow();
 	//--------------------------------------------------------------------------------------
 	return 0;
+}
+
+void DrawInsertPersonScreen(INSERT_PERSON_UIElements *ui, AppState *state, ErrorCode *error) {
+
+	// Start draw UI elements
+
+	textBoxDraw(&ui->tbName);
+	textBoxDraw(&ui->tbCpf);
+	textBoxDraw(&ui->tbAge);
+
+	dropDownBoxDraw(&ui->ddbGender);
+
+	textBoxDraw(&ui->tbHealthStatus);
+	textBoxDraw(&ui->tbNeeds);
+
+	// Info Panel
+	GuiPanel(ui->panelBounds, TextFormat("CPF info retrieved: %s", ui->personRetrieved.cpf));
+	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 30, 280, 20}, TextFormat("Name: %s", ui->personRetrieved.name));
+	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 60, 280, 20}, TextFormat("Age: %d", ui->personRetrieved.age));
+
+	if (GuiButton((Rectangle){ui->panelBounds.x + 10 + 235, ui->panelBounds.y + 90, 20, 20}, "?")) {ui->showHealthPopup = true;}
+	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 90, 280, 20}, TextFormat("Health Status: %.15s...", ui->personRetrieved.healthStatus));
+	
+	if (GuiButton((Rectangle){ui->panelBounds.x + 10 + 235, ui->panelBounds.y + 120, 20, 20}, "?")) {ui->showNeedsPopup = true;}
+	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 120, 280, 20}, TextFormat("Needs: %.15s...", ui->personRetrieved.needs));
+
+	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 150, 280, 20}, TextFormat("Gender: %s", ui->personRetrieved.gender == GENDER_OTHER ? "Other" : ui->personRetrieved.gender == GENDER_MALE ? "Male" : "Female"));
+	
+	if (ui->showHealthPopup) {
+		char wrappedText[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
+		WrapText(ui->personRetrieved.healthStatus, wrappedText, 35);
+		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 250},
+								   "#191#Full Health Status", wrappedText, "Close");
+		if (result >= 0) ui->showHealthPopup = false;  // Close popup when "Close" is pressed
+	}
+
+	if (ui->showNeedsPopup) {
+		char wrappedText[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
+		WrapText(ui->personRetrieved.needs, wrappedText, 35);
+		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2, 300, 250},
+								   "#191#Full Needs", wrappedText, "Close");
+		if (result >= 0) ui->showNeedsPopup = false;  // Close popup when "Close" is pressed
+	}
+
+	// End draw UI elements
+
+	// Start button actions
+
+	if (buttonDrawUpdt(&ui->buttonBack)) {
+		*state = STATE_MAIN_MENU;
+	}
+
+	if (buttonDrawUpdt(&ui->buttonSubmit)) {
+		if (*ui->tbCpf.input == '\0') {
+			*error = ERROR_CPF_EMPTY;
+			fprintf(stderr, "CPF must not be empty.\n");
+		} else if (!isValidIntegerInput(ui->tbCpf.input, 11, 11)) {
+			*error = ERROR_CPF_NOT_VALID;
+			fprintf(stderr, "CPF must be 11 digits.\n");
+		} else if (db_check_cpf_exists(ui->tbCpf.input)) {
+			*error = ERROR_CPF_ALERADY_EXISTS;
+		} else if (db_insert_person(ui->tbCpf.input, ui->tbName.input, atoi(ui->tbAge.input), ui->tbHealthStatus.input, ui->tbNeeds.input, ui->ddbGender.activeOption) != SQLITE_OK) {
+			*error = ERROR_DATABASE;
+			fprintf(stderr, "Error submitting to database.\n");
+		} else {
+			*error = NO_ERROR;
+		}
+	}
+
+	if (buttonDrawUpdt(&ui->buttonRetrieve)) {
+		if (db_get_person_by_cpf(ui->tbCpf.input, &ui->personRetrieved)) {
+			printf("Retrieved Person - Name: %s, Age: %d, Health Status: %s, Needs: %s, Gender: %d\n", ui->personRetrieved.name, ui->personRetrieved.age, ui->personRetrieved.healthStatus, ui->personRetrieved.needs, ui->personRetrieved.gender);
+			*error = NO_ERROR;
+		} else {
+			*error = ERROR_CPF_NOT_FOUND;
+		}
+		
+	}
+
+	// End button actions
+
+	// Start show warning/error boxes
+
+	// In case updating person
+	if (*error == ERROR_CPF_ALERADY_EXISTS) {
+		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
+		if (result == 1) {
+			if (db_update_person(ui->tbCpf.input, ui->tbName.input, atoi(ui->tbAge.input), ui->tbHealthStatus.input, ui->tbNeeds.input, ui->ddbGender.activeOption) != SQLITE_OK) {
+				*error = ERROR_DATABASE;
+			}
+		}
+		if (result >= 0) {
+			*error = NO_ERROR;
+		}
+	}
+
+	if (*error == ERROR_CPF_EMPTY) {
+		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF must not be empty.", "OK");
+		if (result >= 0) {
+			*error = NO_ERROR;
+		}
+	} else if (*error == ERROR_CPF_NOT_VALID) {
+		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF must be 11 digits.", "OK");
+		if (result >= 0) {
+			*error = NO_ERROR;
+		}
+	} else if (*error == ERROR_CPF_NOT_FOUND) {
+		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF not found.", "OK");
+		if (result >= 0) {
+			*error = NO_ERROR;
+		}
+	} else if (*error == ERROR_DATABASE) {
+		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "Error submitting to database.", "OK");
+		if (result >= 0) {
+			*error = NO_ERROR;
+		}
+	}
+
+	// End show warning/error boxes
+
+	// Clear the text buffer after handling everything
+	if (*error == NO_ERROR) {
+		ui->tbName.input[0] = '\0';
+		ui->tbCpf.input[0] = '\0';
+		ui->tbAge.input[0] = '\0';
+		ui->tbHealthStatus.input[0] = '\0';
+		ui->tbNeeds.input[0] = '\0';
+		*error = NIL;
+	}
 }
