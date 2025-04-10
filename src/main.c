@@ -18,6 +18,21 @@
 #define RAYGUI_IMPLEMENTATION
 #include <raygui.h>
 
+// raygui embedded styles
+// NOTE: Included in the same order as selector
+#define MAX_GUI_STYLES_AVAILABLE   12       // NOTE: Included light style
+#include "styles/style_jungle.h"            // raygui style: jungle
+#include "styles/style_candy.h"             // raygui style: candy
+#include "styles/style_lavanda.h"           // raygui style: lavanda
+#include "styles/style_cyber.h"             // raygui style: cyber
+#include "styles/style_terminal.h"          // raygui style: terminal
+#include "styles/style_ashes.h"             // raygui style: ashes
+#include "styles/style_bluish.h"            // raygui style: bluish
+#include "styles/style_dark.h"              // raygui style: dark
+#include "styles/style_cherry.h"            // raygui style: cherry
+#include "styles/style_sunny.h"             // raygui style: sunny
+#include "styles/style_enefete.h"           // raygui style: enefete
+
 #include <stdio.h>
 #include <string.h>
 
@@ -86,6 +101,9 @@ typedef enum AppState {
 
 int window_width = 1600;
 int window_height = 800;
+
+int visualStyleActive = 0;
+int prevVisualStyleActive = 0;
 
 void DrawInsertPersonScreen(INSERT_PERSON_UIElements *ui, AppState *state, ErrorCode *error);
 
@@ -157,6 +175,9 @@ int main()
 
 	// End initializing the insert person screen
 
+	Rectangle styleOptionsBounds = {window_width - 130, 30, 120, 30};
+	Rectangle styleOptionsLabelBounds = {styleOptionsBounds.x, styleOptionsBounds.y - 25, styleOptionsBounds.width, 20};
+
 	// Setting the initial state for screen and error code
 	ErrorCode error = NIL;
 	AppState appState = STATE_MAIN_MENU;
@@ -164,14 +185,41 @@ int main()
 	while (!WindowShouldClose()) {
 		// Update
 		//----------------------------------------------------------------------------------
+		GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
+
 		if (IsWindowResized()) {
 			window_width = GetScreenWidth();
 			window_height = GetScreenHeight();
 			insertPersonUIScreen.buttonSubmit.bounds.y = window_height - 100;
 			insertPersonUIScreen.buttonRetrieve.bounds.y = window_height - 100;
 			insertPersonUIScreen.panelBounds.x = window_width / 2 - 200;
+			styleOptionsBounds.x = window_width - 130;
 		}
 
+		if (visualStyleActive != prevVisualStyleActive)
+        {
+            // Reset to default internal style
+            // NOTE: Required to unload any previously loaded font texture
+            GuiLoadStyleDefault();
+
+            switch (visualStyleActive)
+            {
+                case 1: GuiLoadStyleJungle(); break;
+                case 2: GuiLoadStyleCandy(); break;
+                case 3: GuiLoadStyleLavanda(); break;
+                case 4: GuiLoadStyleCyber(); break;
+                case 5: GuiLoadStyleTerminal(); break;
+                case 6: GuiLoadStyleAshes(); break;
+                case 7: GuiLoadStyleBluish(); break;
+                case 8: GuiLoadStyleDark(); break;
+                case 9: GuiLoadStyleCherry(); break;
+                case 10: GuiLoadStyleSunny(); break;
+                case 11: GuiLoadStyleEnefete(); break;
+                default: break;
+            }
+
+            prevVisualStyleActive = visualStyleActive;
+        }
 		//----------------------------------------------------------------------------------
 
 		// Draw
