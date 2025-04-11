@@ -1,8 +1,8 @@
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
+#include "person.h"
 #include "db_manager.h"
-#include "Person.h"
 
 #include <sqlite3.h>
 
@@ -63,7 +63,7 @@ int db_init()
 	return SQLITE_OK;
 }
 
-int db_insert_person(const char *cpf, const char *name, int age, const char *healthStatus, const char *needs,
+int db_insert_person(const char *cpf, const char *name, int age, const char *health_status, const char *needs,
 					 int gender)
 {
 	sqlite3 *db;
@@ -90,7 +90,7 @@ int db_insert_person(const char *cpf, const char *name, int age, const char *hea
 	sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_STATIC);
 	sqlite3_bind_text(stmt, 2, name, -1, SQLITE_STATIC);
 	sqlite3_bind_int(stmt, 3, age);
-	sqlite3_bind_text(stmt, 4, healthStatus, -1, SQLITE_STATIC);
+	sqlite3_bind_text(stmt, 4, health_status, -1, SQLITE_STATIC);
 	sqlite3_bind_text(stmt, 5, needs, -1, SQLITE_STATIC);
 	sqlite3_bind_int(stmt, 6, gender);
 
@@ -104,53 +104,93 @@ int db_insert_person(const char *cpf, const char *name, int age, const char *hea
 	return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
-int db_update_person(const char *cpf, const char *name_input, int age_input, const char *healthStatus_input, const char *needs_input, int gender_input) {
-    struct Person currentPerson;
-    if (!db_get_person_by_cpf(cpf, &currentPerson)) {
-        return SQLITE_ERROR;
-    }
+int db_update_person(const char *cpf, const char *name_input, int age_input, const char *health_status_input,
+					 const char *needs_input, int gender_input)
+{
+	struct person currentPerson;
+	if (!db_get_person_by_cpf(cpf, &currentPerson)) {
+		return SQLITE_ERROR;
+	}
 
-    // Decide which fields to use for update based on inputs
-    const char *name = (name_input[0] != '\0') ? name_input : currentPerson.name;
-    int age = (age_input > 0) ? age_input : currentPerson.age;
-    const char *healthStatus = (healthStatus_input[0] != '\0') ? healthStatus_input : currentPerson.healthStatus;
-    const char *needs = (needs_input[0] != '\0') ? needs_input : currentPerson.needs;
-    int gender = (gender_input >= 0) ? gender_input : currentPerson.gender;
+	// Decide which fields to use for update based on inputs
+	const char *name = (name_input[0] != '\0') ? name_input : currentPerson.name;
+	int age = (age_input > 0) ? age_input : currentPerson.age;
+	const char *health_status = (health_status_input[0] != '\0') ? health_status_input : currentPerson.health_status;
+	const char *needs = (needs_input[0] != '\0') ? needs_input : currentPerson.needs;
+	int gender = (gender_input >= 0) ? gender_input : currentPerson.gender;
 
+	sqlite3 *db;
+	int rc;
+
+	rc = sqlite3_open(person_db_filename, &db);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+		return rc;
+	}
+
+	const char *sql = "UPDATE Person SET Name = ?, Age = ?, HealthStatus = ?, Needs = ?, Gender = ? WHERE CPF = ?;";
+
+	sqlite3_stmt *stmt;
+	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		return rc;
+	}
+
+	sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
+	sqlite3_bind_int(stmt, 2, age);
+	sqlite3_bind_text(stmt, 3, health_status, -1, SQLITE_STATIC);
+	sqlite3_bind_text(stmt, 4, needs, -1, SQLITE_STATIC);
+	sqlite3_bind_int(stmt, 5, gender);
+	sqlite3_bind_text(stmt, 6, cpf, -1, SQLITE_STATIC);
+
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_DONE) {
+		fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+	}
+
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	return rc == SQLITE_DONE ? SQLITE_OK : rc;
+}
+
+int db_delete_person_by_cpf(const char *cpf)
+{
     sqlite3 *db;
     int rc;
 
+    // Open the database
     rc = sqlite3_open(person_db_filename, &db);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
         return rc;
     }
 
-    const char *sql = "UPDATE Person SET Name = ?, Age = ?, HealthStatus = ?, Needs = ?, Gender = ? WHERE CPF = ?;";
+    // Prepare the SQL delete statement
+    const char *sql = "DELETE FROM Person WHERE CPF = ?;";
 
     sqlite3_stmt *stmt;
     rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "Failed to prepare delete statement: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
         return rc;
     }
 
-    sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 2, age);
-    sqlite3_bind_text(stmt, 3, healthStatus, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 4, needs, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 5, gender);
-    sqlite3_bind_text(stmt, 6, cpf, -1, SQLITE_STATIC);
+    // Bind the CPF parameter
+    sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_STATIC);
 
+    // Execute the DELETE statement
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "Failed to execute delete statement: %s\n", sqlite3_errmsg(db));
     }
 
+    // Finalize the statement and close the database
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-    return rc == SQLITE_DONE ? SQLITE_OK : rc;
+    return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
 
@@ -190,47 +230,47 @@ bool db_check_cpf_exists(const char *cpf)
 	return exists;
 }
 
-bool db_get_person_by_cpf(const char *cpf, struct Person *person) {
-    sqlite3 *db;
-    int rc;
+bool db_get_person_by_cpf(const char *cpf, struct person *person)
+{
+	sqlite3 *db;
+	int rc;
 
-    rc = sqlite3_open(person_db_filename, &db);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-        return false;
-    }
+	rc = sqlite3_open(person_db_filename, &db);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+		return false;
+	}
 
-    //const char *sql = "SELECT Name, Age, HealthStatus, Needs, Gender FROM Person WHERE CPF = ?;";
-    const char *sql = "SELECT CPF, Name, Age, HealthStatus, Needs, Gender FROM Person WHERE CPF = ?;";
+	const char *sql = "SELECT CPF, Name, Age, HealthStatus, Needs, Gender FROM Person WHERE CPF = ?;";
 
-    sqlite3_stmt *stmt;
-    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return false;
-    }
+	sqlite3_stmt *stmt;
+	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		return false;
+	}
 
-    sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_STATIC);
+	sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_STATIC);
 
-    rc = sqlite3_step(stmt);
-    if (rc == SQLITE_ROW) {
-        strcpy(person->cpf, (const char *)sqlite3_column_text(stmt, 0));
-        strcpy(person->name, (const char *)sqlite3_column_text(stmt, 1));
-        person->age = sqlite3_column_int(stmt, 2);
-        strcpy(person->healthStatus, (const char *)sqlite3_column_text(stmt, 3));
-        strcpy(person->needs, (const char *)sqlite3_column_text(stmt, 4));
-        person->gender = sqlite3_column_int(stmt, 5);
-        sqlite3_finalize(stmt);
-        sqlite3_close(db);
-        return true;
-    } else {
-        fprintf(stderr, "No person found with CPF: %s\n", cpf);
-    }
+	rc = sqlite3_step(stmt);
+	if (rc == SQLITE_ROW) {
+		strcpy(person->cpf, (const char *)sqlite3_column_text(stmt, 0));
+		strcpy(person->name, (const char *)sqlite3_column_text(stmt, 1));
+		person->age = sqlite3_column_int(stmt, 2);
+		strcpy(person->health_status, (const char *)sqlite3_column_text(stmt, 3));
+		strcpy(person->needs, (const char *)sqlite3_column_text(stmt, 4));
+		person->gender = sqlite3_column_int(stmt, 5);
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return true;
+	} else {
+		fprintf(stderr, "No person found with CPF: %s\n", cpf);
+	}
 
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-    return false;
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	return false;
 }
 
 void db_get_all_persons()
@@ -268,11 +308,11 @@ void db_get_all_persons()
 		const char *cpf = (const char *)sqlite3_column_text(stmt, 0);
 		const char *name = (const char *)sqlite3_column_text(stmt, 1);
 		int age = sqlite3_column_int(stmt, 2);
-		const char *healthStatus = (const char *)sqlite3_column_text(stmt, 3);
+		const char *health_status = (const char *)sqlite3_column_text(stmt, 3);
 		const char *needs = (const char *)sqlite3_column_text(stmt, 4);
 		int gender = sqlite3_column_int(stmt, 5);
 
-		printf("| %-11s | %-42s | %-3d | %-42s | %-42s | %-6s |\n", cpf, name, age, healthStatus, needs,
+		printf("| %-11s | %-42s | %-3d | %-42s | %-42s | %-6s |\n", cpf, name, age, health_status, needs,
 			   (gender == 0 ? "Other" : (gender == 1 ? "Male" : "Female")));
 		printf(
 			"+-------------+--------------------------------------------+-----+--------------------------------------"

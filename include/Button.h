@@ -5,13 +5,15 @@
 
 #include <stdbool.h>
 
-struct Button {
-    Rectangle bounds;
-    const char* label;
+struct button {
+	Rectangle bounds;
+	const char *label;
 };
 
-struct Button buttonInit(Rectangle bounds, const char* label);
+// If no width (bounds.width) is specified when initiating the button, or a width which is less than the text width of
+// label, then this will calculate and pass to the button width the width of the text
+struct button button_init(Rectangle bounds, const char *label);
 
-int buttonDrawUpdt(struct Button *button);
+int button_draw_updt(struct button *button);
 
-#endif //BUTTON_H
+#endif // BUTTON_H

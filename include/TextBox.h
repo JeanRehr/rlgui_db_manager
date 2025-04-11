@@ -5,22 +5,22 @@
 
 #include "CONSTANTS.h"
 
-enum InputType {
+enum input_type {
 	INPUT_INTEGER = 0,
 	INPUT_TEXT,
 };
 
-struct Textbox {
+struct textbox {
 	Rectangle bounds;
 	char input[MAX_INPUT];
-	bool editMode;
+	bool edit_mode;
 	const char *label;
-	enum InputType type;
-	int maxLengthIntInput;
+	enum input_type type;
+	int max_len_int_input;
 };
 
-struct Textbox textBoxInit(Rectangle bounds, const char *label, enum InputType type, int maxLengthIntInput);
+struct textbox textbox_init(Rectangle bounds, const char *label, enum input_type type, int max_len_int_input);
 
-void textBoxDraw(struct Textbox *textbox);
+void textbox_draw(struct textbox *tb);
 
-#endif //TEXTBOX_H
+#endif // TEXTBOX_H

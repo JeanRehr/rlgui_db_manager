@@ -1,15 +1,15 @@
-#include "Person.h"
+#include "person.h"
 #include "CONSTANTS.h"
 
-typedef enum Gender Gender;
+typedef enum gender gender;
 
-typedef struct Person Person;
+typedef struct person person;
 
-Person personInit(char *name, int age, char *healthStatus, char *needs, Gender gender) {
-	Person person = {0};
+person person_init(char *name, int age, char *health_status, char *needs, gender gender) {
+	person person = {0};
 	strcpy(person.name, name);
 	person.age = age;
-	strcpy(person.healthStatus, healthStatus);
+	strcpy(person.health_status, health_status);
 	strcpy(person.needs, needs);
 	person.gender = gender;
 	return person;

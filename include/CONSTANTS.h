@@ -7,6 +7,6 @@
 #define MAX_CPF_LENGTH 12 // +1 for null terminator
 
 // Standard font size to use throughout the program
-#define FONT_SIZE 20
+#define FONT_SIZE 16
 
 #endif // CONSTANTS_H

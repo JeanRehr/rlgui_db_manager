@@ -1,24 +1,26 @@
 #include <raygui.h>
-#include "Dropdownbox.h"
 
-typedef struct Dropdownbox Dropdownbox;
+#include "CONSTANTS.h"
+#include "dropdownbox.h"
 
-Dropdownbox dropDownBoxInit(Rectangle bounds, const char *options, const char *label)
+typedef struct dropdownbox dropdownbox;
+
+dropdownbox dropdownbox_init(Rectangle bounds, const char *options, const char *label)
 {
-	Dropdownbox ddb = {0};
+	dropdownbox ddb = {0};
 	ddb.bounds = bounds;
 	ddb.options = options;
 	ddb.label = label;
-	ddb.activeOption = 0;
-	ddb.editMode = false;
+	ddb.active_option = 0;
+	ddb.edit_mode = false;
 	return ddb;
 }
 
-void dropDownBoxDraw(Dropdownbox *ddb)
+void dropdownbox_draw(dropdownbox *ddb)
 {
-	GuiLabel((Rectangle){ddb->bounds.x, ddb->bounds.y - 20, ddb->bounds.width, 20}, ddb->label);
+	GuiLabel((Rectangle){ddb->bounds.x, ddb->bounds.y - (FONT_SIZE + 5), ddb->bounds.width, 20}, ddb->label);
 
-	if (GuiDropdownBox(ddb->bounds, ddb->options, &ddb->activeOption, ddb->editMode)) {
-		ddb->editMode = !ddb->editMode;
+	if (GuiDropdownBox(ddb->bounds, ddb->options, &ddb->active_option, ddb->edit_mode)) {
+		ddb->edit_mode = !ddb->edit_mode;
 	}
 }

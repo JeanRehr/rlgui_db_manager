@@ -40,50 +40,63 @@
 #include "utilsfn.h"
 
 #include "db_manager.h"
-#include "Person.h"
-#include "Textbox.h"
-#include "Dropdownbox.h"
-#include "Button.h"
+#include "person.h"
+#include "textbox.h"
+#include "dropdownbox.h"
+#include "button.h"
 
 int TOTAL_PERSONS; // Total number of persons in the database, used for tracking
 
 // typedefs
-typedef struct Textbox Textbox;
-typedef struct Dropdownbox Dropdownbox;
-typedef struct Button Button;
-typedef struct Person Person;
+typedef struct textbox textbox;
+typedef struct dropdownbox dropdownbox;
+typedef struct button button;
+typedef struct person person;
 
 // FOOD
 
-typedef struct FoodItem {
+typedef struct food_item {
 	char name[MAX_INPUT];
 	int quantity;
-	char expirationDate[11]; // ISO 8601 format 2000-12-31
-} FoodItem;
+	char expiration_date[11]; // ISO 8601 format 2000-12-31
+} food_item;
 
 // END FOOD
 
-// To manage the state of the insert person screen
-typedef struct INSERT_PERSON_UIElements {
-	Textbox tbName;
-	Textbox tbCpf;
-	Textbox tbAge;
-	Textbox tbHealthStatus;
-	Textbox tbNeeds;
+// To manage the state of the main menu screen
+typedef struct main_menu_ui_elemnts {
+	Rectangle menu_title_bounds;
+	button reg_person_butn;
+	button reg_food_Butn;
+} main_menu_ui_elemnts;
 
-	Dropdownbox ddbGender;
+// To manage the state of the register person screen
+typedef struct register_person_ui_elemnts {
+	Rectangle menu_title_bounds;
+	textbox tb_name;
+	textbox tb_cpf;
+	textbox tb_age;
+	textbox tb_health_status;
+	textbox tb_needs;
 
-	Button buttonBack;
-	Button buttonSubmit;
-	Button buttonRetrieve;
+	dropdownbox ddb_gender;
 
-	bool showHealthPopup;
-	bool showNeedsPopup;
-	Rectangle panelBounds;	
-	Person personRetrieved;
-} INSERT_PERSON_UIElements;
+	button butn_back;
+	button butn_submit;
+	button butn_retrieve;
+	button butn_delete;
+	button butn_retrieve_all;
 
-typedef enum ErrorCode {
+	bool show_health_popup;
+	bool show_needs_popup;
+	bool show_confirmation_del_popup;
+	Rectangle panel_bounds;	
+	person person_retrieved;
+} register_person_ui_elemnts;
+
+// To manage the state of the register food screen
+
+typedef enum error_code {
 	NIL = 0,
 	NO_ERROR,
 	ERROR_DATABASE,
@@ -91,21 +104,23 @@ typedef enum ErrorCode {
 	ERROR_CPF_EMPTY,
 	ERROR_CPF_ALERADY_EXISTS,
 	ERROR_CPF_NOT_FOUND,
-} ErrorCode;
+} error_code;
 
-typedef enum AppState {
+typedef enum app_state {
 	STATE_MAIN_MENU = 0,
-	STATE_INSERT_PERSON,
-	STATE_INSERT_FOOD,
-} AppState;
+	STATE_REGISTER_PERSON,
+	STATE_REGISTER_FOOD,
+} app_state;
 
 int window_width = 1600;
 int window_height = 800;
 
-int visualStyleActive = 0;
-int prevVisualStyleActive = 0;
+int active_style = 8; // Set default style to dark
+int prev_active_style = 7;
 
-void DrawInsertPersonScreen(INSERT_PERSON_UIElements *ui, AppState *state, ErrorCode *error);
+void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_code *error);
+
+void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error);
 
 int main()
 {
@@ -120,106 +135,127 @@ int main()
 		return -1;
 	}
 
-	GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
-	int fontSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
+	GuiSetStyle(DEFAULT, TEXT_SIZE, FONT_SIZE);
 
 	SetTargetFPS(60);
 
-	// Start initializing the insert person screen in order as they appear
+	// Start initializing the register food screen
 
-	INSERT_PERSON_UIElements insertPersonUIScreen;
+	main_menu_ui_elemnts main_menu_screen;
+	
+	main_menu_screen.menu_title_bounds = (Rectangle) {20, 20, 120, 30};
+	main_menu_screen.reg_person_butn = button_init((Rectangle){20, main_menu_screen.menu_title_bounds.y + main_menu_screen.menu_title_bounds.height, 100, 30}, "Register Person");
+	main_menu_screen.reg_food_Butn = button_init((Rectangle){main_menu_screen.reg_person_butn.bounds.x + main_menu_screen.reg_person_butn.bounds.width + 10, main_menu_screen.reg_person_butn.bounds.y, 100, 30}, "Register Food");
 
-	insertPersonUIScreen.buttonBack = buttonInit((Rectangle) {20, 20, 100, 30}, "Back");
-	insertPersonUIScreen.tbName = textBoxInit(
-		(Rectangle){20, insertPersonUIScreen.buttonBack.bounds.height + fontSize + 30, 300, 30},
+	// End initializing the register food screen
+
+	// Start initializing the register person screen in order as they appear from top-down top-left
+
+	register_person_ui_elemnts register_person_screen;
+
+	register_person_screen.menu_title_bounds = (Rectangle) {20, 20, 200, 16};
+
+	register_person_screen.butn_back = button_init((Rectangle) {20, register_person_screen.menu_title_bounds.y + (register_person_screen.menu_title_bounds.height * 2), 0, 30}, "Back");
+	register_person_screen.tb_name = textbox_init(
+		(Rectangle){20, register_person_screen.butn_back.bounds.y + (register_person_screen.butn_back.bounds.height * 2), 300, 30},
 		"Name:",
 		INPUT_TEXT,
 		0
 	);
-	insertPersonUIScreen.tbCpf = textBoxInit(
-		(Rectangle){20, insertPersonUIScreen.tbName.bounds.y + insertPersonUIScreen.tbName.bounds.height + fontSize + 10, 300, 30},
+	register_person_screen.tb_cpf = textbox_init(
+		(Rectangle){20, register_person_screen.tb_name.bounds.y + (register_person_screen.tb_name.bounds.height * 2), 300, 30},
 		"CPF:",
 		INPUT_INTEGER,
 		11
 	);
-	insertPersonUIScreen.tbAge = textBoxInit(
-		(Rectangle){20, insertPersonUIScreen.tbCpf.bounds.y + insertPersonUIScreen.tbCpf.bounds.height + fontSize + 10, 300, 30},
+	register_person_screen.tb_age = textbox_init(
+		(Rectangle){20, register_person_screen.tb_cpf.bounds.y + (register_person_screen.tb_cpf.bounds.height * 2), 300, 30},
 		"Age:",
 		INPUT_INTEGER,
 		3
 	);
-	insertPersonUIScreen.tbHealthStatus = textBoxInit(
-		(Rectangle){20, insertPersonUIScreen.tbAge.bounds.y + insertPersonUIScreen.tbAge.bounds.height + fontSize + 10, 300, 30},
+	register_person_screen.tb_health_status = textbox_init(
+		(Rectangle){20, register_person_screen.tb_age.bounds.y + (register_person_screen.tb_age.bounds.height * 2), 300, 30},
 		"Health Status:",
 		INPUT_TEXT,
 		0
 	);
-	insertPersonUIScreen.tbNeeds = textBoxInit(
-		(Rectangle){20, insertPersonUIScreen.tbHealthStatus.bounds.y + insertPersonUIScreen.tbHealthStatus.bounds.height + fontSize + 10, 300, 30}, 
+	register_person_screen.tb_needs = textbox_init(
+		(Rectangle){20, register_person_screen.tb_health_status.bounds.y + (register_person_screen.tb_health_status.bounds.height * 2), 300, 30}, 
 		"Needs:",
 		INPUT_TEXT,
 		0
 	);
-	insertPersonUIScreen.ddbGender = dropDownBoxInit(
-		(Rectangle){20, insertPersonUIScreen.tbNeeds.bounds.y + insertPersonUIScreen.tbNeeds.bounds.height + fontSize + 10, 200, 30},
+
+	register_person_screen.ddb_gender = dropdownbox_init(
+		(Rectangle){20, register_person_screen.tb_needs.bounds.y + (register_person_screen.tb_needs.bounds.height * 2), 200, 30},
 		"Other;Male;Female",
 		"Gender"
 	);
-	insertPersonUIScreen.buttonSubmit = buttonInit((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
-	insertPersonUIScreen.buttonRetrieve = buttonInit((Rectangle) {insertPersonUIScreen.buttonSubmit.bounds.x + insertPersonUIScreen.buttonSubmit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
-	insertPersonUIScreen.showHealthPopup = false;
-	insertPersonUIScreen.showNeedsPopup = false;
-    memset(&insertPersonUIScreen.personRetrieved, 0, sizeof(Person));
-	// Only set the bounds of the panel, draw everything inside based on it on the draw insert person screen function
-	insertPersonUIScreen.panelBounds = (Rectangle) {window_width / 2 - 200, 10, 275, 200};
 
-	// End initializing the insert person screen
+	register_person_screen.butn_submit = button_init((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
+	register_person_screen.butn_retrieve = button_init((Rectangle) {register_person_screen.butn_submit.bounds.x + register_person_screen.butn_submit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
+	register_person_screen.butn_delete = button_init((Rectangle) {register_person_screen.butn_retrieve.bounds.x + register_person_screen.butn_retrieve.bounds.width + 10, window_height - 100, 100, 30}, "Delete");
+	register_person_screen.butn_retrieve_all = button_init((Rectangle) {register_person_screen.butn_delete.bounds.x + register_person_screen.butn_delete.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve All");
+	
+	register_person_screen.show_health_popup = false;
+	register_person_screen.show_needs_popup = false;
+	
+	register_person_screen.show_confirmation_del_popup = false;
+	memset(&register_person_screen.person_retrieved, 0, sizeof(person));
+	
+	// Only set the bounds of the panel, draw everything inside based on it on the draw register person screen function
+	register_person_screen.panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 275, 200};
 
-	Rectangle styleOptionsBounds = {window_width - 130, 30, 120, 30};
-	Rectangle styleOptionsLabelBounds = {styleOptionsBounds.x, styleOptionsBounds.y - 25, styleOptionsBounds.width, 20};
+	// End initializing the register person screen
+
+	// Rectangle bounds for the style selector box, it is persistent across all screens
+	Rectangle style_options_bounds = {window_width - 130, 30, 120, 30};
+	Rectangle style_options_label = {style_options_bounds.x, style_options_bounds.y - 25, style_options_bounds.width, 20};
 
 	// Setting the initial state for screen and error code
-	ErrorCode error = NIL;
-	AppState appState = STATE_MAIN_MENU;
+	error_code error = NIL;
+	app_state app_state = STATE_MAIN_MENU;
 
 	while (!WindowShouldClose()) {
 		// Update
 		//----------------------------------------------------------------------------------
-		GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
+		GuiSetStyle(DEFAULT, TEXT_SIZE, FONT_SIZE);
 
 		if (IsWindowResized()) {
 			window_width = GetScreenWidth();
 			window_height = GetScreenHeight();
-			insertPersonUIScreen.buttonSubmit.bounds.y = window_height - 100;
-			insertPersonUIScreen.buttonRetrieve.bounds.y = window_height - 100;
-			insertPersonUIScreen.panelBounds.x = window_width / 2 - 200;
-			styleOptionsBounds.x = window_width - 130;
+			register_person_screen.butn_submit.bounds.y = window_height - 100;
+			register_person_screen.butn_retrieve.bounds.y = window_height - 100;
+			register_person_screen.butn_delete.bounds.y = window_height - 100;
+			register_person_screen.butn_retrieve_all.bounds.y = window_height - 100;
+			register_person_screen.panel_bounds.x = window_width / 2 - 200;
+			style_options_bounds.x = window_width - 130;
+			style_options_label.x = style_options_bounds.x;
 		}
 
-		if (visualStyleActive != prevVisualStyleActive)
-        {
-            // Reset to default internal style
-            // NOTE: Required to unload any previously loaded font texture
-            GuiLoadStyleDefault();
+		if (active_style != prev_active_style) {
+			// Reset to default internal style
+			// NOTE: Required to unload any previously loaded font texture
+			GuiLoadStyleDefault();
 
-            switch (visualStyleActive)
-            {
-                case 1: GuiLoadStyleJungle(); break;
-                case 2: GuiLoadStyleCandy(); break;
-                case 3: GuiLoadStyleLavanda(); break;
-                case 4: GuiLoadStyleCyber(); break;
-                case 5: GuiLoadStyleTerminal(); break;
-                case 6: GuiLoadStyleAshes(); break;
-                case 7: GuiLoadStyleBluish(); break;
-                case 8: GuiLoadStyleDark(); break;
-                case 9: GuiLoadStyleCherry(); break;
-                case 10: GuiLoadStyleSunny(); break;
-                case 11: GuiLoadStyleEnefete(); break;
-                default: break;
-            }
+			switch (active_style) {
+				case 1: GuiLoadStyleJungle(); break;
+				case 2: GuiLoadStyleCandy(); break;
+				case 3: GuiLoadStyleLavanda(); break;
+				case 4: GuiLoadStyleCyber(); break;
+				case 5: GuiLoadStyleTerminal(); break;
+				case 6: GuiLoadStyleAshes(); break;
+				case 7: GuiLoadStyleBluish(); break;
+				case 8: GuiLoadStyleDark(); break;
+				case 9: GuiLoadStyleCherry(); break;
+				case 10: GuiLoadStyleSunny(); break;
+				case 11: GuiLoadStyleEnefete(); break;
+				default: break;
+			}
 
-            prevVisualStyleActive = visualStyleActive;
-        }
+			prev_active_style = active_style;
+		}
 		//----------------------------------------------------------------------------------
 
 		// Draw
@@ -228,28 +264,24 @@ int main()
 		ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
 
 		// Visuals options
-		GuiLabel(styleOptionsLabelBounds, "Style:");
-		GuiComboBox(styleOptionsBounds, "default;Jungle;Candy;Lavanda;Cyber;Terminal;Ashes;Bluish;Dark;Cherry;Sunny;Enefete", &visualStyleActive);
+		GuiLabel(style_options_label, "Style:");
+		GuiComboBox(style_options_bounds, "default;Jungle;Candy;Lavanda;Cyber;Terminal;Ashes;Bluish;Dark;Cherry;Sunny;Enefete", &active_style);
 
-		switch (appState) {
-        case STATE_MAIN_MENU:
-            // Draw main menu
-            GuiLabel((Rectangle){20, 20, 120, 30}, "Main Menu");
-            if (GuiButton((Rectangle){20, 60, 120, 30}, "Insert Person")) {
-                appState = STATE_INSERT_PERSON;
-            }
-            break;
-        
-        case STATE_INSERT_PERSON:
-            DrawInsertPersonScreen(&insertPersonUIScreen, &appState, &error);
-            break;
+		switch (app_state) {
+		case STATE_MAIN_MENU:
+			draw_main_menu_screen(&main_menu_screen, &app_state, &error);
+			break;
 		
-		case STATE_INSERT_FOOD:
+		case STATE_REGISTER_PERSON:
+			draw_register_person_screen(&register_person_screen, &app_state, &error);
+			break;
+		
+		case STATE_REGISTER_FOOD:
 			break;
 
-        default:
-            break;
-	    }
+		default:
+			break;
+		}
 
 		EndDrawing();
 		//----------------------------------------------------------------------------------
@@ -262,66 +294,92 @@ int main()
 	return 0;
 }
 
-void DrawInsertPersonScreen(INSERT_PERSON_UIElements *ui, AppState *state, ErrorCode *error) {
-
+void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_code *error)
+{
 	// Start draw UI elements
+	GuiLabel(ui->menu_title_bounds, "Main Menu");
+	// End draw UI elements
 
-	textBoxDraw(&ui->tbName);
-	textBoxDraw(&ui->tbCpf);
-	textBoxDraw(&ui->tbAge);
-
-	dropDownBoxDraw(&ui->ddbGender);
-
-	textBoxDraw(&ui->tbHealthStatus);
-	textBoxDraw(&ui->tbNeeds);
-
-	// Info Panel
-	GuiPanel(ui->panelBounds, TextFormat("CPF info retrieved: %s", ui->personRetrieved.cpf));
-	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 30, 280, 20}, TextFormat("Name: %s", ui->personRetrieved.name));
-	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 60, 280, 20}, TextFormat("Age: %d", ui->personRetrieved.age));
-
-	if (GuiButton((Rectangle){ui->panelBounds.x + 10 + 235, ui->panelBounds.y + 90, 20, 20}, "?")) {ui->showHealthPopup = true;}
-	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 90, 280, 20}, TextFormat("Health Status: %.15s...", ui->personRetrieved.healthStatus));
-	
-	if (GuiButton((Rectangle){ui->panelBounds.x + 10 + 235, ui->panelBounds.y + 120, 20, 20}, "?")) {ui->showNeedsPopup = true;}
-	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 120, 280, 20}, TextFormat("Needs: %.15s...", ui->personRetrieved.needs));
-
-	GuiLabel((Rectangle){ui->panelBounds.x + 10, ui->panelBounds.y + 150, 280, 20}, TextFormat("Gender: %s", ui->personRetrieved.gender == GENDER_OTHER ? "Other" : ui->personRetrieved.gender == GENDER_MALE ? "Male" : "Female"));
-	
-	if (ui->showHealthPopup) {
-		char wrappedText[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
-		WrapText(ui->personRetrieved.healthStatus, wrappedText, 35);
-		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 250},
-								   "#191#Full Health Status", wrappedText, "Close");
-		if (result >= 0) ui->showHealthPopup = false;  // Close popup when "Close" is pressed
+	// Start button actions
+	if (button_draw_updt(&ui->reg_person_butn)) {
+		*state = STATE_REGISTER_PERSON;
 	}
 
-	if (ui->showNeedsPopup) {
-		char wrappedText[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
-		WrapText(ui->personRetrieved.needs, wrappedText, 35);
-		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2, 300, 250},
-								   "#191#Full Needs", wrappedText, "Close");
-		if (result >= 0) ui->showNeedsPopup = false;  // Close popup when "Close" is pressed
+	if (button_draw_updt(&ui->reg_food_Butn)) {
+		// Screen not yet implemented
+	}
+	// End button actions
+
+	// Start show warning/error boxes
+	// End show warning/error boxes
+}
+
+void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error)
+{
+	// Start draw UI elements
+
+	GuiLabel(ui->menu_title_bounds, "Register Person menu");
+
+	textbox_draw(&ui->tb_name);
+	textbox_draw(&ui->tb_cpf);
+	textbox_draw(&ui->tb_age);
+
+	dropdownbox_draw(&ui->ddb_gender);
+
+	textbox_draw(&ui->tb_health_status);
+	textbox_draw(&ui->tb_needs);
+
+	// Info Panel
+	GuiPanel(ui->panel_bounds, TextFormat("CPF info retrieved: %s", ui->person_retrieved.cpf));
+	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 30, 280, 20}, TextFormat("Name: %s", ui->person_retrieved.name));
+	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 60, 280, 20}, TextFormat("Age: %d", ui->person_retrieved.age));
+
+	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 90, 280, 20}, TextFormat("Health Status: %.15s...", ui->person_retrieved.health_status));
+	if (GuiButton((Rectangle){ui->panel_bounds.x + 10 + 235, ui->panel_bounds.y + 90, 20, 20}, "?")) {
+		ui->show_health_popup = true;
+	}
+
+	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 120, 280, 20}, TextFormat("Needs: %.15s...", ui->person_retrieved.needs));
+	if (GuiButton((Rectangle){ui->panel_bounds.x + 10 + 235, ui->panel_bounds.y + 120, 20, 20}, "?")) {
+		ui->show_needs_popup = true;
+	}
+
+	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 150, 280, 20}, TextFormat("Gender: %s", ui->person_retrieved.gender == GENDER_OTHER ? "Other" : ui->person_retrieved.gender == GENDER_MALE ? "Male" : "Female"));
+	
+	if (ui->show_health_popup) {
+		char wrapped_text[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
+		wrap_text(ui->person_retrieved.health_status, wrapped_text, 35);
+		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 300},
+								   "#191#Full Health Status", wrapped_text, "Close");
+		if (result >= 0) ui->show_health_popup = false;
+	}
+
+	if (ui->show_needs_popup) {
+		char wrapped_text[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
+		wrap_text(ui->person_retrieved.needs, wrapped_text, 35);
+		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2, 300, 300},
+								   "#191#Full Needs", wrapped_text, "Close");
+		if (result >= 0) ui->show_needs_popup = false;
 	}
 
 	// End draw UI elements
 
 	// Start button actions
 
-	if (buttonDrawUpdt(&ui->buttonBack)) {
+	if (button_draw_updt(&ui->butn_back)) {
 		*state = STATE_MAIN_MENU;
 	}
 
-	if (buttonDrawUpdt(&ui->buttonSubmit)) {
-		if (*ui->tbCpf.input == '\0') {
+	if (button_draw_updt(&ui->butn_submit)) {
+		if (*ui->tb_cpf.input == '\0') {
 			*error = ERROR_CPF_EMPTY;
 			fprintf(stderr, "CPF must not be empty.\n");
-		} else if (!isValidIntegerInput(ui->tbCpf.input, 11, 11)) {
+		} else if (!is_valid_integer_input(ui->tb_cpf.input, 11, 11)) {
 			*error = ERROR_CPF_NOT_VALID;
 			fprintf(stderr, "CPF must be 11 digits.\n");
-		} else if (db_check_cpf_exists(ui->tbCpf.input)) {
+		} else if (db_check_cpf_exists(ui->tb_cpf.input)) {
 			*error = ERROR_CPF_ALERADY_EXISTS;
-		} else if (db_insert_person(ui->tbCpf.input, ui->tbName.input, atoi(ui->tbAge.input), ui->tbHealthStatus.input, ui->tbNeeds.input, ui->ddbGender.activeOption) != SQLITE_OK) {
+		} else if (db_insert_person(ui->tb_cpf.input, ui->tb_name.input, atoi(ui->tb_age.input), ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
 			*error = ERROR_DATABASE;
 			fprintf(stderr, "Error submitting to database.\n");
 		} else {
@@ -329,14 +387,21 @@ void DrawInsertPersonScreen(INSERT_PERSON_UIElements *ui, AppState *state, Error
 		}
 	}
 
-	if (buttonDrawUpdt(&ui->buttonRetrieve)) {
-		if (db_get_person_by_cpf(ui->tbCpf.input, &ui->personRetrieved)) {
-			printf("Retrieved Person - Name: %s, Age: %d, Health Status: %s, Needs: %s, Gender: %d\n", ui->personRetrieved.name, ui->personRetrieved.age, ui->personRetrieved.healthStatus, ui->personRetrieved.needs, ui->personRetrieved.gender);
+	if (button_draw_updt(&ui->butn_retrieve)) {
+		if (db_get_person_by_cpf(ui->tb_cpf.input, &ui->person_retrieved)) {
+			printf("Retrieved Person - Name: %s, Age: %d, Health Status: %s, Needs: %s, Gender: %d\n", ui->person_retrieved.name, ui->person_retrieved.age, ui->person_retrieved.health_status, ui->person_retrieved.needs, ui->person_retrieved.gender);
 			*error = NO_ERROR;
 		} else {
 			*error = ERROR_CPF_NOT_FOUND;
-		}
-		
+		}	
+	}
+
+	if (button_draw_updt(&ui->butn_delete)) {
+		ui->show_confirmation_del_popup = true;
+	}
+
+	if (button_draw_updt(&ui->butn_retrieve_all)) {
+		db_get_all_persons();
 	}
 
 	// End button actions
@@ -347,12 +412,23 @@ void DrawInsertPersonScreen(INSERT_PERSON_UIElements *ui, AppState *state, Error
 	if (*error == ERROR_CPF_ALERADY_EXISTS) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
 		if (result == 1) {
-			if (db_update_person(ui->tbCpf.input, ui->tbName.input, atoi(ui->tbAge.input), ui->tbHealthStatus.input, ui->tbNeeds.input, ui->ddbGender.activeOption) != SQLITE_OK) {
+			if (db_update_person(ui->tb_cpf.input, ui->tb_name.input, atoi(ui->tb_age.input), ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
 				*error = ERROR_DATABASE;
 			}
 		}
 		if (result >= 0) {
 			*error = NO_ERROR;
+		}
+	}
+
+	// In case deleting person
+	if (ui->show_confirmation_del_popup) {
+		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Deleting Person!", "Are you sure you want to delete?", "Yes, delete;NO");
+		if (result == 1) {
+			db_delete_person_by_cpf(ui->tb_cpf.input);
+		}
+		if (result >= 0) {
+			ui->show_confirmation_del_popup = false;
 		}
 	}
 
@@ -382,11 +458,11 @@ void DrawInsertPersonScreen(INSERT_PERSON_UIElements *ui, AppState *state, Error
 
 	// Clear the text buffer after handling everything
 	if (*error == NO_ERROR) {
-		ui->tbName.input[0] = '\0';
-		ui->tbCpf.input[0] = '\0';
-		ui->tbAge.input[0] = '\0';
-		ui->tbHealthStatus.input[0] = '\0';
-		ui->tbNeeds.input[0] = '\0';
+		ui->tb_name.input[0] = '\0';
+		ui->tb_cpf.input[0] = '\0';
+		ui->tb_age.input[0] = '\0';
+		ui->tb_health_status.input[0] = '\0';
+		ui->tb_needs.input[0] = '\0';
 		*error = NIL;
 	}
 }

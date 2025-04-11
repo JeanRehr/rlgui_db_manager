@@ -5,21 +5,21 @@
 
 #include "CONSTANTS.h"
 
-enum Gender {
+enum gender {
 	GENDER_OTHER = 0,
 	GENDER_MALE,
 	GENDER_FEMALE
 };
 
-struct Person {
+struct person {
 	const char cpf[MAX_CPF_LENGTH];
 	char name[MAX_INPUT];
 	int age;
-	char healthStatus[MAX_INPUT];
+	char health_status[MAX_INPUT];
 	char needs[MAX_INPUT];
-	enum Gender gender;
+	enum gender gender;
 };
 
-struct Person personInit(char *name, int age, char *healthStatus, char *needs, enum Gender gender);
+struct person person_init(char *name, int age, char *health_status, char *needs, enum gender gender);
 
 #endif // PERSON_H

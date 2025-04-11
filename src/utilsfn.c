@@ -6,16 +6,16 @@
 #include "CONSTANTS.h"
 
 // Validate if integer input is between valid range of digits
-bool isValidIntegerInput(const char *input, const int minLength, const int maxLength)
+bool is_valid_integer_input(const char *input, const int min_len, const int max_len)
 {
     int length = strlen(input);
-    return length >= minLength && length <= maxLength;
+    return length >= min_len && length <= max_len;
 }
 
 // The function takes a block of text (input) and attempts to format it into multiple lines with a maximum width (maxWidth).
 // Constructs the wrapped text into the output buffer, inserting newline characters (\n) where line breaks are made.
 // The buffer output must be larger than the initial input due to the newlines
-void WrapText(const char *input, char *output, int maxWidth) {
+void wrap_text(const char *input, char *output, int maxWidth) {
     int length = strlen(input);
     int lineStart = 0;
     int outputIndex = 0;
@@ -48,14 +48,14 @@ void WrapText(const char *input, char *output, int maxWidth) {
 }
 
 // Function to filter integer input, max length will prevent the input from getting past the chosen number
-// Input will only get written with digits, while it is less than maxlength
-void filterIntegerInput(char *input, const int maxLength)
+// Input will only get written with digits, while it is less than max_len
+void filter_integer_input(char *input, const int max_len)
 {
 	int index = 0;
 	char filtered[MAX_INPUT] = {0};
 
 	for (int i = 0; input[i] != '\0'; i++) {
-		if (isdigit(input[i]) && index < maxLength) {
+		if (isdigit(input[i]) && index < max_len) {
 			filtered[index++] = input[i];
 			if (index >= MAX_INPUT) {
 				break;

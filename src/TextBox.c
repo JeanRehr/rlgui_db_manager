@@ -1,40 +1,42 @@
 #include <raygui.h>
 #include <string.h>
 
+#include "CONSTANTS.h"
 #include "Textbox.h"
 #include "utilsfn.h"
 
-typedef enum InputType InputType;
+typedef enum input_type input_type;
 
-typedef struct Textbox Textbox;
+typedef struct textbox textbox;
 
-Textbox textBoxInit(Rectangle bounds, const char *label, enum InputType type, int maxLengthIntInput)
+textbox textbox_init(Rectangle bounds, const char *label, enum input_type type, int max_len_int_input)
 {
-	Textbox textbox = {0}; // Initialize struct with zeroed memory
+	textbox textbox = {0}; // Initialize struct with zeroed memory
 	// input already initialized to 0 with above
 	textbox.bounds = bounds;
-	textbox.editMode = false;
+	textbox.edit_mode = false;
 	textbox.label = label;
 	textbox.type = type;
-	textbox.maxLengthIntInput = maxLengthIntInput;
+	textbox.max_len_int_input = max_len_int_input;
 	return textbox;
 }
 
-void textBoxDraw(Textbox *textbox)
+void textbox_draw(textbox *textbox)
 {
 	// Draw label above the textbox
-	GuiLabel((Rectangle){textbox->bounds.x, textbox->bounds.y - 20, textbox->bounds.width, 20}, textbox->label);
+	GuiLabel((Rectangle){textbox->bounds.x, textbox->bounds.y - (FONT_SIZE + 5), textbox->bounds.width, 20},
+			 textbox->label);
 
 	// Draw and manage textbox
-	if (GuiTextBox(textbox->bounds, textbox->input, MAX_INPUT, textbox->editMode)) {
-		textbox->editMode = !textbox->editMode;
+	if (GuiTextBox(textbox->bounds, textbox->input, MAX_INPUT, textbox->edit_mode)) {
+		textbox->edit_mode = !textbox->edit_mode;
 	}
 
 	// Filter input based on the specified type
-	if (textbox->editMode) {
+	if (textbox->edit_mode) {
 		switch (textbox->type) {
 		case INPUT_INTEGER:
-			filterIntegerInput(textbox->input, textbox->maxLengthIntInput);
+			filter_integer_input(textbox->input, textbox->max_len_int_input);
 			break;
 		case INPUT_TEXT:
 			// No filtering needed for general text

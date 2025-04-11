@@ -4,16 +4,16 @@
 #include <raylib.h>
 #include <stdbool.h>
 
-struct Dropdownbox {
+struct dropdownbox {
 	Rectangle bounds;
 	const char *options;
 	const char *label;
-	int activeOption;
-	bool editMode;
+	int active_option;
+	bool edit_mode;
 };
 
-struct Dropdownbox dropDownBoxInit(Rectangle bounds, const char *options, const char *label);
+struct dropdownbox dropdownbox_init(Rectangle bounds, const char *options, const char *label);
 
-void dropDownBoxDraw(struct Dropdownbox *ddb);
+void dropdownbox_draw(struct dropdownbox *ddb);
 
-#endif //DROPDOWNBOX_H
+#endif // DROPDOWNBOX_H
