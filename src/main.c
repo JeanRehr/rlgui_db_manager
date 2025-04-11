@@ -87,23 +87,27 @@ typedef struct register_person_ui_elemnts {
 	button butn_delete;
 	button butn_retrieve_all;
 
-	bool show_health_popup;
-	bool show_needs_popup;
-	bool show_confirmation_del_popup;
 	Rectangle panel_bounds;	
 	person person_retrieved;
 } register_person_ui_elemnts;
 
 // To manage the state of the register food screen
 
+typedef enum flags_popup {
+	FLAG_NONE = 0, // No flags set
+	FLAG_SHOW_HEALTH = 1 << 0, // 0001: Show Health popup
+	FLAG_SHOW_NEEDS = 1 << 1, // 0010: Show Needs popup
+	FLAG_CONFIRM_DELETE = 1 << 2, // 0100: Confirm deletion
+	FLAG_OPERATION_DONE = 1 << 3, // 1000: Submission completed
+	FLAG_CPF_EXISTS = 1 << 4,
+	FLAG_CPF_NOT_FOUND = 1 << 5,
+	FLAG_INPUT_CPF_EMPTY = 1 << 6,
+	FLAG_CPF_NOT_VALID = 1 << 7,
+} flags_popup;
+
 typedef enum error_code {
-	NIL = 0,
-	NO_ERROR,
+	NO_ERROR = 0,
 	ERROR_DATABASE,
-	ERROR_CPF_NOT_VALID,
-	ERROR_CPF_EMPTY,
-	ERROR_CPF_ALERADY_EXISTS,
-	ERROR_CPF_NOT_FOUND,
 } error_code;
 
 typedef enum app_state {
@@ -118,9 +122,16 @@ int window_height = 800;
 int active_style = 8; // Set default style to dark
 int prev_active_style = 7;
 
+// Utility functions for flags
+static inline void set_flag(flags_popup *flags, flags_popup flag);
+
+static inline void clear_flag(flags_popup *flags, flags_popup flag);
+
+static inline bool is_flag_set(flags_popup *flags, flags_popup flag);
+
 void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_code *error);
 
-void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error);
+void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flags);
 
 int main()
 {
@@ -197,11 +208,7 @@ int main()
 	register_person_screen.butn_retrieve = button_init((Rectangle) {register_person_screen.butn_submit.bounds.x + register_person_screen.butn_submit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
 	register_person_screen.butn_delete = button_init((Rectangle) {register_person_screen.butn_retrieve.bounds.x + register_person_screen.butn_retrieve.bounds.width + 10, window_height - 100, 100, 30}, "Delete");
 	register_person_screen.butn_retrieve_all = button_init((Rectangle) {register_person_screen.butn_delete.bounds.x + register_person_screen.butn_delete.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve All");
-	
-	register_person_screen.show_health_popup = false;
-	register_person_screen.show_needs_popup = false;
-	
-	register_person_screen.show_confirmation_del_popup = false;
+
 	memset(&register_person_screen.person_retrieved, 0, sizeof(person));
 	
 	// Only set the bounds of the panel, draw everything inside based on it on the draw register person screen function
@@ -214,8 +221,9 @@ int main()
 	Rectangle style_options_label = {style_options_bounds.x, style_options_bounds.y - 25, style_options_bounds.width, 20};
 
 	// Setting the initial state for screen and error code
-	error_code error = NIL;
+	error_code error = NO_ERROR;
 	app_state app_state = STATE_MAIN_MENU;
+	flags_popup flags_popup = FLAG_NONE;
 
 	while (!WindowShouldClose()) {
 		// Update
@@ -273,7 +281,7 @@ int main()
 			break;
 		
 		case STATE_REGISTER_PERSON:
-			draw_register_person_screen(&register_person_screen, &app_state, &error);
+			draw_register_person_screen(&register_person_screen, &app_state, &error, &flags_popup);
 			break;
 		
 		case STATE_REGISTER_FOOD:
@@ -292,6 +300,19 @@ int main()
 	CloseWindow();
 	//--------------------------------------------------------------------------------------
 	return 0;
+}
+
+// Utility functions for flags
+static inline void set_flag(flags_popup *flags, flags_popup flag) {
+	*flags |= flag;
+}
+
+static inline void clear_flag(flags_popup *flags, flags_popup flag) {
+	*flags &= ~flag;
+}
+
+static inline bool is_flag_set(flags_popup *flags, flags_popup flag) {
+	return (*flags & flag) != 0;
 }
 
 void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_code *error)
@@ -314,7 +335,7 @@ void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_cod
 	// End show warning/error boxes
 }
 
-void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error)
+void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flag)
 {
 	// Start draw UI elements
 
@@ -336,30 +357,30 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 90, 280, 20}, TextFormat("Health Status: %.15s...", ui->person_retrieved.health_status));
 	if (GuiButton((Rectangle){ui->panel_bounds.x + 10 + 235, ui->panel_bounds.y + 90, 20, 20}, "?")) {
-		ui->show_health_popup = true;
+		set_flag(flag, FLAG_SHOW_HEALTH);
 	}
 
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 120, 280, 20}, TextFormat("Needs: %.15s...", ui->person_retrieved.needs));
 	if (GuiButton((Rectangle){ui->panel_bounds.x + 10 + 235, ui->panel_bounds.y + 120, 20, 20}, "?")) {
-		ui->show_needs_popup = true;
+		set_flag(flag, FLAG_SHOW_NEEDS);
 	}
 
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 150, 280, 20}, TextFormat("Gender: %s", ui->person_retrieved.gender == GENDER_OTHER ? "Other" : ui->person_retrieved.gender == GENDER_MALE ? "Male" : "Female"));
 	
-	if (ui->show_health_popup) {
+	if (is_flag_set(flag, FLAG_SHOW_HEALTH)) {
 		char wrapped_text[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
 		wrap_text(ui->person_retrieved.health_status, wrapped_text, 35);
 		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 300},
 								   "#191#Full Health Status", wrapped_text, "Close");
-		if (result >= 0) ui->show_health_popup = false;
+		if (result >= 0) clear_flag(flag, FLAG_SHOW_HEALTH);
 	}
 
-	if (ui->show_needs_popup) {
+	if (is_flag_set(flag, FLAG_SHOW_NEEDS)) {
 		char wrapped_text[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
 		wrap_text(ui->person_retrieved.needs, wrapped_text, 35);
 		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2, 300, 300},
 								   "#191#Full Needs", wrapped_text, "Close");
-		if (result >= 0) ui->show_needs_popup = false;
+		if (result >= 0) clear_flag(flag, FLAG_SHOW_NEEDS);
 	}
 
 	// End draw UI elements
@@ -372,32 +393,41 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 
 	if (button_draw_updt(&ui->butn_submit)) {
 		if (*ui->tb_cpf.input == '\0') {
-			*error = ERROR_CPF_EMPTY;
+			set_flag(flag, FLAG_INPUT_CPF_EMPTY);
 			fprintf(stderr, "CPF must not be empty.\n");
 		} else if (!is_valid_integer_input(ui->tb_cpf.input, 11, 11)) {
-			*error = ERROR_CPF_NOT_VALID;
+			set_flag(flag, FLAG_CPF_NOT_VALID);
 			fprintf(stderr, "CPF must be 11 digits.\n");
 		} else if (db_check_cpf_exists(ui->tb_cpf.input)) {
-			*error = ERROR_CPF_ALERADY_EXISTS;
+			set_flag(flag, FLAG_CPF_EXISTS);
 		} else if (db_insert_person(ui->tb_cpf.input, ui->tb_name.input, atoi(ui->tb_age.input), ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
 			*error = ERROR_DATABASE;
 			fprintf(stderr, "Error submitting to database.\n");
 		} else {
 			*error = NO_ERROR;
+			set_flag(flag, FLAG_OPERATION_DONE);
 		}
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve)) {
 		if (db_get_person_by_cpf(ui->tb_cpf.input, &ui->person_retrieved)) {
 			printf("Retrieved Person - Name: %s, Age: %d, Health Status: %s, Needs: %s, Gender: %d\n", ui->person_retrieved.name, ui->person_retrieved.age, ui->person_retrieved.health_status, ui->person_retrieved.needs, ui->person_retrieved.gender);
-			*error = NO_ERROR;
+			set_flag(flag, FLAG_OPERATION_DONE);
 		} else {
-			*error = ERROR_CPF_NOT_FOUND;
-		}	
+			set_flag(flag, FLAG_CPF_NOT_FOUND);
+		}
 	}
 
 	if (button_draw_updt(&ui->butn_delete)) {
-		ui->show_confirmation_del_popup = true;
+		if (*ui->tb_cpf.input == '\0') {
+			set_flag(flag, FLAG_INPUT_CPF_EMPTY);
+		} else if (!is_valid_integer_input(ui->tb_cpf.input, 11, 11)) {
+			set_flag(flag, FLAG_CPF_NOT_VALID);
+		} else if (!db_check_cpf_exists(ui->tb_cpf.input)) {
+			set_flag(flag, FLAG_CPF_NOT_FOUND);
+		} else {
+			set_flag(flag, FLAG_CONFIRM_DELETE);
+		}
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve_all)) {
@@ -409,7 +439,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 	// Start show warning/error boxes
 
 	// In case updating person
-	if (*error == ERROR_CPF_ALERADY_EXISTS) {
+	if (is_flag_set(flag, FLAG_CPF_EXISTS)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
 		if (result == 1) {
 			if (db_update_person(ui->tb_cpf.input, ui->tb_name.input, atoi(ui->tb_age.input), ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
@@ -418,34 +448,36 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 		}
 		if (result >= 0) {
 			*error = NO_ERROR;
+			clear_flag(flag, FLAG_CPF_EXISTS);
 		}
 	}
 
 	// In case deleting person
-	if (ui->show_confirmation_del_popup) {
+	if (is_flag_set(flag, FLAG_CONFIRM_DELETE)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Deleting Person!", "Are you sure you want to delete?", "Yes, delete;NO");
 		if (result == 1) {
 			db_delete_person_by_cpf(ui->tb_cpf.input);
+			set_flag(flag, FLAG_OPERATION_DONE);
 		}
 		if (result >= 0) {
-			ui->show_confirmation_del_popup = false;
+			clear_flag(flag, FLAG_CONFIRM_DELETE);
 		}
 	}
 
-	if (*error == ERROR_CPF_EMPTY) {
+	if (is_flag_set(flag, FLAG_INPUT_CPF_EMPTY)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF must not be empty.", "OK");
 		if (result >= 0) {
-			*error = NO_ERROR;
+			clear_flag(flag, FLAG_INPUT_CPF_EMPTY);
 		}
-	} else if (*error == ERROR_CPF_NOT_VALID) {
+	} else if (is_flag_set(flag, FLAG_CPF_NOT_VALID)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF must be 11 digits.", "OK");
 		if (result >= 0) {
-			*error = NO_ERROR;
+			clear_flag(flag, FLAG_CPF_NOT_VALID);
 		}
-	} else if (*error == ERROR_CPF_NOT_FOUND) {
+	} else if (is_flag_set(flag, FLAG_CPF_NOT_FOUND)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF not found.", "OK");
 		if (result >= 0) {
-			*error = NO_ERROR;
+			clear_flag(flag, FLAG_CPF_NOT_FOUND);
 		}
 	} else if (*error == ERROR_DATABASE) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "Error submitting to database.", "OK");
@@ -456,13 +488,13 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 
 	// End show warning/error boxes
 
-	// Clear the text buffer after handling everything
-	if (*error == NO_ERROR) {
+	// Clear the text buffer only after a successfull operation
+	if (is_flag_set(flag, FLAG_OPERATION_DONE)) {
 		ui->tb_name.input[0] = '\0';
 		ui->tb_cpf.input[0] = '\0';
 		ui->tb_age.input[0] = '\0';
 		ui->tb_health_status.input[0] = '\0';
 		ui->tb_needs.input[0] = '\0';
-		*error = NIL;
+		clear_flag(flag, FLAG_OPERATION_DONE);
 	}
 }
