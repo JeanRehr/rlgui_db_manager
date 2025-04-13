@@ -44,6 +44,8 @@
 #include "person.h"
 #include "textbox.h"
 #include "intbox.h"
+#include "floatbox.h"
+#include "checkbox.h"
 #include "dropdownbox.h"
 #include "button.h"
 #include "food.h"
@@ -53,6 +55,8 @@ int TOTAL_PERSONS; // Total number of persons in the database, used for tracking
 // typedefs
 typedef struct textbox textbox;
 typedef struct intbox intbox;
+typedef struct floatbox floatbox;
+typedef struct checkbox checkbox;
 typedef struct dropdownbox dropdownbox;
 typedef struct button button;
 typedef struct person person;
@@ -70,7 +74,7 @@ typedef struct main_menu_ui_elemnts {
 typedef struct register_person_ui_elemnts {
 	Rectangle menu_title_bounds;
 	textbox tb_name;
-	textbox tb_cpf; // cpf makes sens still being a textbox, as it needs to sometimes contain zeroes at the start
+	textbox tb_cpf; // cpf makes sense still being a textbox, as it needs to sometimes contain zeroes at the start
 
 	intbox ib_age;
 	
@@ -92,12 +96,15 @@ typedef struct register_person_ui_elemnts {
 // To manage the state of the register food screen
 typedef struct register_food_ui_elemnts {
 	Rectangle menu_title_bounds;
-	textbox tb_batch_id;
+	intbox tb_batch_id;
+
 	textbox tb_name;
-	textbox tb_quantity;
+	intbox tb_quantity;
 	textbox tb_expiration_date;
-	dropdownbox tb_is_perishable;
-	textbox tb_daily_consumption_rate;
+	
+	checkbox tb_is_perishable;
+	
+	floatbox tb_daily_consumption_rate;
 
 	button butn_back;
 	foodbatch foodbatch_retrieved;
@@ -230,6 +237,12 @@ int main()
 	register_person_screen.panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 300, 200};
 
 	// End initializing the register person screen
+
+	// Start initializing the register food screen
+
+	register_food_ui_elemnts register_food_screen;
+
+	// End initializing the register food screen
 
 	// Rectangle bounds for the style selector box, it is persistent across all screens
 	Rectangle style_options_bounds = {window_width - 130, 30, 120, 30};
