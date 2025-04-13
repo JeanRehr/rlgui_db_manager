@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "person.h"
 #include "CONSTANTS.h"
 

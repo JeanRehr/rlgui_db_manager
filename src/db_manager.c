@@ -1,8 +1,9 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
-#include "person.h"
 #include "db_manager.h"
+#include "person.h"
 
 #include <sqlite3.h>
 
@@ -46,15 +47,17 @@ int db_init()
 		return rc;
 	}
 
-	const char *foodTableSQL = "CREATE TABLE IF NOT EXISTS FoodItem ("
-							   "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-							   "Name TEXT NOT NULL,"
-							   "Quantity INTEGER NOT NULL,"
-							   "ExpirationDate TEXT);";
+	const char *foodTableSQL = "CREATE TABLE IF NOT EXISTS FoodBatch ("
+							   "batch_id INTEGER PRIMARY,"
+							   "name TEXT NOT NULL,"
+							   "quantity INTEGER NOT NULL,"
+							   "expiration_date TEXT NOT NULL,"
+							   "is_perishable INTEGER NOT NULL,"
+							   "daily_consumption_rate REAL);";
 
 	rc = sqlite3_exec(db, foodTableSQL, 0, 0, &errMsg);
 	if (rc != SQLITE_OK) {
-		fprintf(stderr, "SQL error on init Food Table: %s\n", errMsg);
+		fprintf(stderr, "SQL error on init FoodBatch Table: %s\n", errMsg);
 		sqlite3_free(errMsg);
 		sqlite3_close(db);
 		return rc;
@@ -157,42 +160,41 @@ int db_update_person(const char *cpf, const char *name_input, int age_input, con
 
 int db_delete_person_by_cpf(const char *cpf)
 {
-    sqlite3 *db;
-    int rc;
+	sqlite3 *db;
+	int rc;
 
-    // Open the database
-    rc = sqlite3_open(person_db_filename, &db);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-        return rc;
-    }
+	// Open the database
+	rc = sqlite3_open(person_db_filename, &db);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+		return rc;
+	}
 
-    // Prepare the SQL delete statement
-    const char *sql = "DELETE FROM Person WHERE CPF = ?;";
+	// Prepare the SQL delete statement
+	const char *sql = "DELETE FROM Person WHERE CPF = ?;";
 
-    sqlite3_stmt *stmt;
-    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to prepare delete statement: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return rc;
-    }
+	sqlite3_stmt *stmt;
+	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Failed to prepare delete statement: %s\n", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		return rc;
+	}
 
-    // Bind the CPF parameter
-    sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_STATIC);
+	// Bind the CPF parameter
+	sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_STATIC);
 
-    // Execute the DELETE statement
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        fprintf(stderr, "Failed to execute delete statement: %s\n", sqlite3_errmsg(db));
-    }
+	// Execute the DELETE statement
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_DONE) {
+		fprintf(stderr, "Failed to execute delete statement: %s\n", sqlite3_errmsg(db));
+	}
 
-    // Finalize the statement and close the database
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-    return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
+	// Finalize the statement and close the database
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
-
 
 bool db_check_cpf_exists(const char *cpf)
 {
@@ -327,22 +329,26 @@ void db_get_all_persons()
 	sqlite3_close(db);
 }
 
-int db_insert_food(const char *name, int quantity, const char *expirationDate)
+int db_insert_food_batch(const char *name, int quantity, const char *expirationDate, bool isPerishable,
+						 float dailyConsumptionRate)
 {
 	sqlite3 *db;
 	int rc;
 
+	// Open the food database
 	rc = sqlite3_open(food_db_filename, &db);
 	if (rc != SQLITE_OK) {
 		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
 		return rc;
 	}
 
-	const char *sql = "INSERT INTO FoodItem (Name, Quantity, ExpirationDate) "
-					  "VALUES (?, ?, ?);";
+	// SQL query to insert a new food batch
+	const char *sql = "INSERT INTO FoodBatch (name, quantity, expiration_date, is_perishable, daily_consumption_rate) "
+					  "VALUES (?, ?, ?, ?, ?);";
 
 	sqlite3_stmt *stmt;
 
+	// Prepare the SQL statement
 	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
 	if (rc != SQLITE_OK) {
 		fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
@@ -350,16 +356,69 @@ int db_insert_food(const char *name, int quantity, const char *expirationDate)
 		return rc;
 	}
 
+	// Bind values to the prepared statement
 	sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
 	sqlite3_bind_int(stmt, 2, quantity);
 	sqlite3_bind_text(stmt, 3, expirationDate, -1, SQLITE_STATIC);
+	sqlite3_bind_int(stmt, 4, isPerishable ? 1 : 0); // SQLite uses 1 as TRUE and 0 as FALSE.
+	sqlite3_bind_double(stmt, 5, dailyConsumptionRate);
 
+	// Execute the SQL statement
 	rc = sqlite3_step(stmt);
 	if (rc != SQLITE_DONE) {
 		fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
 	}
 
+	// Finalize and clean up the prepared statement and close the database
 	sqlite3_finalize(stmt);
 	sqlite3_close(db);
 	return rc == SQLITE_DONE ? SQLITE_OK : rc;
+}
+
+void db_get_all_food()
+{
+	sqlite3 *db;
+	int rc;
+
+	rc = sqlite3_open(food_db_filename, &db);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+		return;
+	}
+
+	const char *sql = "SELECT * FROM FoodBatch;";
+
+	sqlite3_stmt *stmt;
+
+	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		return;
+	}
+
+    printf("+---------------------------------------------------------------------------------+\n");
+    printf("| BatchID | Name                             | Quantity | Perishable | Daily Rate |\n");
+    printf("+---------+----------------------------------+----------+------------+------------+\n");
+
+	while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		int batch_id = sqlite3_column_int(stmt, 0);
+		const char *name = (const char *)sqlite3_column_text(stmt, 1);
+		int quantity = sqlite3_column_int(stmt, 2);
+		int is_perishable = sqlite3_column_int(stmt, 3);
+		float daily_consumption_rate = (float)sqlite3_column_double(stmt, 4);
+		
+
+		printf("| %7d | %-32s | %-8d | %10s | %7.2f |\n", batch_id, name, quantity, (is_perishable == 0 ? "False" : "True"), daily_consumption_rate);
+		printf(
+			"+-------------+--------------------------------------------+-----+--------------------------------------"
+			"------+--------------------------------------------+\n");
+	}
+
+	if (rc != SQLITE_DONE) {
+		fprintf(stderr, "Failed to execute query: %s\n", sqlite3_errmsg(db));
+	}
+
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
 }

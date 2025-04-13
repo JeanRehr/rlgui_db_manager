@@ -44,6 +44,7 @@
 #include "textbox.h"
 #include "dropdownbox.h"
 #include "button.h"
+#include "food.h"
 
 int TOTAL_PERSONS; // Total number of persons in the database, used for tracking
 
@@ -52,16 +53,7 @@ typedef struct textbox textbox;
 typedef struct dropdownbox dropdownbox;
 typedef struct button button;
 typedef struct person person;
-
-// FOOD
-
-typedef struct food_item {
-	char name[MAX_INPUT];
-	int quantity;
-	char expiration_date[11]; // ISO 8601 format 2000-12-31
-} food_item;
-
-// END FOOD
+typedef struct foodbatch foodbatch;
 
 // To manage the state of the main menu screen
 typedef struct main_menu_ui_elemnts {
@@ -92,17 +84,21 @@ typedef struct register_person_ui_elemnts {
 } register_person_ui_elemnts;
 
 // To manage the state of the register food screen
+typedef struct register_food_ui_elemnts {
+	Rectangle menu_title_bounds;
+} register_food_ui_elemnts;
 
+// Flags to manage the popups, maybe this is specific only to person screen, so should be an attr of the person screen struct?
 typedef enum flags_popup {
 	FLAG_NONE = 0, // No flags set
-	FLAG_SHOW_HEALTH = 1 << 0, // 0001: Show Health popup
-	FLAG_SHOW_NEEDS = 1 << 1, // 0010: Show Needs popup
-	FLAG_CONFIRM_DELETE = 1 << 2, // 0100: Confirm deletion
-	FLAG_OPERATION_DONE = 1 << 3, // 1000: Submission completed
-	FLAG_CPF_EXISTS = 1 << 4,
-	FLAG_CPF_NOT_FOUND = 1 << 5,
-	FLAG_INPUT_CPF_EMPTY = 1 << 6,
-	FLAG_CPF_NOT_VALID = 1 << 7,
+	FLAG_CONFIRM_DELETE = 1 << 0, // 0001: Confirm deletion
+	FLAG_OPERATION_DONE = 1 << 1, // 0010: Submission completed
+	FLAG_CPF_EXISTS = 1 << 2, // 0100: CPF already exists in database
+	FLAG_CPF_NOT_FOUND = 1 << 3, // 1000: CPF was not found in database
+	FLAG_INPUT_CPF_EMPTY = 1 << 4, // 10000: Input form textbox CPF is empty
+	FLAG_CPF_NOT_VALID = 1 << 5, // 100000: CPF input is not valid
+	FLAG_SHOW_HEALTH = 1 << 6, // 1000000: Show Health popup
+	FLAG_SHOW_NEEDS = 1 << 7, // 10000000: Show Needs popup
 } flags_popup;
 
 typedef enum error_code {
@@ -123,11 +119,11 @@ int active_style = 8; // Set default style to dark
 int prev_active_style = 7;
 
 // Utility functions for flags
-static inline void set_flag(flags_popup *flags, flags_popup flag);
+static inline void set_flag(flags_popup *flag, const flags_popup flags);
 
-static inline void clear_flag(flags_popup *flags, flags_popup flag);
+static inline void clear_flag(flags_popup *flag, const flags_popup flags);
 
-static inline bool is_flag_set(flags_popup *flags, flags_popup flag);
+static inline bool is_flag_set(flags_popup *flag, const flags_popup flags);
 
 void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_code *error);
 
@@ -212,7 +208,7 @@ int main()
 	memset(&register_person_screen.person_retrieved, 0, sizeof(person));
 	
 	// Only set the bounds of the panel, draw everything inside based on it on the draw register person screen function
-	register_person_screen.panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 275, 200};
+	register_person_screen.panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 300, 200};
 
 	// End initializing the register person screen
 
@@ -273,7 +269,7 @@ int main()
 
 		// Visuals options
 		GuiLabel(style_options_label, "Style:");
-		GuiComboBox(style_options_bounds, "default;Jungle;Candy;Lavanda;Cyber;Terminal;Ashes;Bluish;Dark;Cherry;Sunny;Enefete", &active_style);
+		GuiComboBox(style_options_bounds, "Default;Jungle;Candy;Lavanda;Cyber;Terminal;Ashes;Bluish;Dark;Cherry;Sunny;Enefete", &active_style);
 
 		switch (app_state) {
 		case STATE_MAIN_MENU:
@@ -303,16 +299,16 @@ int main()
 }
 
 // Utility functions for flags
-static inline void set_flag(flags_popup *flags, flags_popup flag) {
-	*flags |= flag;
+static inline void set_flag(flags_popup *flag, const flags_popup flags) {
+	*flag |= flags;
 }
 
-static inline void clear_flag(flags_popup *flags, flags_popup flag) {
-	*flags &= ~flag;
+static inline void clear_flag(flags_popup *flag, const flags_popup flags) {
+	*flag &= ~flags;
 }
 
-static inline bool is_flag_set(flags_popup *flags, flags_popup flag) {
-	return (*flags & flag) != 0;
+static inline bool is_flag_set(flags_popup *flag, const flags_popup flags) {
+	return (*flag & flags) != 0;
 }
 
 void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_code *error)
@@ -356,28 +352,30 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 60, 280, 20}, TextFormat("Age: %d", ui->person_retrieved.age));
 
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 90, 280, 20}, TextFormat("Health Status: %.15s...", ui->person_retrieved.health_status));
-	if (GuiButton((Rectangle){ui->panel_bounds.x + 10 + 235, ui->panel_bounds.y + 90, 20, 20}, "?")) {
+	if (GuiButton((Rectangle){ui->panel_bounds.x + (ui->panel_bounds.width - 30), ui->panel_bounds.y + 90, 20, 20}, "?")) {
 		set_flag(flag, FLAG_SHOW_HEALTH);
 	}
 
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 120, 280, 20}, TextFormat("Needs: %.15s...", ui->person_retrieved.needs));
-	if (GuiButton((Rectangle){ui->panel_bounds.x + 10 + 235, ui->panel_bounds.y + 120, 20, 20}, "?")) {
+	if (GuiButton((Rectangle){ui->panel_bounds.x + (ui->panel_bounds.width - 30), ui->panel_bounds.y + 120, 20, 20}, "?")) {
 		set_flag(flag, FLAG_SHOW_NEEDS);
 	}
 
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 150, 280, 20}, TextFormat("Gender: %s", ui->person_retrieved.gender == GENDER_OTHER ? "Other" : ui->person_retrieved.gender == GENDER_MALE ? "Male" : "Female"));
 	
 	if (is_flag_set(flag, FLAG_SHOW_HEALTH)) {
-		char wrapped_text[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
-		wrap_text(ui->person_retrieved.health_status, wrapped_text, 35);
+		int dyn_max_input = (int) (MAX_INPUT / 0.9);
+		char wrapped_text[dyn_max_input];
+		wrap_text(ui->person_retrieved.health_status, wrapped_text, 300);
 		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 300},
 								   "#191#Full Health Status", wrapped_text, "Close");
 		if (result >= 0) clear_flag(flag, FLAG_SHOW_HEALTH);
 	}
 
 	if (is_flag_set(flag, FLAG_SHOW_NEEDS)) {
-		char wrapped_text[MAX_INPUT + 16] = {0}; // +16 to prevent overflow from adding '\n'
-		wrap_text(ui->person_retrieved.needs, wrapped_text, 35);
+		int dyn_max_input = (int) (MAX_INPUT / 0.9);
+		char wrapped_text[dyn_max_input];
+		wrap_text(ui->person_retrieved.needs, wrapped_text, 300);
 		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2, 300, 300},
 								   "#191#Full Needs", wrapped_text, "Close");
 		if (result >= 0) clear_flag(flag, FLAG_SHOW_NEEDS);
@@ -449,6 +447,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 		if (result >= 0) {
 			*error = NO_ERROR;
 			clear_flag(flag, FLAG_CPF_EXISTS);
+			set_flag(flag, FLAG_OPERATION_DONE);
 		}
 	}
 
@@ -464,6 +463,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 		}
 	}
 
+	// Warnings
 	if (is_flag_set(flag, FLAG_INPUT_CPF_EMPTY)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF must not be empty.", "OK");
 		if (result >= 0) {
@@ -488,7 +488,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 
 	// End show warning/error boxes
 
-	// Clear the text buffer only after a successfull operation
+	// Clear the text buffer only after a successful operation
 	if (is_flag_set(flag, FLAG_OPERATION_DONE)) {
 		ui->tb_name.input[0] = '\0';
 		ui->tb_cpf.input[0] = '\0';

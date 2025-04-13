@@ -1,3 +1,5 @@
+#include <raygui.h>
+
 #include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
@@ -12,39 +14,37 @@ bool is_valid_integer_input(const char *input, const int min_len, const int max_
     return length >= min_len && length <= max_len;
 }
 
-// The function takes a block of text (input) and attempts to format it into multiple lines with a maximum width (maxWidth).
+// The function takes a block of text (input) and attempts to format it into multiple lines
 // Constructs the wrapped text into the output buffer, inserting newline characters (\n) where line breaks are made.
 // The buffer output must be larger than the initial input due to the newlines
-void wrap_text(const char *input, char *output, int maxWidth) {
-    int length = strlen(input);
-    int lineStart = 0;
-    int outputIndex = 0;
+void wrap_text(const char *input, char *output, const int wrap_width) {
+    char buffer[256];
+    strncpy(buffer, input, sizeof(buffer) - 1);
+    buffer[sizeof(buffer) - 1] = '\0'; // Ensure buffer is null-terminated
+    int text_width = 0;
+    int output_index = 0;
 
-    while (lineStart < length) {
-        int lineEnd = lineStart + maxWidth;
+    int font_size = GuiGetStyle(DEFAULT, TEXT_SIZE);
+    const int SPACE_WIDTH = MeasureText(" ", font_size);
 
-        if (lineEnd >= length) {
-            strcpy(&output[outputIndex], &input[lineStart]);
-            outputIndex += strlen(&output[outputIndex]);
-            break;
+    char *token = strtok(buffer, " ");
+    while (token != NULL) {
+        int word_width = MeasureText(token, font_size);
+
+        if (text_width + word_width + SPACE_WIDTH > wrap_width) {
+            output[output_index++] = '\n'; // Insert line break
+            text_width = 0; // Reset line width
         }
 
-        // Find word break
-        while (lineEnd > lineStart && input[lineEnd] != ' ') {
-            lineEnd--;
-        }
+        strcpy(&output[output_index], token);
+        output_index += strlen(token);
+        output[output_index++] = ' '; // Add space after word
 
-        if (lineEnd == lineStart) {
-            lineEnd = lineStart + maxWidth;  // Forced break
-        }
-
-        strncpy(&output[outputIndex], &input[lineStart], lineEnd - lineStart);
-        outputIndex += lineEnd - lineStart;
-        output[outputIndex++] = '\n';
-
-        lineStart = lineEnd + 1;  // Skip space
+        text_width += word_width + SPACE_WIDTH;
+        token = strtok(NULL, " ");
     }
-    output[outputIndex] = '\0';
+
+    output[output_index - 1] = '\0'; // Null-terminate string
 }
 
 // Function to filter integer input, max length will prevent the input from getting past the chosen number
