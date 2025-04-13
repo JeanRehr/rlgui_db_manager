@@ -43,6 +43,7 @@
 #include "db_manager.h"
 #include "person.h"
 #include "textbox.h"
+#include "intbox.h"
 #include "dropdownbox.h"
 #include "button.h"
 #include "food.h"
@@ -51,24 +52,28 @@ int TOTAL_PERSONS; // Total number of persons in the database, used for tracking
 
 // typedefs
 typedef struct textbox textbox;
+typedef struct intbox intbox;
 typedef struct dropdownbox dropdownbox;
 typedef struct button button;
 typedef struct person person;
 typedef struct foodbatch foodbatch;
 
 // To manage the state of the main menu screen
+// As the state of the main menu screen isn't complex, this is not needed
 typedef struct main_menu_ui_elemnts {
 	Rectangle menu_title_bounds;
-	button reg_person_butn;
-	button reg_food_Butn;
+	//button reg_person_butn;
+	//button reg_food_butn;
 } main_menu_ui_elemnts;
 
 // To manage the state of the register person screen
 typedef struct register_person_ui_elemnts {
 	Rectangle menu_title_bounds;
 	textbox tb_name;
-	textbox tb_cpf;
-	textbox tb_age;
+	textbox tb_cpf; // cpf makes sens still being a textbox, as it needs to sometimes contain zeroes at the start
+
+	intbox ib_age;
+	
 	textbox tb_health_status;
 	textbox tb_needs;
 
@@ -140,6 +145,8 @@ void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_cod
 
 void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flags);
 
+void draw_register_food_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flag);
+
 int main()
 {
 	// Initialization
@@ -162,8 +169,6 @@ int main()
 	main_menu_ui_elemnts main_menu_screen;
 	
 	main_menu_screen.menu_title_bounds = (Rectangle) {20, 20, 120, 30};
-	main_menu_screen.reg_person_butn = button_init((Rectangle){20, main_menu_screen.menu_title_bounds.y + main_menu_screen.menu_title_bounds.height, 100, 30}, "Register Person");
-	main_menu_screen.reg_food_Butn = button_init((Rectangle){main_menu_screen.reg_person_butn.bounds.x + main_menu_screen.reg_person_butn.bounds.width + 10, main_menu_screen.reg_person_butn.bounds.y, 100, 30}, "Register Food");
 
 	// End initializing the register food screen
 
@@ -173,7 +178,10 @@ int main()
 
 	register_person_screen.menu_title_bounds = (Rectangle) {20, 20, 200, 16};
 
-	register_person_screen.butn_back = button_init((Rectangle) {20, register_person_screen.menu_title_bounds.y + (register_person_screen.menu_title_bounds.height * 2), 0, 30}, "Back");
+	register_person_screen.butn_back = button_init(
+		(Rectangle) {20, register_person_screen.menu_title_bounds.y + (register_person_screen.menu_title_bounds.height * 2), 0, 30},
+		"Back"
+	);
 	register_person_screen.tb_name = textbox_init(
 		(Rectangle){20, register_person_screen.butn_back.bounds.y + (register_person_screen.butn_back.bounds.height * 2), 300, 30},
 		"Name:",
@@ -186,14 +194,14 @@ int main()
 		INPUT_INTEGER,
 		11
 	);
-	register_person_screen.tb_age = textbox_init(
-		(Rectangle){20, register_person_screen.tb_cpf.bounds.y + (register_person_screen.tb_cpf.bounds.height * 2), 300, 30},
+	register_person_screen.ib_age = intbox_init(
+		(Rectangle){20, register_person_screen.tb_cpf.bounds.y + (register_person_screen.tb_cpf.bounds.height * 2), 125, 30},
 		"Age:",
-		INPUT_INTEGER,
-		3
+		0,
+		120
 	);
 	register_person_screen.tb_health_status = textbox_init(
-		(Rectangle){20, register_person_screen.tb_age.bounds.y + (register_person_screen.tb_age.bounds.height * 2), 300, 30},
+		(Rectangle){20, register_person_screen.ib_age.bounds.y + (register_person_screen.ib_age.bounds.height * 2), 300, 30},
 		"Health Status:",
 		INPUT_TEXT,
 		0
@@ -214,7 +222,7 @@ int main()
 	register_person_screen.butn_submit = button_init((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
 	register_person_screen.butn_retrieve = button_init((Rectangle) {register_person_screen.butn_submit.bounds.x + register_person_screen.butn_submit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
 	register_person_screen.butn_delete = button_init((Rectangle) {register_person_screen.butn_retrieve.bounds.x + register_person_screen.butn_retrieve.bounds.width + 10, window_height - 100, 100, 30}, "Delete");
-	register_person_screen.butn_retrieve_all = button_init((Rectangle) {register_person_screen.butn_delete.bounds.x + register_person_screen.butn_delete.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve All");
+	register_person_screen.butn_retrieve_all = button_init((Rectangle) {register_person_screen.butn_delete.bounds.x + register_person_screen.butn_delete.bounds.width + 10, window_height - 100, 0, 30}, "Retrieve All");
 
 	memset(&register_person_screen.person_retrieved, 0, sizeof(person));
 	
@@ -330,13 +338,22 @@ void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_cod
 	// End draw UI elements
 
 	// Start button actions
+
+	if (GuiButton((Rectangle){100, 100, 200, 50}, "Manage Persons")) {
+		*state = STATE_REGISTER_PERSON;
+	}
+	if (GuiButton((Rectangle){100, 200, 200, 50}, "Manage Food")) {
+		//*state = STATE_REGISTER_FOOD;
+	}
+
+	/* If using the struct state
 	if (button_draw_updt(&ui->reg_person_butn)) {
 		*state = STATE_REGISTER_PERSON;
 	}
-
-	if (button_draw_updt(&ui->reg_food_Butn)) {
+	if (button_draw_updt(&ui->reg_food_butn)) {
 		// Screen not yet implemented
 	}
+	*/
 	// End button actions
 
 	// Start show warning/error boxes
@@ -351,7 +368,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 
 	textbox_draw(&ui->tb_name);
 	textbox_draw(&ui->tb_cpf);
-	textbox_draw(&ui->tb_age);
+	intbox_draw(&ui->ib_age);
 
 	dropdownbox_draw(&ui->ddb_gender);
 
@@ -410,7 +427,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 			fprintf(stderr, "CPF must be 11 digits.\n");
 		} else if (db_check_cpf_exists(ui->tb_cpf.input)) {
 			set_flag(flag, FLAG_CPF_EXISTS);
-		} else if (db_insert_person(ui->tb_cpf.input, ui->tb_name.input, atoi(ui->tb_age.input), ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
+		} else if (db_insert_person(ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
 			*error = ERROR_INSERT_DB;
 			fprintf(stderr, "Error submitting to database.\n");
 		} else {
@@ -452,7 +469,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 	if (is_flag_set(flag, FLAG_CPF_EXISTS)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
 		if (result == 1) {
-			if (db_update_person(ui->tb_cpf.input, ui->tb_name.input, atoi(ui->tb_age.input), ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
+			if (db_update_person(ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
 				*error = ERROR_INSERT_DB;
 			}
 		}
@@ -504,9 +521,13 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 	if (is_flag_set(flag, FLAG_OPERATION_DONE)) {
 		ui->tb_name.input[0] = '\0';
 		ui->tb_cpf.input[0] = '\0';
-		ui->tb_age.input[0] = '\0';
+		ui->ib_age.input = 0;
 		ui->tb_health_status.input[0] = '\0';
 		ui->tb_needs.input[0] = '\0';
 		clear_flag(flag, FLAG_OPERATION_DONE);
 	}
+}
+
+void draw_register_food_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flag)
+{
 }
