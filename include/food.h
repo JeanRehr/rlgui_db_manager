@@ -1,6 +1,8 @@
 #ifndef FOOD_H
 #define FOOD_H
 
+#include <stdbool.h>
+
 #include "CONSTANTS.h"
 
 // Food struct must be in batches as to set the expiration date for one batch of all items.

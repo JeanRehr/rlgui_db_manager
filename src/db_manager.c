@@ -48,7 +48,7 @@ int db_init()
 	}
 
 	const char *foodTableSQL = "CREATE TABLE IF NOT EXISTS FoodBatch ("
-							   "batch_id INTEGER PRIMARY,"
+							   "batch_id INTEGER PRIMARY KEY,"
 							   "name TEXT NOT NULL,"
 							   "quantity INTEGER NOT NULL,"
 							   "expiration_date TEXT NOT NULL,"
