@@ -86,6 +86,15 @@ typedef struct register_person_ui_elemnts {
 // To manage the state of the register food screen
 typedef struct register_food_ui_elemnts {
 	Rectangle menu_title_bounds;
+	textbox tb_batch_id;
+	textbox tb_name;
+	textbox tb_quantity;
+	textbox tb_expiration_date;
+	dropdownbox tb_is_perishable;
+	textbox tb_daily_consumption_rate;
+
+	button butn_back;
+	foodbatch foodbatch_retrieved;
 } register_food_ui_elemnts;
 
 // Flags to manage the popups, maybe this is specific only to person screen, so should be an attr of the person screen struct?
@@ -103,7 +112,8 @@ typedef enum flags_popup {
 
 typedef enum error_code {
 	NO_ERROR = 0,
-	ERROR_DATABASE,
+	ERROR_INSERT_DB,
+	ERROR_OPENING_DB,
 } error_code;
 
 typedef enum app_state {
@@ -139,7 +149,7 @@ int main()
 	// Initialize databases, close window and program if database initialization fails
 	if (db_init() != SQLITE_OK) {
 		CloseWindow(); 
-		return -1;
+		return ERROR_OPENING_DB;
 	}
 
 	GuiSetStyle(DEFAULT, TEXT_SIZE, FONT_SIZE);
@@ -399,7 +409,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 		} else if (db_check_cpf_exists(ui->tb_cpf.input)) {
 			set_flag(flag, FLAG_CPF_EXISTS);
 		} else if (db_insert_person(ui->tb_cpf.input, ui->tb_name.input, atoi(ui->tb_age.input), ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
-			*error = ERROR_DATABASE;
+			*error = ERROR_INSERT_DB;
 			fprintf(stderr, "Error submitting to database.\n");
 		} else {
 			*error = NO_ERROR;
@@ -441,7 +451,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
 		if (result == 1) {
 			if (db_update_person(ui->tb_cpf.input, ui->tb_name.input, atoi(ui->tb_age.input), ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
-				*error = ERROR_DATABASE;
+				*error = ERROR_INSERT_DB;
 			}
 		}
 		if (result >= 0) {
@@ -479,7 +489,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 		if (result >= 0) {
 			clear_flag(flag, FLAG_CPF_NOT_FOUND);
 		}
-	} else if (*error == ERROR_DATABASE) {
+	} else if (*error == ERROR_INSERT_DB) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "Error submitting to database.", "OK");
 		if (result >= 0) {
 			*error = NO_ERROR;

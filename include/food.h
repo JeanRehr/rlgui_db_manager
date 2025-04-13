@@ -4,7 +4,7 @@
 #include "CONSTANTS.h"
 
 // Food struct must be in batches as to set the expiration date for one batch of all items.
-// if the same item (milk) enters the database again, it will hjave a different exp date
+// if the same item (milk) enters the database again, it will have a different exp date
 // and the same name, so batch id must be a unique identifier
 struct foodbatch {
 	int batch_id; // Unique identifier for the batch
