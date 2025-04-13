@@ -20,7 +20,7 @@
 
 // raygui embedded styles
 // NOTE: Included in the same order as selector
-#define MAX_GUI_STYLES_AVAILABLE   12       // NOTE: Included light style
+#define MAX_GUI_STYLES_AVAILABLE   13       // NOTE: Included light style
 #include "styles/style_jungle.h"            // raygui style: jungle
 #include "styles/style_candy.h"             // raygui style: candy
 #include "styles/style_lavanda.h"           // raygui style: lavanda
@@ -32,6 +32,7 @@
 #include "styles/style_cherry.h"            // raygui style: cherry
 #include "styles/style_sunny.h"             // raygui style: sunny
 #include "styles/style_enefete.h"           // raygui style: enefete
+#include "styles/style_amber.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -265,6 +266,7 @@ int main()
 				case 9: GuiLoadStyleCherry(); break;
 				case 10: GuiLoadStyleSunny(); break;
 				case 11: GuiLoadStyleEnefete(); break;
+				case 12: GuiLoadStyleAmber(); break;
 				default: break;
 			}
 
@@ -279,7 +281,7 @@ int main()
 
 		// Visuals options
 		GuiLabel(style_options_label, "Style:");
-		GuiComboBox(style_options_bounds, "Default;Jungle;Candy;Lavanda;Cyber;Terminal;Ashes;Bluish;Dark;Cherry;Sunny;Enefete", &active_style);
+		GuiComboBox(style_options_bounds, "Default;Jungle;Candy;Lavanda;Cyber;Terminal;Ashes;Bluish;Dark;Cherry;Sunny;Enefete;Amber", &active_style);
 
 		switch (app_state) {
 		case STATE_MAIN_MENU:
