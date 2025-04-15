@@ -1,0 +1,10 @@
+#ifndef ERROR_HANDLING_H
+#define ERROR_HANDLING_H
+
+enum error_code {
+	NO_ERROR = 0,
+	ERROR_INSERT_DB,
+	ERROR_OPENING_DB,
+};
+
+#endif // ERROR_HANDLING_H

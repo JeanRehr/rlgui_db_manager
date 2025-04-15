@@ -1,0 +1,10 @@
+#ifndef APP_STATE_H
+#define APP_STATE_H
+
+enum app_state {
+	STATE_MAIN_MENU = 0,
+	STATE_REGISTER_PERSON,
+	STATE_REGISTER_FOOD,
+};
+
+#endif // APP_STATE_H
