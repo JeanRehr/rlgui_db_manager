@@ -7,11 +7,11 @@
 
 struct intbox {
 	Rectangle bounds;
-    const char *label;
+	const char *label;
 	int input;
 	bool edit_mode;
-    int min_val;
-    int max_val;
+	int min_val;
+	int max_val;
 };
 
 struct intbox intbox_init(Rectangle bounds, const char *label, const int min_val, const int max_val);
