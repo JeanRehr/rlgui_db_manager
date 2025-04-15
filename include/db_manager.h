@@ -20,6 +20,8 @@ bool db_get_person_by_cpf(const char *cpf, struct person *person);
 
 void db_get_all_persons();
 
-int db_insert_food(const char *name, int quantity, const char *expiration_date);
+int db_insert_food_batch(const char *name, int quantity, bool isPerishable, const char *expirationDate, float dailyConsumptionRate);
+
+void db_get_all_food();
 
 #endif // DB_MANAGER_H

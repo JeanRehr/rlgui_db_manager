@@ -1,8 +1,10 @@
 #include <raygui.h>
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "checkbox.h"
+#include "CONSTANTS.h"
 
 typedef struct checkbox checkbox;
 
@@ -17,5 +19,7 @@ checkbox checkbox_init(Rectangle bounds, const char *title)
 
 int checkbox_draw(struct checkbox *cb)
 {
-	return GuiCheckBox(cb->bounds, cb->title, &cb->checked);
+    GuiLabel((Rectangle){cb->bounds.x, cb->bounds.y - (FONT_SIZE + 5), MeasureText(cb->title, FONT_SIZE) + 10, 20}, cb->title);
+
+	return GuiCheckBox(cb->bounds, NULL, &cb->checked);
 }

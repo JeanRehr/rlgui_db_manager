@@ -89,24 +89,31 @@ typedef struct register_person_ui_elemnts {
 	button butn_delete;
 	button butn_retrieve_all;
 
-	Rectangle panel_bounds;	
+	Rectangle panel_bounds;
 	person person_retrieved;
 } register_person_ui_elemnts;
 
 // To manage the state of the register food screen
 typedef struct register_food_ui_elemnts {
 	Rectangle menu_title_bounds;
-	intbox tb_batch_id;
+	intbox ib_batch_id;
 
 	textbox tb_name;
-	intbox tb_quantity;
+	intbox ib_quantity;
+
+	checkbox cb_is_perishable;
+
 	textbox tb_expiration_date;
-	
-	checkbox tb_is_perishable;
-	
-	floatbox tb_daily_consumption_rate;
+
+	floatbox fb_daily_consumption_rate;
 
 	button butn_back;
+	button butn_submit;
+	button butn_retrieve;
+	button butn_delete;
+	button butn_retrieve_all;
+
+	Rectangle panel_bounds;
 	foodbatch foodbatch_retrieved;
 } register_food_ui_elemnts;
 
@@ -152,7 +159,7 @@ void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_cod
 
 void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flags);
 
-void draw_register_food_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flag);
+void draw_register_food_screen(register_food_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flag);
 
 int main()
 {
@@ -171,11 +178,11 @@ int main()
 
 	SetTargetFPS(60);
 
-	// Start initializing the register food screen
+	// Start initializing themain menu screen in order as they appear from top-down top-left
 
 	main_menu_ui_elemnts main_menu_screen;
 	
-	main_menu_screen.menu_title_bounds = (Rectangle) {20, 20, 120, 30};
+	main_menu_screen.menu_title_bounds = (Rectangle) {10, 10, 120, 20};
 
 	// End initializing the register food screen
 
@@ -183,7 +190,7 @@ int main()
 
 	register_person_ui_elemnts register_person_screen;
 
-	register_person_screen.menu_title_bounds = (Rectangle) {20, 20, 200, 16};
+	register_person_screen.menu_title_bounds = (Rectangle) {10, 10, 120, 20};
 
 	register_person_screen.butn_back = button_init(
 		(Rectangle) {20, register_person_screen.menu_title_bounds.y + (register_person_screen.menu_title_bounds.height * 2), 0, 30},
@@ -238,9 +245,60 @@ int main()
 
 	// End initializing the register person screen
 
-	// Start initializing the register food screen
+	// Start initializing the register food screen in order as they appear from top-down top-left
 
 	register_food_ui_elemnts register_food_screen;
+
+	register_food_screen.menu_title_bounds = (Rectangle) {10, 10, 150, 20};
+
+	register_food_screen.butn_back = button_init(
+		(Rectangle) {20, register_food_screen.menu_title_bounds.y + (register_food_screen.menu_title_bounds.height * 2), 0, 30},
+		"Back"
+	);
+
+	register_food_screen.ib_batch_id = intbox_init(
+		(Rectangle){20, register_food_screen.butn_back.bounds.y + (register_food_screen.butn_back.bounds.height * 2), 130, 30},
+		"Batch ID:",
+		1,
+		99999
+	);
+	register_food_screen.tb_name = textbox_init(
+		(Rectangle){20, register_food_screen.ib_batch_id.bounds.y + (register_food_screen.ib_batch_id.bounds.height * 2), 300, 30},
+		"Food Name:",
+		INPUT_TEXT,
+		0
+	);
+	register_food_screen.ib_quantity = intbox_init(
+		(Rectangle){20, register_food_screen.tb_name.bounds.y + (register_food_screen.tb_name.bounds.height * 2), 125, 30},
+		"Quantity:",
+		0,
+		INT_MAX
+	);
+	register_food_screen.tb_expiration_date = textbox_init(
+		(Rectangle){20, register_food_screen.ib_quantity.bounds.y + (register_food_screen.ib_quantity.bounds.height * 2), 300, 30},
+		"Expiration Date:",
+		INPUT_TEXT,
+		0
+	);
+	register_food_screen.cb_is_perishable = checkbox_init(
+		(Rectangle){20, register_food_screen.tb_expiration_date.bounds.y + (register_food_screen.tb_expiration_date.bounds.height * 2), 20, 20}, 
+		"Is Perishable?"
+	);
+
+	register_food_screen.fb_daily_consumption_rate = floatbox_init(
+		(Rectangle){20, register_food_screen.cb_is_perishable.bounds.y + (register_food_screen.cb_is_perishable.bounds.height * 2), 250, 30},
+		"Avg daily consumption rate per person?"
+	);
+
+	register_food_screen.butn_submit = button_init((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
+	register_food_screen.butn_retrieve = button_init((Rectangle) {register_food_screen.butn_submit.bounds.x + register_food_screen.butn_submit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
+	register_food_screen.butn_delete = button_init((Rectangle) {register_food_screen.butn_retrieve.bounds.x + register_food_screen.butn_retrieve.bounds.width + 10, window_height - 100, 100, 30}, "Delete");
+	register_food_screen.butn_retrieve_all = button_init((Rectangle) {register_food_screen.butn_delete.bounds.x + register_food_screen.butn_delete.bounds.width + 10, window_height - 100, 0, 30}, "Retrieve All");
+
+	memset(&register_food_screen.foodbatch_retrieved, 0, sizeof(foodbatch));
+	
+	// Only set the bounds of the panel, draw everything inside based on it on the draw register person screen function
+	register_food_screen.panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 300, 200};
 
 	// End initializing the register food screen
 
@@ -314,6 +372,7 @@ int main()
 			break;
 		
 		case STATE_REGISTER_FOOD:
+			draw_register_food_screen(&register_food_screen, &app_state, &error, &flags_popup);
 			break;
 
 		default:
@@ -356,7 +415,7 @@ void draw_main_menu_screen(main_menu_ui_elemnts *ui, app_state *state, error_cod
 		*state = STATE_REGISTER_PERSON;
 	}
 	if (GuiButton((Rectangle){100, 200, 200, 50}, "Manage Food")) {
-		//*state = STATE_REGISTER_FOOD;
+		*state = STATE_REGISTER_FOOD;
 	}
 
 	/* If using the struct state
@@ -377,7 +436,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 {
 	// Start draw UI elements
 
-	GuiLabel(ui->menu_title_bounds, "Register Person menu");
+	GuiLabel(ui->menu_title_bounds, "Register Person");
 
 	textbox_draw(&ui->tb_name);
 	textbox_draw(&ui->tb_cpf);
@@ -394,13 +453,21 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 60, 280, 20}, TextFormat("Age: %d", ui->person_retrieved.age));
 
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 90, 280, 20}, TextFormat("Health Status: %.15s...", ui->person_retrieved.health_status));
-	if (GuiButton((Rectangle){ui->panel_bounds.x + (ui->panel_bounds.width - 30), ui->panel_bounds.y + 90, 20, 20}, "?")) {
+	GuiLabel((Rectangle){ui->panel_bounds.x + (ui->panel_bounds.width - 30), ui->panel_bounds.y + 90, 20, 20}, "?");
+
+	if (CheckCollisionPointRec(GetMousePosition(), (Rectangle){ui->panel_bounds.x + (ui->panel_bounds.width - 30), ui->panel_bounds.y + 90, 20, 20})) {
 		set_flag(flag, FLAG_SHOW_HEALTH);
+	} else {
+		clear_flag(flag, FLAG_SHOW_HEALTH);
 	}
 
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 120, 280, 20}, TextFormat("Needs: %.15s...", ui->person_retrieved.needs));
-	if (GuiButton((Rectangle){ui->panel_bounds.x + (ui->panel_bounds.width - 30), ui->panel_bounds.y + 120, 20, 20}, "?")) {
+	GuiLabel((Rectangle){ui->panel_bounds.x + (ui->panel_bounds.width - 30), ui->panel_bounds.y + 120, 20, 20}, "?");
+
+	if (CheckCollisionPointRec(GetMousePosition(), (Rectangle){ui->panel_bounds.x + (ui->panel_bounds.width - 30), ui->panel_bounds.y + 120, 20, 20})) {
 		set_flag(flag, FLAG_SHOW_NEEDS);
+	} else {
+		clear_flag(flag, FLAG_SHOW_NEEDS);
 	}
 
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 150, 280, 20}, TextFormat("Gender: %s", ui->person_retrieved.gender == GENDER_OTHER ? "Other" : ui->person_retrieved.gender == GENDER_MALE ? "Male" : "Female"));
@@ -410,8 +477,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 		char wrapped_text[dyn_max_input];
 		wrap_text(ui->person_retrieved.health_status, wrapped_text, 300);
 		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 300},
-								   "#191#Full Health Status", wrapped_text, "Close");
-		if (result >= 0) clear_flag(flag, FLAG_SHOW_HEALTH);
+								   "#191#Full Health Status", wrapped_text, "");
 	}
 
 	if (is_flag_set(flag, FLAG_SHOW_NEEDS)) {
@@ -419,8 +485,7 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 		char wrapped_text[dyn_max_input];
 		wrap_text(ui->person_retrieved.needs, wrapped_text, 300);
 		int result = GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2, 300, 300},
-								   "#191#Full Needs", wrapped_text, "Close");
-		if (result >= 0) clear_flag(flag, FLAG_SHOW_NEEDS);
+								   "#191#Full Needs", wrapped_text, "");
 	}
 
 	// End draw UI elements
@@ -541,6 +606,49 @@ void draw_register_person_screen(register_person_ui_elemnts *ui, app_state *stat
 	}
 }
 
-void draw_register_food_screen(register_person_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flag)
+void draw_register_food_screen(register_food_ui_elemnts *ui, app_state *state, error_code *error, flags_popup *flag)
 {
+	// Start draw UI elements
+
+	GuiLabel(ui->menu_title_bounds, "Register Food Batch");
+
+	intbox_draw(&ui->ib_batch_id);
+	textbox_draw(&ui->tb_name);
+	intbox_draw(&ui->ib_quantity);
+	textbox_draw(&ui->tb_expiration_date);
+
+	checkbox_draw(&ui->cb_is_perishable);
+
+	floatbox_draw(&ui->fb_daily_consumption_rate);
+
+	// Panel info
+	GuiPanel(ui->panel_bounds, TextFormat("Batch ID retrieved: %s", ui->foodbatch_retrieved.batch_id));
+
+	// End draw UI elements
+
+	// Start button actions
+
+	if (button_draw_updt(&ui->butn_back)) {
+		*state = STATE_MAIN_MENU;
+	}
+
+	if (button_draw_updt(&ui->butn_submit)) {
+	}
+
+	if (button_draw_updt(&ui->butn_retrieve)) {
+	}
+
+	if (button_draw_updt(&ui->butn_delete)) {
+	}
+
+	if (button_draw_updt(&ui->butn_retrieve_all)) {
+		db_get_all_food();
+	}
+
+	// End button actions
+
+	// Start show warning/error boxes
+
+	// Warnings
+	// End show warning/error boxes
 }
