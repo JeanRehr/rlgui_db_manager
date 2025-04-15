@@ -16,11 +16,12 @@ TEST_TARGET = tests.exe
 SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
 
-# Object files for main application, excluding test files
-MAIN_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(filter-out $(TEST_DIR)/*.c, $(SRC_FILES)))
+# Object files for main application (all src files)
+MAIN_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_FILES))
 
-# Object files for test suite
-TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.c, $(OBJ_DIR)/%.o, $(filter-out $(SRC_DIR)/main.c, $(TEST_FILES)))
+# Object files for test suite (test files + src files except main.c)
+TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.c, $(OBJ_DIR)/%.o, $(TEST_FILES)) \
+                 $(filter-out $(OBJ_DIR)/main.o, $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_FILES)))
 
 # Compiler and linker flags
 RELEASE_CFLAGS = -O3 -Wall -Wextra -pedantic -std=c99 -Wno-missing-braces
