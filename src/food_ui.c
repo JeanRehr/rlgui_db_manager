@@ -3,12 +3,12 @@
 #include "food_ui.h"
 #include "db_manager.h"
 
-typedef struct food_ui_elem food_ui_elem;
+typedef struct food_ui food_ui;
 typedef enum app_state app_state;
 typedef enum error_code error_code;
 typedef enum food_screen_flags food_screen_flags;
 
-void draw_food_ui_elem(food_ui_elem *ui, app_state *state, error_code *error)
+void food_ui_draw(food_ui *ui, app_state *state, error_code *error)
 {
 	// Start draw UI elements
 

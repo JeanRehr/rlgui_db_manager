@@ -7,12 +7,12 @@
 #include "utilsfn.h"
 #include "globals.h"
 
-typedef struct person_ui_elem person_ui_elem;
+typedef struct person_ui person_ui;
 typedef enum app_state app_state;
 typedef enum error_code error_code;
 typedef enum person_screen_flags person_screen_flags;
 
-void draw_person_ui_elem(person_ui_elem *ui, app_state *state, error_code *error)
+void person_ui_draw(person_ui *ui, app_state *state, error_code *error)
 {
 	// Start draw UI elements
 

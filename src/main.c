@@ -67,9 +67,9 @@ typedef struct dropdownbox dropdownbox;
 typedef struct button button;
 typedef struct person person;
 typedef struct foodbatch foodbatch;
-typedef struct main_menu_ui_elem main_menu_ui_elem;
-typedef struct person_ui_elem person_ui_elem;
-typedef struct food_ui_elem food_ui_elem;
+typedef struct main_menu_ui main_menu_ui;
+typedef struct person_ui person_ui;
+typedef struct food_ui food_ui;
 
 typedef enum error_code error_code;
 typedef enum app_state app_state;
@@ -96,141 +96,141 @@ int main()
 
 	// Start initializing the main menu screen in order as they appear from top-down top-left
 
-	main_menu_ui_elem main_menu_ui_elem;
-	
-	main_menu_ui_elem.menu_title_bounds = (Rectangle) {10, 10, 120, 20};
+	main_menu_ui main_menu_ui;
 
-	main_menu_ui_elem.reg_person_butn = button_init((Rectangle){100, 100, 200, 50}, "Manage Persons");
+	main_menu_ui.menu_title_bounds = (Rectangle) {10, 10, 120, 20};
 
-	main_menu_ui_elem.reg_food_butn = button_init((Rectangle){100, 200, 200, 50}, "Manage Food");
+	main_menu_ui.reg_person_butn = button_init((Rectangle){100, 100, 200, 50}, "Manage Persons");
+
+	main_menu_ui.reg_food_butn = button_init((Rectangle){100, 200, 200, 50}, "Manage Food");
 
 	// End initializing the main menu screen
 
 	// Start initializing the register person screen in order as they appear from top-down top-left
 
-	person_ui_elem person_ui_elem;
+	person_ui person_ui;
 
-	person_ui_elem.menu_title_bounds = (Rectangle) {10, 10, 120, 20};
+	person_ui.menu_title_bounds = (Rectangle) {10, 10, 120, 20};
 
-	person_ui_elem.butn_back = button_init(
-		(Rectangle) {20, person_ui_elem.menu_title_bounds.y + (person_ui_elem.menu_title_bounds.height * 2), 0, 30},
+	person_ui.butn_back = button_init(
+		(Rectangle) {20, person_ui.menu_title_bounds.y + (person_ui.menu_title_bounds.height * 2), 0, 30},
 		"Back"
 	);
-	person_ui_elem.tb_name = textbox_init(
-		(Rectangle){20, person_ui_elem.butn_back.bounds.y + (person_ui_elem.butn_back.bounds.height * 2), 300, 30},
+	person_ui.tb_name = textbox_init(
+		(Rectangle){20, person_ui.butn_back.bounds.y + (person_ui.butn_back.bounds.height * 2), 300, 30},
 		"Name:",
 		INPUT_TEXT,
 		0
 	);
-	person_ui_elem.tb_cpf = textbox_init(
-		(Rectangle){20, person_ui_elem.tb_name.bounds.y + (person_ui_elem.tb_name.bounds.height * 2), 300, 30},
+	person_ui.tb_cpf = textbox_init(
+		(Rectangle){20, person_ui.tb_name.bounds.y + (person_ui.tb_name.bounds.height * 2), 300, 30},
 		"CPF:",
 		INPUT_INTEGER,
 		11
 	);
-	person_ui_elem.ib_age = intbox_init(
-		(Rectangle){20, person_ui_elem.tb_cpf.bounds.y + (person_ui_elem.tb_cpf.bounds.height * 2), 125, 30},
+	person_ui.ib_age = intbox_init(
+		(Rectangle){20, person_ui.tb_cpf.bounds.y + (person_ui.tb_cpf.bounds.height * 2), 125, 30},
 		"Age:",
 		0,
 		120
 	);
-	person_ui_elem.tb_health_status = textbox_init(
-		(Rectangle){20, person_ui_elem.ib_age.bounds.y + (person_ui_elem.ib_age.bounds.height * 2), 300, 30},
+	person_ui.tb_health_status = textbox_init(
+		(Rectangle){20, person_ui.ib_age.bounds.y + (person_ui.ib_age.bounds.height * 2), 300, 30},
 		"Health Status:",
 		INPUT_TEXT,
 		0
 	);
-	person_ui_elem.tb_needs = textbox_init(
-		(Rectangle){20, person_ui_elem.tb_health_status.bounds.y + (person_ui_elem.tb_health_status.bounds.height * 2), 300, 30}, 
+	person_ui.tb_needs = textbox_init(
+		(Rectangle){20, person_ui.tb_health_status.bounds.y + (person_ui.tb_health_status.bounds.height * 2), 300, 30}, 
 		"Needs:",
 		INPUT_TEXT,
 		0
 	);
 
-	person_ui_elem.ddb_gender = dropdownbox_init(
-		(Rectangle){20, person_ui_elem.tb_needs.bounds.y + (person_ui_elem.tb_needs.bounds.height * 2), 200, 30},
+	person_ui.ddb_gender = dropdownbox_init(
+		(Rectangle){20, person_ui.tb_needs.bounds.y + (person_ui.tb_needs.bounds.height * 2), 200, 30},
 		"Other;Male;Female",
 		"Gender"
 	);
 
-	person_ui_elem.butn_submit = button_init((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
-	person_ui_elem.butn_retrieve = button_init((Rectangle) {person_ui_elem.butn_submit.bounds.x + person_ui_elem.butn_submit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
-	person_ui_elem.butn_delete = button_init((Rectangle) {person_ui_elem.butn_retrieve.bounds.x + person_ui_elem.butn_retrieve.bounds.width + 10, window_height - 100, 100, 30}, "Delete");
-	person_ui_elem.butn_retrieve_all = button_init((Rectangle) {person_ui_elem.butn_delete.bounds.x + person_ui_elem.butn_delete.bounds.width + 10, window_height - 100, 0, 30}, "Retrieve All");
+	person_ui.butn_submit = button_init((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
+	person_ui.butn_retrieve = button_init((Rectangle) {person_ui.butn_submit.bounds.x + person_ui.butn_submit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
+	person_ui.butn_delete = button_init((Rectangle) {person_ui.butn_retrieve.bounds.x + person_ui.butn_retrieve.bounds.width + 10, window_height - 100, 100, 30}, "Delete");
+	person_ui.butn_retrieve_all = button_init((Rectangle) {person_ui.butn_delete.bounds.x + person_ui.butn_delete.bounds.width + 10, window_height - 100, 0, 30}, "Retrieve All");
 
-	memset(&person_ui_elem.person_retrieved, 0, sizeof(person));
+	memset(&person_ui.person_retrieved, 0, sizeof(person));
 	
 	// Only set the bounds of the panel, draw everything inside based on it on the draw register person screen function
-	person_ui_elem.panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 300, 200};
+	person_ui.panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 300, 200};
 
-	person_ui_elem.flag = 0;
+	person_ui.flag = 0;
 
 	// End initializing the register person screen
 
 	// Start initializing the register food screen in order as they appear from top-down top-left
 
-	food_ui_elem food_ui_elem;
+	food_ui food_ui;
 
-	food_ui_elem.menu_title_bounds = (Rectangle) {10, 10, 150, 20};
+	food_ui.menu_title_bounds = (Rectangle) {10, 10, 150, 20};
 
-	food_ui_elem.butn_back = button_init(
-		(Rectangle) {20, food_ui_elem.menu_title_bounds.y + (food_ui_elem.menu_title_bounds.height * 2), 0, 30},
+	food_ui.butn_back = button_init(
+		(Rectangle) {20, food_ui.menu_title_bounds.y + (food_ui.menu_title_bounds.height * 2), 0, 30},
 		"Back"
 	);
 
-	food_ui_elem.ib_batch_id = intbox_init(
-		(Rectangle){20, food_ui_elem.butn_back.bounds.y + (food_ui_elem.butn_back.bounds.height * 2), 130, 30},
+	food_ui.ib_batch_id = intbox_init(
+		(Rectangle){20, food_ui.butn_back.bounds.y + (food_ui.butn_back.bounds.height * 2), 130, 30},
 		"Batch ID:",
 		1,
 		99999999
 	);
-	food_ui_elem.tb_name = textbox_init(
-		(Rectangle){20, food_ui_elem.ib_batch_id.bounds.y + (food_ui_elem.ib_batch_id.bounds.height * 2), 300, 30},
+	food_ui.tb_name = textbox_init(
+		(Rectangle){20, food_ui.ib_batch_id.bounds.y + (food_ui.ib_batch_id.bounds.height * 2), 300, 30},
 		"Food Name:",
 		INPUT_TEXT,
 		0
 	);
-	food_ui_elem.ib_quantity = intbox_init(
-		(Rectangle){20, food_ui_elem.tb_name.bounds.y + (food_ui_elem.tb_name.bounds.height * 2), 125, 30},
+	food_ui.ib_quantity = intbox_init(
+		(Rectangle){20, food_ui.tb_name.bounds.y + (food_ui.tb_name.bounds.height * 2), 125, 30},
 		"Quantity:",
 		0,
 		INT_MAX
 	);
 
-	food_ui_elem.cb_is_perishable = checkbox_init(
-		(Rectangle){20, food_ui_elem.ib_quantity.bounds.y + (food_ui_elem.ib_quantity.bounds.height * 2), 20, 20}, 
+	food_ui.cb_is_perishable = checkbox_init(
+		(Rectangle){20, food_ui.ib_quantity.bounds.y + (food_ui.ib_quantity.bounds.height * 2), 20, 20}, 
 		"Is Perishable?"
 	);
 
 
-	food_ui_elem.ib_year = intbox_init(
-		(Rectangle) {20, food_ui_elem.cb_is_perishable.bounds.y + (food_ui_elem.cb_is_perishable.bounds.height * 2), 40, 30}, "Year", 1000, 2025
+	food_ui.ib_year = intbox_init(
+		(Rectangle) {20, food_ui.cb_is_perishable.bounds.y + (food_ui.cb_is_perishable.bounds.height * 2), 40, 30}, "Year", 1000, 2025
 	);
 
-	food_ui_elem.ib_month = intbox_init(
-		(Rectangle) {food_ui_elem.ib_year.bounds.x + food_ui_elem.ib_year.bounds.width + 5, food_ui_elem.cb_is_perishable.bounds.y + (food_ui_elem.cb_is_perishable.bounds.height * 2), 35, 30}, "Month", 1, 12
+	food_ui.ib_month = intbox_init(
+		(Rectangle) {food_ui.ib_year.bounds.x + food_ui.ib_year.bounds.width + 5, food_ui.cb_is_perishable.bounds.y + (food_ui.cb_is_perishable.bounds.height * 2), 35, 30}, "Month", 1, 12
 	);
 
-	food_ui_elem.ib_day = intbox_init(
-		(Rectangle) {food_ui_elem.ib_month.bounds.x + food_ui_elem.ib_month.bounds.width + 5, food_ui_elem.cb_is_perishable.bounds.y + (food_ui_elem.cb_is_perishable.bounds.height * 2), 35, 30}, "Day", 1, 31
+	food_ui.ib_day = intbox_init(
+		(Rectangle) {food_ui.ib_month.bounds.x + food_ui.ib_month.bounds.width + 5, food_ui.cb_is_perishable.bounds.y + (food_ui.cb_is_perishable.bounds.height * 2), 35, 30}, "Day", 1, 31
 	);
 
-	food_ui_elem.fb_daily_consumption_rate = floatbox_init(
-		(Rectangle){20, food_ui_elem.ib_year.bounds.y + (food_ui_elem.ib_year.bounds.height * 2), 250, 30},
+	food_ui.fb_daily_consumption_rate = floatbox_init(
+		(Rectangle){20, food_ui.ib_year.bounds.y + (food_ui.ib_year.bounds.height * 2), 250, 30},
 		"Avg daily consumption rate per person?"
 	);
 
-	food_ui_elem.butn_submit = button_init((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
-	food_ui_elem.butn_retrieve = button_init((Rectangle) {food_ui_elem.butn_submit.bounds.x + food_ui_elem.butn_submit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
-	food_ui_elem.butn_delete = button_init((Rectangle) {food_ui_elem.butn_retrieve.bounds.x + food_ui_elem.butn_retrieve.bounds.width + 10, window_height - 100, 100, 30}, "Delete");
-	food_ui_elem.butn_retrieve_all = button_init((Rectangle) {food_ui_elem.butn_delete.bounds.x + food_ui_elem.butn_delete.bounds.width + 10, window_height - 100, 0, 30}, "Retrieve All");
+	food_ui.butn_submit = button_init((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
+	food_ui.butn_retrieve = button_init((Rectangle) {food_ui.butn_submit.bounds.x + food_ui.butn_submit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
+	food_ui.butn_delete = button_init((Rectangle) {food_ui.butn_retrieve.bounds.x + food_ui.butn_retrieve.bounds.width + 10, window_height - 100, 100, 30}, "Delete");
+	food_ui.butn_retrieve_all = button_init((Rectangle) {food_ui.butn_delete.bounds.x + food_ui.butn_delete.bounds.width + 10, window_height - 100, 0, 30}, "Retrieve All");
 
-	memset(&food_ui_elem.foodbatch_retrieved, 0, sizeof(foodbatch));
+	memset(&food_ui.foodbatch_retrieved, 0, sizeof(foodbatch));
 	
 	// Only set the bounds of the panel, draw everything inside based on it on the draw register person screen function
-	food_ui_elem.panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 300, 200};
+	food_ui.panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 300, 200};
 
-	food_ui_elem.flag = 0;
+	food_ui.flag = 0;
 
 	// End initializing the register food screen
 
@@ -249,11 +249,11 @@ int main()
 
 		if (IsWindowResized()) {
 			update_window_size(GetScreenWidth(), GetScreenHeight());
-			person_ui_elem.butn_submit.bounds.y = window_height - 100;
-			person_ui_elem.butn_retrieve.bounds.y = window_height - 100;
-			person_ui_elem.butn_delete.bounds.y = window_height - 100;
-			person_ui_elem.butn_retrieve_all.bounds.y = window_height - 100;
-			person_ui_elem.panel_bounds.x = window_width / 2 - 200;
+			person_ui.butn_submit.bounds.y = window_height - 100;
+			person_ui.butn_retrieve.bounds.y = window_height - 100;
+			person_ui.butn_delete.bounds.y = window_height - 100;
+			person_ui.butn_retrieve_all.bounds.y = window_height - 100;
+			person_ui.panel_bounds.x = window_width / 2 - 200;
 			style_options_bounds.x = window_width - 130;
 			style_options_label.x = style_options_bounds.x;
 		}
@@ -294,15 +294,15 @@ int main()
 
 		switch (app_state) {
 		case STATE_MAIN_MENU:
-			draw_main_menu_ui_elem(&main_menu_ui_elem, &app_state, &error);
+			main_menu_ui_draw(&main_menu_ui, &app_state, &error);
 			break;
 		
 		case STATE_REGISTER_PERSON:
-			draw_person_ui_elem(&person_ui_elem, &app_state, &error);
+			person_ui_draw(&person_ui, &app_state, &error);
 			break;
 		
 		case STATE_REGISTER_FOOD:
-			draw_food_ui_elem(&food_ui_elem, &app_state, &error);
+			food_ui_draw(&food_ui, &app_state, &error);
 			break;
 
 		default:
