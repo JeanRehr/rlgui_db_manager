@@ -1,50 +1,52 @@
 #include <raygui.h>
 
-#include <stdbool.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include <string.h>
+#include <time.h>
 
-#include "utilsfn.h"
 #include "CONSTANTS.h"
+#include "utilsfn.h"
 
 // Validate if integer input is between valid range of digits
 bool is_valid_integer_input(const char *input, const int min_len, const int max_len)
 {
-    int length = strlen(input);
-    return length >= min_len && length <= max_len;
+	int length = strlen(input);
+	return length >= min_len && length <= max_len;
 }
 
 // The function takes a block of text (input) and attempts to format it into multiple lines
 // Constructs the wrapped text into the output buffer, inserting newline characters (\n) where line breaks are made.
 // The buffer output must be larger than the initial input due to the newlines
-void wrap_text(const char *input, char *output, const int wrap_width) {
-    char buffer[256];
-    strncpy(buffer, input, sizeof(buffer) - 1);
-    buffer[sizeof(buffer) - 1] = '\0'; // Ensure buffer is null-terminated
-    int text_width = 0;
-    int output_index = 0;
+void wrap_text(const char *input, char *output, const int wrap_width)
+{
+	char buffer[256];
+	strncpy(buffer, input, sizeof(buffer) - 1);
+	buffer[sizeof(buffer) - 1] = '\0'; // Ensure buffer is null-terminated
+	int text_width = 0;
+	int output_index = 0;
 
-    int font_size = GuiGetStyle(DEFAULT, TEXT_SIZE);
-    const int SPACE_WIDTH = MeasureText(" ", font_size);
+	int font_size = GuiGetStyle(DEFAULT, TEXT_SIZE);
+	const int SPACE_WIDTH = MeasureText(" ", font_size);
 
-    char *token = strtok(buffer, " ");
-    while (token != NULL) {
-        int word_width = MeasureText(token, font_size);
+	char *token = strtok(buffer, " ");
+	while (token != NULL) {
+		int word_width = MeasureText(token, font_size);
 
-        if (text_width + word_width + SPACE_WIDTH > wrap_width) {
-            output[output_index++] = '\n'; // Insert line break
-            text_width = 0; // Reset line width
-        }
+		if (text_width + word_width + SPACE_WIDTH > wrap_width) {
+			output[output_index++] = '\n'; // Insert line break
+			text_width = 0; // Reset line width
+		}
 
-        strcpy(&output[output_index], token);
-        output_index += strlen(token);
-        output[output_index++] = ' '; // Add space after word
+		strcpy(&output[output_index], token);
+		output_index += strlen(token);
+		output[output_index++] = ' '; // Add space after word
 
-        text_width += word_width + SPACE_WIDTH;
-        token = strtok(NULL, " ");
-    }
+		text_width += word_width + SPACE_WIDTH;
+		token = strtok(NULL, " ");
+	}
 
-    output[output_index - 1] = '\0'; // Null-terminate string
+	output[output_index - 1] = '\0'; // Null-terminate string
 }
 
 // Function to filter integer input, max length will prevent the input from getting past the chosen number
@@ -65,4 +67,22 @@ void filter_integer_input(char *input, const int max_len)
 	filtered[index] = '\0';
 
 	strcpy(input, filtered);
+}
+
+void int_to_str(int num, char *str)
+{
+	int i = 0;
+
+	while (num > 0) {
+		str[i++] = num % 10 + '0';
+		num /= 10;
+	}
+
+	str[i] = '\0';
+
+	for (int j = 0, k = i - 1; j < k; j++, k--) {
+		char temp = str[j];
+		str[j] = str[k];
+		str[k] = temp;
+	}
 }
