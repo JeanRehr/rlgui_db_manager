@@ -46,6 +46,8 @@ struct person_ui {
     enum person_screen_flags flag;
 };
 
+void person_ui_init(struct person_ui *ui);
+
 void person_ui_draw(struct person_ui *ui, enum app_state *state, enum error_code *error);
 
 #endif // PERSON_UI_H

@@ -2,7 +2,10 @@
 
 #include <stdio.h>
 
+#include <string.h>
+
 #include "person_ui.h"
+#include "person.h" // To get the definition and size of a person struct
 #include "db_manager.h"
 #include "utilsfn.h"
 #include "globals.h"
@@ -11,6 +14,64 @@ typedef struct person_ui person_ui;
 typedef enum app_state app_state;
 typedef enum error_code error_code;
 typedef enum person_screen_flags person_screen_flags;
+
+void person_ui_init(person_ui *ui)
+{
+	ui->menu_title_bounds = (Rectangle) {10, 10, 120, 20};
+
+	ui->butn_back = button_init(
+		(Rectangle) {20, ui->menu_title_bounds.y + (ui->menu_title_bounds.height * 2), 0, 30},
+		"Back"
+	);
+	ui->tb_name = textbox_init(
+		(Rectangle){20, ui->butn_back.bounds.y + (ui->butn_back.bounds.height * 2), 300, 30},
+		"Name:",
+		INPUT_TEXT,
+		0
+	);
+	ui->tb_cpf = textbox_init(
+		(Rectangle){20, ui->tb_name.bounds.y + (ui->tb_name.bounds.height * 2), 300, 30},
+		"CPF:",
+		INPUT_INTEGER,
+		11
+	);
+	ui->ib_age = intbox_init(
+		(Rectangle){20, ui->tb_cpf.bounds.y + (ui->tb_cpf.bounds.height * 2), 125, 30},
+		"Age:",
+		0,
+		120
+	);
+	ui->tb_health_status = textbox_init(
+		(Rectangle){20, ui->ib_age.bounds.y + (ui->ib_age.bounds.height * 2), 300, 30},
+		"Health Status:",
+		INPUT_TEXT,
+		0
+	);
+	ui->tb_needs = textbox_init(
+		(Rectangle){20, ui->tb_health_status.bounds.y + (ui->tb_health_status.bounds.height * 2), 300, 30}, 
+		"Needs:",
+		INPUT_TEXT,
+		0
+	);
+
+	ui->ddb_gender = dropdownbox_init(
+		(Rectangle){20, ui->tb_needs.bounds.y + (ui->tb_needs.bounds.height * 2), 200, 30},
+		"Other;Male;Female",
+		"Gender"
+	);
+
+	ui->butn_submit = button_init((Rectangle) {20, window_height - 100, 100, 30}, "Submit");
+	ui->butn_retrieve = button_init((Rectangle) {ui->butn_submit.bounds.x + ui->butn_submit.bounds.width + 10, window_height - 100, 100, 30}, "Retrieve");
+	ui->butn_delete = button_init((Rectangle) {ui->butn_retrieve.bounds.x + ui->butn_retrieve.bounds.width + 10, window_height - 100, 100, 30}, "Delete");
+	ui->butn_retrieve_all = button_init((Rectangle) {ui->butn_delete.bounds.x + ui->butn_delete.bounds.width + 10, window_height - 100, 0, 30}, "Retrieve All");
+
+	memset(&ui->person_retrieved, 0, sizeof(struct person));
+	
+	// Only set the bounds of the panel, draw everything inside based on it on the draw register person screen function
+	ui->panel_bounds = (Rectangle) {window_width / 2 - 200, 10, 300, 200};
+
+	ui->flag = 0;
+}
 
 void person_ui_draw(person_ui *ui, app_state *state, error_code *error)
 {

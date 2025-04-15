@@ -12,6 +12,8 @@ struct main_menu_ui {
 	struct button reg_food_butn;
 };
 
+void main_menu_ui_init(struct main_menu_ui *ui);
+
 void main_menu_ui_draw(struct main_menu_ui *ui, enum app_state *state, enum error_code *error);
 
 #endif // MAIN_MENU_UI_HF
