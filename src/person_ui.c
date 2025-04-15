@@ -88,14 +88,14 @@ void draw_person_ui_elem(person_ui_elem *ui, app_state *state, error_code *error
 			fprintf(stderr, "Error submitting to database.\n");
 		} else {
 			*error = NO_ERROR;
-			SET_FLAG(&ui->flag, FLAG_OPERATION_DONE);
+			SET_FLAG(&ui->flag, FLAG_PERSON_OPERATION_DONE);
 		}
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve)) {
 		if (db_get_person_by_cpf(ui->tb_cpf.input, &ui->person_retrieved)) {
 			printf("Retrieved Person - Name: %s, Age: %d, Health Status: %s, Needs: %s, Gender: %d\n", ui->person_retrieved.name, ui->person_retrieved.age, ui->person_retrieved.health_status, ui->person_retrieved.needs, ui->person_retrieved.gender);
-			SET_FLAG(&ui->flag, FLAG_OPERATION_DONE);
+			SET_FLAG(&ui->flag, FLAG_PERSON_OPERATION_DONE);
 		} else {
 			SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
 		}
@@ -109,7 +109,7 @@ void draw_person_ui_elem(person_ui_elem *ui, app_state *state, error_code *error
 		} else if (!db_check_cpf_exists(ui->tb_cpf.input)) {
 			SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
 		} else {
-			SET_FLAG(&ui->flag, FLAG_CONFIRM_DELETE);
+			SET_FLAG(&ui->flag, FLAG_CONFIRM_PERSON_DELETE);
 		}
 	}
 
@@ -132,19 +132,19 @@ void draw_person_ui_elem(person_ui_elem *ui, app_state *state, error_code *error
 		if (result >= 0) {
 			*error = NO_ERROR;
 			CLEAR_FLAG(&ui->flag, FLAG_CPF_EXISTS);
-			SET_FLAG(&ui->flag, FLAG_OPERATION_DONE);
+			SET_FLAG(&ui->flag, FLAG_PERSON_OPERATION_DONE);
 		}
 	}
 
 	// In case deleting person
-	if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_DELETE)) {
+	if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_PERSON_DELETE)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Deleting Person!", "Are you sure you want to delete?", "Yes, delete;NO");
 		if (result == 1) {
 			db_delete_person_by_cpf(ui->tb_cpf.input);
-			SET_FLAG(&ui->flag, FLAG_OPERATION_DONE);
+			SET_FLAG(&ui->flag, FLAG_PERSON_OPERATION_DONE);
 		}
 		if (result >= 0) {
-			CLEAR_FLAG(&ui->flag, FLAG_CONFIRM_DELETE);
+			CLEAR_FLAG(&ui->flag, FLAG_CONFIRM_PERSON_DELETE);
 		}
 	}
 
@@ -174,12 +174,12 @@ void draw_person_ui_elem(person_ui_elem *ui, app_state *state, error_code *error
 	// End show warning/error boxes
 
 	// Clear the text buffer only after a successful operation
-	if (IS_FLAG_SET(&ui->flag, FLAG_OPERATION_DONE)) {
+	if (IS_FLAG_SET(&ui->flag, FLAG_PERSON_OPERATION_DONE)) {
 		ui->tb_name.input[0] = '\0';
 		ui->tb_cpf.input[0] = '\0';
 		ui->ib_age.input = 0;
 		ui->tb_health_status.input[0] = '\0';
 		ui->tb_needs.input[0] = '\0';
-		CLEAR_FLAG(&ui->flag, FLAG_OPERATION_DONE);
+		CLEAR_FLAG(&ui->flag, FLAG_PERSON_OPERATION_DONE);
 	}
 }
