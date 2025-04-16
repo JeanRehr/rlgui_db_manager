@@ -187,7 +187,7 @@ void person_ui_draw(person_ui *ui, app_state *state, error_code *error)
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
 		if (result == 1) {
 			if (db_update_person(ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->ddb_gender.active_option) != SQLITE_OK) {
-				*error = ERROR_INSERT_DB;
+				*error = ERROR_UPDATE_DB;
 			}
 		}
 		if (result >= 0) {
@@ -225,7 +225,7 @@ void person_ui_draw(person_ui *ui, app_state *state, error_code *error)
 		if (result >= 0) {
 			CLEAR_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
 		}
-	} else if (*error == ERROR_INSERT_DB) {
+	} else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "Error submitting to database.", "OK");
 		if (result >= 0) {
 			*error = NO_ERROR;

@@ -69,6 +69,46 @@ void filter_integer_input(char *input, const int max_len)
 	strcpy(input, filtered);
 }
 
+bool validate_date(int year, int month, int day)
+{
+	if (year < 1) {
+		return false;
+	}
+
+	// Check month
+	switch (month) {
+	// Jan, Mar, May, Jul, Aug, Oct, Dec:
+	case 1: case 3: case 5: case 7: case 8: case 10: case 12:
+		if (day < 1 || day > 31) {
+			return false;
+		}
+		break;
+	// Apr, Jun, Sept, Nov:
+	case 4: case 6: case 9: case 11:
+		if (day < 1 || day > 30) {
+			return false;
+		}
+		break;
+	//Feb:
+	case 2:
+		if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+			if (day < 1 || day > 29) {
+				return false; // Leap year
+			}
+		} else {
+			if (day < 1 || day > 28) {
+				return false; // Non-leap year
+			}
+		}
+		break;
+	// Will never happen in this app
+	default:
+		return false; // Invalid month
+	}
+
+	return true;
+}
+
 void int_to_str(int num, char *str)
 {
 	int i = 0;

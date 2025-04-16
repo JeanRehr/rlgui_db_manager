@@ -13,6 +13,11 @@
 enum food_screen_flags {
     FLAG_FOOD_OPERATION_DONE = 1 << 0, // 0001: Submission completed
     FLAG_CONFIRM_FOOD_DELETE = 1 << 1, // 0010: Confirm deletion
+	// batch_id will never be empty actually
+	//FLAG_ID_EMPTY = 1 << 2, // 0100: Unique Identifier of batch id empty
+	FLAG_BATCHID_EXISTS = 1 << 2, // 0100: Unique Identifier already exists in database
+	FLAG_INVALID_FOOD_DATE = 1 << 3, // 1000: Invalid date entered
+	FLAG_BATCHID_NOT_FOUND = 1 << 4, // 10000: batch_id not found in the database
 };
 
 // To manage the state of the register food screen

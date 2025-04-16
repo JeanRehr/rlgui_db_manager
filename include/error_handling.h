@@ -4,6 +4,7 @@
 enum error_code {
 	NO_ERROR = 0,
 	ERROR_INSERT_DB,
+	ERROR_UPDATE_DB,
 	ERROR_OPENING_DB,
 };
 
