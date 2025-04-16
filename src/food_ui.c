@@ -109,7 +109,7 @@ void food_ui_draw(food_ui *ui, app_state *state, error_code *error)
 	floatbox_draw(&ui->fb_daily_consumption_rate);
 
 	// Panel info
-	GuiPanel(ui->panel_bounds, TextFormat("Batch ID retrieved: %s", ui->foodbatch_retrieved.batch_id));
+	GuiPanel(ui->panel_bounds, TextFormat("Batch ID retrieved: %d", ui->foodbatch_retrieved.batch_id));
 
 	// End draw UI elements
 
