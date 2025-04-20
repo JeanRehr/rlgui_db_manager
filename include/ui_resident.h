@@ -1,5 +1,5 @@
-#ifndef resident_UI_H
-#define resident_UI_H
+#ifndef UI_RESIDENT_H
+#define UI_RESIDENT_H
 
 #include "button.h"
 #include "textbox.h"
@@ -55,4 +55,4 @@ void resident_ui_draw(struct resident_ui *ui, enum app_state *state, enum error_
 
 void resident_ui_updt_pos(struct resident_ui *ui);
 
-#endif // resident_UI_H
+#endif // UI_RESIDENT_H

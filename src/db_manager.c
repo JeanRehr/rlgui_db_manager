@@ -24,14 +24,14 @@ int db_init()
 	}
 
 	const char *residentTableSQL = "CREATE TABLE IF NOT EXISTS Resident ("
-								 "CPF TEXT PRIMARY KEY,"
-								 "Name TEXT NOT NULL,"
-								 "Age INTEGER NOT NULL,"
-								 "HealthStatus TEXT,"
-								 "Needs TEXT,"
-								 "MedicalAssistance INTEGER NOT NULL,"
-								 "Gender INTEGER NOT NULL,"
-								 "EntryDate TEXT);";
+								   "CPF TEXT PRIMARY KEY,"
+								   "Name TEXT NOT NULL,"
+								   "Age INTEGER NOT NULL,"
+								   "HealthStatus TEXT,"
+								   "Needs TEXT,"
+								   "MedicalAssistance INTEGER NOT NULL,"
+								   "Gender INTEGER NOT NULL,"
+								   "EntryDate TEXT);";
 
 	rc = sqlite3_exec(db, residentTableSQL, 0, 0, &errMsg);
 	if (rc != SQLITE_OK) {
@@ -69,7 +69,7 @@ int db_init()
 }
 
 int db_insert_resident(const char *cpf, const char *name, int age, const char *health_status, const char *needs,
-					 bool medical_assistance, int gender)
+					   bool medical_assistance, int gender)
 {
 	sqlite3 *db;
 	int rc;
@@ -80,8 +80,9 @@ int db_insert_resident(const char *cpf, const char *name, int age, const char *h
 		return rc;
 	}
 
-	const char *sql = "INSERT INTO Resident (CPF, Name, Age, HealthStatus, Needs, MedicalAssistance, Gender, EntryDate) "
-					  "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+	const char *sql =
+		"INSERT INTO Resident (CPF, Name, Age, HealthStatus, Needs, MedicalAssistance, Gender, EntryDate) "
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 
 	sqlite3_stmt *stmt;
 
@@ -123,7 +124,7 @@ int db_insert_resident(const char *cpf, const char *name, int age, const char *h
 }
 
 int db_update_resident(const char *cpf, const char *name_input, int age_input, const char *health_status_input,
-					 const char *needs_input, int medical_assistance_input, int gender_input)
+					   const char *needs_input, int medical_assistance_input, int gender_input)
 {
 	struct resident currentResident;
 	if (!db_get_resident_by_cpf(cpf, &currentResident)) {
@@ -148,8 +149,9 @@ int db_update_resident(const char *cpf, const char *name_input, int age_input, c
 		return rc;
 	}
 
-	const char *sql = "UPDATE Resident SET Name = ?, Age = ?, HealthStatus = ?, Needs = ?, MedicalAssistance = ?, Gender "
-					  "= ? WHERE CPF = ?;";
+	const char *sql =
+		"UPDATE Resident SET Name = ?, Age = ?, HealthStatus = ?, Needs = ?, MedicalAssistance = ?, Gender "
+		"= ? WHERE CPF = ?;";
 
 	sqlite3_stmt *stmt;
 	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
@@ -264,7 +266,8 @@ bool db_get_resident_by_cpf(const char *cpf, struct resident *resident)
 		return false;
 	}
 
-	const char *sql = "SELECT CPF, Name, Age, HealthStatus, Needs, MedicalAssistance, Gender, EntryDate FROM Resident WHERE CPF = ?;";
+	const char *sql =
+		"SELECT CPF, Name, Age, HealthStatus, Needs, MedicalAssistance, Gender, EntryDate FROM Resident WHERE CPF = ?;";
 
 	sqlite3_stmt *stmt;
 	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
@@ -339,8 +342,8 @@ void db_get_all_residents()
 		int gender = sqlite3_column_int(stmt, 6);
 		const char *entry_date = (const char *)sqlite3_column_text(stmt, 7);
 
-		printf("| %-11s | %-42s | %-3d | %-42s | %-42s | %-23s | %-6s | %-10s |\n", cpf, name, age, health_status, needs,
-			   (medical_assistance == 0 ? "False" : "true"),
+		printf("| %-11s | %-42s | %-3d | %-42s | %-42s | %-23s | %-6s | %-10s |\n", cpf, name, age, health_status,
+			   needs, (medical_assistance == 0 ? "False" : "true"),
 			   (gender == 0 ? "Other" : (gender == 1 ? "Male" : "Female")), entry_date);
 		printf("+-------------+--------------------------------------------+-----+-------------------------------------"
 			   "-----"

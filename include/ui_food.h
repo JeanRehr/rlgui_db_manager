@@ -1,5 +1,5 @@
-#ifndef FOOD_UI_H
-#define FOOD_UI_H
+#ifndef UI_FOOD_H
+#define UI_FOOD_H
 
 #include "button.h"
 #include "textbox.h"
@@ -56,4 +56,4 @@ void food_ui_draw(struct food_ui *ui, enum app_state *state, enum error_code *er
 
 void food_ui_updt_pos(struct food_ui *ui);
 
-#endif // FOOD_UI_H
+#endif // UI_FOOD_H
