@@ -3,9 +3,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "db_manager.h"
+#include "db/db_manager.h"
 
-#include <sqlite3.h>
+#include <external/sqlite3.h>
 
 const char *resident_db_filename = "resident_database.db";
 const char *food_db_filename = "food_database.db";

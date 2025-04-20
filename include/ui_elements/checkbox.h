@@ -1,7 +1,7 @@
 #ifndef CHECKBOX_H
 #define CHECKBOX_H
 
-#include <raylib.h>
+#include <external/raylib.h>
 
 #include <stdbool.h>
 

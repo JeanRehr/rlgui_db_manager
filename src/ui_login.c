@@ -1,6 +1,6 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
-#include "ui_login.h"
+#include "ui/ui_login.h"
 
 #include "globals.h"
 

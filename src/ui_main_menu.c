@@ -1,6 +1,6 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
-#include "ui_main_menu.h"
+#include "ui/ui_main_menu.h"
 
 typedef struct ui_main_menu ui_main_menu;
 typedef enum app_state app_state;

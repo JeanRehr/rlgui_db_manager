@@ -1,7 +1,7 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
 #include "CONSTANTS.h"
-#include "dropdownbox.h"
+#include "ui_elements/dropdownbox.h"
 
 typedef struct dropdownbox dropdownbox;
 

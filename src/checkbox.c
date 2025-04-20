@@ -1,9 +1,9 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "checkbox.h"
+#include "ui_elements/checkbox.h"
 #include "CONSTANTS.h"
 
 typedef struct checkbox checkbox;

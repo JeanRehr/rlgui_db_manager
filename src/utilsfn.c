@@ -1,4 +1,4 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
 #include <ctype.h>
 #include <stdbool.h>

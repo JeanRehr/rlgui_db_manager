@@ -1,7 +1,7 @@
 #ifndef UI_MAIN_MENU_H
 #define UI_MAIN_MENU_H
 
-#include "button.h"
+#include "ui_elements/button.h"
 #include "app_state.h"
 #include "error_handling.h"
 

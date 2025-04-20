@@ -1,9 +1,9 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "floatbox.h"
+#include "ui_elements/floatbox.h"
 
 typedef struct floatbox floatbox;
 

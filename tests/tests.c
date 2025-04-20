@@ -1,9 +1,9 @@
 // Including raylib + raygui with #define RAYGUI_IMPLEMENTATION to appease the makefile.
 // As makefile dos not links all src/ files expect main.c for the tests directory
 // It won't see the RAYGUI_IMPLEMENTATION and will complain
-#include <raylib.h>
+#include <external/raylib.h>
 #define RAYGUI_IMPLEMENTATION
-#include <raygui.h>
+#include <external/raygui.h>
 
 #include <stdio.h>
 

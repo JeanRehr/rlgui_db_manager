@@ -14,9 +14,9 @@
  * one screen for inserting food, one screen for inserting people
  */
 
-#include <raylib.h>
+#include <external/raylib.h>
 #define RAYGUI_IMPLEMENTATION
-#include <raygui.h>
+#include <external/raygui.h>
 
 // raygui embedded styles
 // NOTE: Included in the same order as selector
@@ -40,19 +40,19 @@
 #include "utilsfn.h"
 #include "globals.h"
 
-#include "db_manager.h"
+#include "db/db_manager.h"
+#include "ui_elements/textbox.h"
+#include "ui_elements/intbox.h"
+#include "ui_elements/floatbox.h"
+#include "ui_elements/checkbox.h"
+#include "ui_elements/dropdownbox.h"
+#include "ui_elements/button.h"
+#include "ui/ui_login.h"
+#include "ui/ui_main_menu.h"
+#include "ui/ui_resident.h"
+#include "ui/ui_food.h"
 #include "resident.h"
-#include "textbox.h"
-#include "intbox.h"
-#include "floatbox.h"
-#include "checkbox.h"
-#include "dropdownbox.h"
-#include "button.h"
 #include "food.h"
-#include "ui_login.h"
-#include "ui_main_menu.h"
-#include "ui_resident.h"
-#include "ui_food.h"
 #include "error_handling.h"
 #include "app_state.h"
 

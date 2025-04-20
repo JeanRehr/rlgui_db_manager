@@ -1,11 +1,11 @@
 #ifndef UI_FOOD_H
 #define UI_FOOD_H
 
-#include "button.h"
-#include "textbox.h"
-#include "intbox.h"
-#include "floatbox.h"
-#include "checkbox.h"
+#include "ui_elements/button.h"
+#include "ui_elements/textbox.h"
+#include "ui_elements/intbox.h"
+#include "ui_elements/floatbox.h"
+#include "ui_elements/checkbox.h"
 #include "food.h"
 #include "app_state.h"
 #include "error_handling.h"

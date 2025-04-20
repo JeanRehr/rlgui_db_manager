@@ -1,9 +1,9 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
 #include <stddef.h>
 
 #include "CONSTANTS.h"
-#include "intbox.h"
+#include "ui_elements/intbox.h"
 
 typedef struct intbox intbox;
 

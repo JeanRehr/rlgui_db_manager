@@ -1,12 +1,12 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
 #include <stdio.h>
 
 #include <string.h>
 
-#include "ui_resident.h"
+#include "ui/ui_resident.h"
 #include "resident.h" // To get the definition and size of a resident struct
-#include "db_manager.h"
+#include "db/db_manager.h"
 #include "utilsfn.h"
 #include "globals.h"
 

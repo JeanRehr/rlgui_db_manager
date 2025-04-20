@@ -1,7 +1,7 @@
 #ifndef DB_MANAGER_H
 #define DB_MANAGER_H
 
-#include <sqlite3.h>
+#include <external/sqlite3.h>
 
 #include "food.h"
 #include "resident.h"

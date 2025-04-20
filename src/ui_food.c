@@ -1,12 +1,12 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
 
-#include "ui_food.h"
+#include "ui/ui_food.h"
 #include "food.h" // To get the definition and size of a foodbatch struct
-#include "db_manager.h"
+#include "db/db_manager.h"
 #include "globals.h"
 #include "utilsfn.h"
 

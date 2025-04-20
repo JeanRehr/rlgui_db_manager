@@ -1,9 +1,9 @@
-#include <raygui.h>
+#include <external/raygui.h>
 
 #include <stdbool.h>
 #include <string.h>
 
-#include "button.h"
+#include "ui_elements/button.h"
 #include "CONSTANTS.h"
 
 typedef struct button button;

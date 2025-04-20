@@ -1,11 +1,11 @@
 #ifndef UI_RESIDENT_H
 #define UI_RESIDENT_H
 
-#include "button.h"
-#include "textbox.h"
-#include "intbox.h"
-#include "dropdownbox.h"
-#include "checkbox.h"
+#include "ui_elements/button.h"
+#include "ui_elements/textbox.h"
+#include "ui_elements/intbox.h"
+#include "ui_elements/dropdownbox.h"
+#include "ui_elements/checkbox.h"
 #include "resident.h"
 #include "app_state.h"
 #include "error_handling.h"

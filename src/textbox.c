@@ -1,8 +1,8 @@
-#include <raygui.h>
+#include <external/raygui.h>
 #include <string.h>
 
 #include "CONSTANTS.h"
-#include "Textbox.h"
+#include "ui_elements/textbox.h"
 #include "utilsfn.h"
 
 typedef enum input_type input_type;
