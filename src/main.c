@@ -55,8 +55,6 @@
 #include "error_handling.h"
 #include "app_state.h"
 
-int TOTAL_PERSONS; // Total number of persons in the database, used for tracking
-
 // typedefs
 typedef struct textbox textbox;
 typedef struct intbox intbox;
@@ -132,11 +130,8 @@ int main()
 
 		if (IsWindowResized()) {
 			update_window_size(GetScreenWidth(), GetScreenHeight());
-			person_ui.butn_submit.bounds.y = window_height - 100;
-			person_ui.butn_retrieve.bounds.y = window_height - 100;
-			person_ui.butn_delete.bounds.y = window_height - 100;
-			person_ui.butn_retrieve_all.bounds.y = window_height - 100;
-			person_ui.panel_bounds.x = window_width / 2 - 200;
+			person_ui_updt_pos(&person_ui);
+			food_ui_updt_pos(&food_ui);
 			style_options_bounds.x = window_width - 130;
 			style_options_label.x = style_options_bounds.x;
 		}

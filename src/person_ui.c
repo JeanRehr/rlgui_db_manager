@@ -244,3 +244,12 @@ void person_ui_draw(person_ui *ui, app_state *state, error_code *error)
 		CLEAR_FLAG(&ui->flag, FLAG_PERSON_OPERATION_DONE);
 	}
 }
+
+void person_ui_updt_pos(person_ui *ui)
+{
+	ui->butn_submit.bounds.y = window_height - 50;
+	ui->butn_retrieve.bounds.y = window_height - 50;
+	ui->butn_delete.bounds.y = window_height - 50;
+	ui->butn_retrieve_all.bounds.y = window_height - 50;
+	ui->panel_bounds.x = window_width / 2 - 150;
+}

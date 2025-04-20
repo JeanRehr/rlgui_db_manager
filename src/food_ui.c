@@ -244,3 +244,12 @@ void food_ui_draw(food_ui *ui, app_state *state, error_code *error)
 	// Warnings
 	// End show warning/error boxes
 }
+
+void food_ui_updt_pos(struct food_ui *ui)
+{
+	ui->butn_submit.bounds.y = window_height - 50;
+	ui->butn_retrieve.bounds.y = window_height - 50;
+	ui->butn_delete.bounds.y = window_height - 50;
+	ui->butn_retrieve_all.bounds.y = window_height - 50;
+	ui->panel_bounds.x = window_width / 2 - 150;
+}
