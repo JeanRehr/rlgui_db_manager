@@ -125,19 +125,19 @@ int db_insert_resident(const char *cpf, const char *name, int age, const char *h
 int db_update_resident(const char *cpf, const char *name_input, int age_input, const char *health_status_input,
 					 const char *needs_input, int medical_assistance_input, int gender_input)
 {
-	struct resident currentPerson;
-	if (!db_get_resident_by_cpf(cpf, &currentPerson)) {
+	struct resident currentResident;
+	if (!db_get_resident_by_cpf(cpf, &currentResident)) {
 		return SQLITE_ERROR;
 	}
 
 	// Decide which fields to use for update based on inputs
-	const char *name = (name_input[0] != '\0') ? name_input : currentPerson.name;
-	int age = (age_input > 0) ? age_input : currentPerson.age;
-	const char *health_status = (health_status_input[0] != '\0') ? health_status_input : currentPerson.health_status;
-	const char *needs = (needs_input[0] != '\0') ? needs_input : currentPerson.needs;
+	const char *name = (name_input[0] != '\0') ? name_input : currentResident.name;
+	int age = (age_input > 0) ? age_input : currentResident.age;
+	const char *health_status = (health_status_input[0] != '\0') ? health_status_input : currentResident.health_status;
+	const char *needs = (needs_input[0] != '\0') ? needs_input : currentResident.needs;
 	int medical_assistance =
-		(medical_assistance_input > 0) ? medical_assistance_input : currentPerson.medical_assistance;
-	int gender = (gender_input >= 0) ? gender_input : currentPerson.gender;
+		(medical_assistance_input > 0) ? medical_assistance_input : currentResident.medical_assistance;
+	int gender = (gender_input >= 0) ? gender_input : currentResident.gender;
 
 	sqlite3 *db;
 	int rc;
