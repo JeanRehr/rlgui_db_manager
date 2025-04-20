@@ -49,6 +49,7 @@
 #include "dropdownbox.h"
 #include "button.h"
 #include "food.h"
+#include "ui_login.h"
 #include "ui_main_menu.h"
 #include "ui_resident.h"
 #include "ui_food.h"
@@ -64,6 +65,7 @@ typedef struct dropdownbox dropdownbox;
 typedef struct button button;
 typedef struct resident resident;
 typedef struct foodbatch foodbatch;
+typedef struct ui_login ui_login;
 typedef struct ui_main_menu ui_main_menu;
 typedef struct ui_resident ui_resident;
 typedef struct ui_food ui_food;
@@ -90,6 +92,14 @@ int main()
 	GuiSetStyle(DEFAULT, TEXT_SIZE, FONT_SIZE);
 
 	SetTargetFPS(60);
+
+	// Start initializing the login screen in order as they appear from top-down top-left
+
+	ui_login ui_login;
+
+	ui_login_init(&ui_login);
+
+	// End initializing the login screen
 
 	// Start initializing the main menu screen in order as they appear from top-down top-left
 
@@ -121,7 +131,7 @@ int main()
 
 	// Setting the initial state for screen and error code
 	error_code error = NO_ERROR;
-	app_state app_state = STATE_MAIN_MENU;
+	app_state app_state = STATE_LOGIN_MENU;
 
 	while (!WindowShouldClose()) {
 		// Update
@@ -172,13 +182,13 @@ int main()
 
 		switch (app_state) {
 		case STATE_LOGIN_MENU:
-			//login_menu_draw();
+			ui_login_draw(&ui_login, &app_state, &error);
 			break;
 		case STATE_MAIN_MENU:
 			ui_main_menu_draw(&ui_main_menu, &app_state, &error);
 			break;
 		
-		case STATE_REGISTER_PERSON:
+		case STATE_REGISTER_RESIDENT:
 			ui_resident_draw(&ui_resident, &app_state, &error);
 			break;
 		

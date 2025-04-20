@@ -24,7 +24,7 @@ void ui_main_menu_draw(ui_main_menu *ui, app_state *state, error_code *error)
 	// Start button actions
 
 	if (button_draw_updt(&ui->reg_resident_butn)) {
-		*state = STATE_REGISTER_PERSON;
+		*state = STATE_REGISTER_RESIDENT;
 	}
 	if (button_draw_updt(&ui->reg_food_butn)) {
 		*state = STATE_REGISTER_FOOD;
