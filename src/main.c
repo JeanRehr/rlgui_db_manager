@@ -49,9 +49,9 @@
 #include "dropdownbox.h"
 #include "button.h"
 #include "food.h"
-#include "main_menu_ui.h"
-#include "resident_ui.h"
-#include "food_ui.h"
+#include "ui_main_menu.h"
+#include "ui_resident.h"
+#include "ui_food.h"
 #include "error_handling.h"
 #include "app_state.h"
 
@@ -64,9 +64,9 @@ typedef struct dropdownbox dropdownbox;
 typedef struct button button;
 typedef struct resident resident;
 typedef struct foodbatch foodbatch;
-typedef struct main_menu_ui main_menu_ui;
-typedef struct resident_ui resident_ui;
-typedef struct food_ui food_ui;
+typedef struct ui_main_menu ui_main_menu;
+typedef struct ui_resident ui_resident;
+typedef struct ui_food ui_food;
 
 typedef enum error_code error_code;
 typedef enum app_state app_state;
@@ -93,25 +93,25 @@ int main()
 
 	// Start initializing the main menu screen in order as they appear from top-down top-left
 
-	main_menu_ui main_menu_ui;
+	ui_main_menu ui_main_menu;
 
-	main_menu_ui_init(&main_menu_ui);
+	ui_main_menu_init(&ui_main_menu);
 
 	// End initializing the main menu screen
 
 	// Start initializing the register resident screen in order as they appear from top-down top-left
 
-	resident_ui resident_ui;
+	ui_resident ui_resident;
 
-	resident_ui_init(&resident_ui);
+	ui_resident_init(&ui_resident);
 
 	// End initializing the register resident screen
 
 	// Start initializing the register food screen in order as they appear from top-down top-left
 
-	food_ui food_ui;
+	ui_food ui_food;
 
-	food_ui_init(&food_ui);
+	ui_food_init(&ui_food);
 
 	// End initializing the register food screen
 
@@ -130,8 +130,8 @@ int main()
 
 		if (IsWindowResized()) {
 			update_window_size(GetScreenWidth(), GetScreenHeight());
-			resident_ui_updt_pos(&resident_ui);
-			food_ui_updt_pos(&food_ui);
+			ui_resident_updt_pos(&ui_resident);
+			ui_food_updt_pos(&ui_food);
 			style_options_bounds.x = window_width - 130;
 			style_options_label.x = style_options_bounds.x;
 		}
@@ -175,15 +175,15 @@ int main()
 			//login_menu_draw();
 			break;
 		case STATE_MAIN_MENU:
-			main_menu_ui_draw(&main_menu_ui, &app_state, &error);
+			ui_main_menu_draw(&ui_main_menu, &app_state, &error);
 			break;
 		
 		case STATE_REGISTER_PERSON:
-			resident_ui_draw(&resident_ui, &app_state, &error);
+			ui_resident_draw(&ui_resident, &app_state, &error);
 			break;
 		
 		case STATE_REGISTER_FOOD:
-			food_ui_draw(&food_ui, &app_state, &error);
+			ui_food_draw(&ui_food, &app_state, &error);
 			break;
 
 		default:

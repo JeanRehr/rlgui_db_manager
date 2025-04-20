@@ -1,12 +1,12 @@
 #include <raygui.h>
 
-#include "main_menu_ui.h"
+#include "ui_main_menu.h"
 
-typedef struct main_menu_ui main_menu_ui;
+typedef struct ui_main_menu ui_main_menu;
 typedef enum app_state app_state;
 typedef enum error_code error_code;
 
-void main_menu_ui_init(main_menu_ui *ui)
+void ui_main_menu_init(ui_main_menu *ui)
 {
 	ui->menu_title_bounds = (Rectangle) {10, 10, 120, 20};
 
@@ -15,7 +15,7 @@ void main_menu_ui_init(main_menu_ui *ui)
 	ui->reg_food_butn = button_init((Rectangle){100, 200, 200, 50}, "Manage Food");
 }
 
-void main_menu_ui_draw(main_menu_ui *ui, app_state *state, error_code *error)
+void ui_main_menu_draw(ui_main_menu *ui, app_state *state, error_code *error)
 {
 	// Start draw UI elements
 	GuiLabel(ui->menu_title_bounds, "Main Menu");

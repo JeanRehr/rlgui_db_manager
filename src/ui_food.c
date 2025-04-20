@@ -4,18 +4,18 @@
 #include <string.h>
 #include <limits.h>
 
-#include "food_ui.h"
+#include "ui_food.h"
 #include "food.h" // To get the definition and size of a foodbatch struct
 #include "db_manager.h"
 #include "globals.h"
 #include "utilsfn.h"
 
-typedef struct food_ui food_ui;
+typedef struct ui_food ui_food;
 typedef enum app_state app_state;
 typedef enum error_code error_code;
 typedef enum food_screen_flags food_screen_flags;
 
-void food_ui_init(food_ui *ui)
+void ui_food_init(ui_food *ui)
 {
 	ui->menu_title_bounds = (Rectangle) {10, 10, 150, 20};
 
@@ -80,7 +80,7 @@ void food_ui_init(food_ui *ui)
 	ui->flag = 0;
 }
 
-void food_ui_draw(food_ui *ui, app_state *state, error_code *error)
+void ui_food_draw(ui_food *ui, app_state *state, error_code *error)
 {
 	// Start draw UI elements
 
@@ -245,7 +245,7 @@ void food_ui_draw(food_ui *ui, app_state *state, error_code *error)
 	// End show warning/error boxes
 }
 
-void food_ui_updt_pos(struct food_ui *ui)
+void ui_food_updt_pos(struct ui_food *ui)
 {
 	ui->butn_submit.bounds.y = window_height - 50;
 	ui->butn_retrieve.bounds.y = window_height - 50;

@@ -4,18 +4,18 @@
 
 #include <string.h>
 
-#include "resident_ui.h"
+#include "ui_resident.h"
 #include "resident.h" // To get the definition and size of a resident struct
 #include "db_manager.h"
 #include "utilsfn.h"
 #include "globals.h"
 
-typedef struct resident_ui resident_ui;
+typedef struct ui_resident ui_resident;
 typedef enum app_state app_state;
 typedef enum error_code error_code;
 typedef enum resident_screen_flags resident_screen_flags;
 
-void resident_ui_init(resident_ui *ui)
+void ui_resident_init(ui_resident *ui)
 {
 	ui->menu_title_bounds = (Rectangle) {10, 10, 120, 20};
 
@@ -78,7 +78,7 @@ void resident_ui_init(resident_ui *ui)
 	ui->flag = 0;
 }
 
-void resident_ui_draw(resident_ui *ui, app_state *state, error_code *error)
+void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error)
 {
 	// Start draw UI elements
 
@@ -258,7 +258,7 @@ void resident_ui_draw(resident_ui *ui, app_state *state, error_code *error)
 	}
 }
 
-void resident_ui_updt_pos(resident_ui *ui)
+void ui_resident_updt_pos(ui_resident *ui)
 {
 	ui->butn_submit.bounds.y = window_height - 50;
 	ui->butn_retrieve.bounds.y = window_height - 50;

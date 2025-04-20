@@ -21,7 +21,7 @@ enum food_screen_flags {
 };
 
 // To manage the state of the register food screen
-struct food_ui {
+struct ui_food {
 	Rectangle menu_title_bounds;
 	struct intbox ib_batch_id;
 
@@ -50,10 +50,10 @@ struct food_ui {
     enum food_screen_flags flag;
 };
 
-void food_ui_init(struct food_ui *ui);
+void ui_food_init(struct ui_food *ui);
 
-void food_ui_draw(struct food_ui *ui, enum app_state *state, enum error_code *error);
+void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *error);
 
-void food_ui_updt_pos(struct food_ui *ui);
+void ui_food_updt_pos(struct ui_food *ui);
 
 #endif // UI_FOOD_H

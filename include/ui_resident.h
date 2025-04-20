@@ -23,7 +23,7 @@ enum resident_screen_flags {
 };
 
 // To manage the state of the register resident screen
-struct resident_ui {
+struct ui_resident {
 	Rectangle menu_title_bounds;
 	struct textbox tb_name;
 	struct textbox tb_cpf; // cpf makes sense still being a textbox, as it needs to contain zeroes at the start
@@ -49,10 +49,10 @@ struct resident_ui {
     enum resident_screen_flags flag;
 };
 
-void resident_ui_init(struct resident_ui *ui);
+void ui_resident_init(struct ui_resident *ui);
 
-void resident_ui_draw(struct resident_ui *ui, enum app_state *state, enum error_code *error);
+void ui_resident_draw(struct ui_resident *ui, enum app_state *state, enum error_code *error);
 
-void resident_ui_updt_pos(struct resident_ui *ui);
+void ui_resident_updt_pos(struct ui_resident *ui);
 
 #endif // UI_RESIDENT_H
