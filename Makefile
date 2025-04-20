@@ -2,26 +2,49 @@
 CC = gcc
 
 # Directories
+
+# src directory and subdirectories
 SRC_DIR = src
+# Using the find command, the following SRC_* variables are not needed
+#SRC_DB_DIR = $(SRC_DIR)/db
+#SRC_UI_DIR = $(SRC_DIR)/ui
+#SRC_UI_ELEMENTS_DIR = $(SRC_DIR)/ui_elements
+
+# tests directory
 TEST_DIR = tests
+
+# obj directory
 OBJ_DIR = obj
+
+# The include/ subdirectories are hardcoded into the source files
 INCLUDE_DIR = include
+
+# lib directory
 LIB_DIR = lib
 
 # Targets
 MAIN_TARGET = main.exe
 TEST_TARGET = tests.exe
 
-# Automatically discover C source files in src and tests directories
-SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+# Automatically find all source files with find command, maybe not cross-platform?
+SRC_FILES = $(shell find $(SRC_DIR) -name "*.c")
+
+# Automatically discover C source files by manually adding the subdirectory
+# Using the above find command, the following is not needed
+#SRC_FILES = $(wildcard $(SRC_DB_DIR)/*.c) \
+            $(wildcard $(SRC_UI_DIR)/*.c) \
+            $(wildcard $(SRC_UI_ELEMENTS_DIR)/*.c) \
+            $(wildcard $(SRC_DIR)/*.c)
+
+# Automatically discover C source files in tests directory
 TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
 
+# Transform source file paths to flat object file paths in obj/
 # Object files for main application (all src files)
-MAIN_OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_FILES))
+MAIN_OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(SRC_FILES:.c=.o)))
 
 # Object files for test suite (test files + src files except main.c)
-TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.c, $(OBJ_DIR)/%.o, $(TEST_FILES)) \
-                 $(filter-out $(OBJ_DIR)/main.o, $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_FILES)))
+TEST_OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(TEST_FILES:.c=.o))) $(filter-out $(OBJ_DIR)/main.o, $(MAIN_OBJ_FILES))
 
 # Compiler and linker flags
 RELEASE_CFLAGS = -O3 -Wall -Wextra -pedantic -std=c99 -Wno-missing-braces
@@ -40,26 +63,37 @@ release: $(MAIN_TARGET) $(TEST_TARGET)
 debug: CFLAGS = $(DEBUG_CFLAGS)
 debug: $(MAIN_TARGET) $(TEST_TARGET)
 
+# Clean up build artifacts
+clean:
+	rm -rf $(OBJ_DIR)/*.o $(MAIN_TARGET) $(TEST_TARGET)
+
+.PHONY: release debug clean
+
 # Build main application
 $(MAIN_TARGET): $(MAIN_OBJ_FILES)
-	$(CC) $(MAIN_OBJ_FILES) -o $(MAIN_TARGET) $(LDFLAGS)
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 # Build tests
 $(TEST_TARGET): $(TEST_OBJ_FILES)
-	$(CC) $(TEST_OBJ_FILES) -o $(TEST_TARGET) $(LDFLAGS)
+	$(CC) $^ -o $@ $(LDFLAGS)
 
-# Compiling source files into objects
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(wildcard $(INCLUDE_DIR)/*.h)
-	@mkdir -p $(OBJ_DIR)
+# Rules to compile source files from various locations into flat obj directory
+
+# For files directly in src/
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(TEST_DIR)/%.c $(wildcard $(INCLUDE_DIR)/*.h)
-	@mkdir -p $(OBJ_DIR)
+# For files in src/subdir/
+$(OBJ_DIR)/%.o: $(SRC_DIR)/*/%.c
 	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
-# Clean up build artifacts
-clean:
-	rm -f $(OBJ_DIR)/*.o $(MAIN_TARGET) $(TEST_TARGET)
+# For files in src/subdir/subsubdir/
+$(OBJ_DIR)/%.o: $(SRC_DIR)/*/*/%.c
+	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
+
+# For test files in tests/
+$(OBJ_DIR)/%.o: $(TEST_DIR)/%.c
+	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 # Makefile Description:
 # Variables:\
