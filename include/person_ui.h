@@ -50,4 +50,6 @@ void person_ui_init(struct person_ui *ui);
 
 void person_ui_draw(struct person_ui *ui, enum app_state *state, enum error_code *error);
 
+void person_ui_updt_pos(struct person_ui *ui);
+
 #endif // PERSON_UI_H

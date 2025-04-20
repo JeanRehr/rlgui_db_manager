@@ -54,4 +54,6 @@ void food_ui_init(struct food_ui *ui);
 
 void food_ui_draw(struct food_ui *ui, enum app_state *state, enum error_code *error);
 
+void food_ui_updt_pos(struct food_ui *ui);
+
 #endif // FOOD_UI_H
