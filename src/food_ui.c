@@ -64,7 +64,7 @@ void food_ui_init(food_ui *ui)
 
 	ui->fb_daily_consumption_rate = floatbox_init(
 		(Rectangle){20, ui->ib_year.bounds.y + (ui->ib_year.bounds.height * 2), 250, 30},
-		"Avg daily consumption rate per person?"
+		"Avg daily consumption rate per resident?"
 	);
 
 	ui->butn_submit = button_init((Rectangle) {20, window_height - 50, 100, 30}, "Submit");
@@ -74,7 +74,7 @@ void food_ui_init(food_ui *ui)
 
 	memset(&ui->foodbatch_retrieved, 0, sizeof(struct foodbatch));
 	
-	// Only set the bounds of the panel, draw everything inside based on it on the draw register person screen function
+	// Only set the bounds of the panel, draw everything inside based on it on the draw register resident screen function
 	ui->panel_bounds = (Rectangle) {window_width / 2 - 150, 10, 300, 200};
 
 	ui->flag = 0;

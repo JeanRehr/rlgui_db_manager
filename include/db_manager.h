@@ -4,23 +4,23 @@
 #include <sqlite3.h>
 
 #include "food.h"
-#include "person.h"
+#include "resident.h"
 
 int db_init();
 
-int db_insert_person(const char *cpf, const char *name, int age, const char *healthStatus, const char *needs,
-					 int gender);
+int db_insert_resident(const char *cpf, const char *name, int age, const char *health_status, const char *needs,
+					 bool medical_assistance, int gender);
 
-int db_update_person(const char *cpf, const char *name_input, int age_input, const char *health_status_input,
-					 const char *needs_input, int gender_input);
+int db_update_resident(const char *cpf, const char *name_input, int age_input, const char *health_status_input,
+					 const char *needs_input, int medical_assistance_input, int gender_input);
 
-int db_delete_person_by_cpf(const char *cpf);
+int db_delete_resident_by_cpf(const char *cpf);
 
 bool db_check_cpf_exists(const char *cpf);
 
-bool db_get_person_by_cpf(const char *cpf, struct person *person);
+bool db_get_resident_by_cpf(const char *cpf, struct resident *resident);
 
-void db_get_all_persons();
+void db_get_all_residents();
 
 int db_insert_food_batch(int batch_id, const char *name, int quantity, bool isPerishable, const char *expirationDate,
 						 float dailyConsumptionRate);

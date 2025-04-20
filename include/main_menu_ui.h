@@ -8,7 +8,7 @@
 // To manage the state of the main menu screen
 struct main_menu_ui {
 	Rectangle menu_title_bounds;
-	struct button reg_person_butn;
+	struct button reg_resident_butn;
 	struct button reg_food_butn;
 };
 

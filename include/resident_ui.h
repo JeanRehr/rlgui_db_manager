@@ -1,18 +1,19 @@
-#ifndef PERSON_UI_H
-#define PERSON_UI_H
+#ifndef resident_UI_H
+#define resident_UI_H
 
 #include "button.h"
 #include "textbox.h"
 #include "intbox.h"
 #include "dropdownbox.h"
-#include "person.h"
+#include "checkbox.h"
+#include "resident.h"
 #include "app_state.h"
 #include "error_handling.h"
 
-// Flags to manage the popups, maybe this is specific only to person screen, so should be an attr of the person screen struct?
-enum person_screen_flags {
-	FLAG_PERSON_OPERATION_DONE = 1 << 0, // 0001: Submission completed
-	FLAG_CONFIRM_PERSON_DELETE = 1 << 1, // 0010: Confirm deletion
+// Flags to manage the popups, maybe this is specific only to resident screen, so should be an attr of the resident screen struct?
+enum resident_screen_flags {
+	FLAG_RESIDENT_OPERATION_DONE = 1 << 0, // 0001: Submission completed
+	FLAG_CONFIRM_RESIDENT_DELETE = 1 << 1, // 0010: Confirm deletion
 	FLAG_CPF_EXISTS = 1 << 2, // 0100: CPF already exists in database
 	FLAG_CPF_NOT_FOUND = 1 << 3, // 1000: CPF was not found in database
 	FLAG_INPUT_CPF_EMPTY = 1 << 4, // 10000: Input form textbox CPF is empty
@@ -21,8 +22,8 @@ enum person_screen_flags {
 	FLAG_SHOW_NEEDS = 1 << 7, // 10000000: Show Needs popup
 };
 
-// To manage the state of the register person screen
-struct person_ui {
+// To manage the state of the register resident screen
+struct resident_ui {
 	Rectangle menu_title_bounds;
 	struct textbox tb_name;
 	struct textbox tb_cpf; // cpf makes sense still being a textbox, as it needs to contain zeroes at the start
@@ -31,6 +32,8 @@ struct person_ui {
 	
 	struct textbox tb_health_status;
 	struct textbox tb_needs;
+
+	struct checkbox cb_medical_assistance;
 
 	struct dropdownbox ddb_gender;
 
@@ -41,15 +44,15 @@ struct person_ui {
 	struct button butn_retrieve_all;
 
 	Rectangle panel_bounds;
-	struct person person_retrieved;
+	struct resident resident_retrieved;
 
-    enum person_screen_flags flag;
+    enum resident_screen_flags flag;
 };
 
-void person_ui_init(struct person_ui *ui);
+void resident_ui_init(struct resident_ui *ui);
 
-void person_ui_draw(struct person_ui *ui, enum app_state *state, enum error_code *error);
+void resident_ui_draw(struct resident_ui *ui, enum app_state *state, enum error_code *error);
 
-void person_ui_updt_pos(struct person_ui *ui);
+void resident_ui_updt_pos(struct resident_ui *ui);
 
-#endif // PERSON_UI_H
+#endif // resident_UI_H

@@ -1,6 +1,6 @@
 /*
  * how many people there are in total inside the database
- * calculate the average of food that 1 person needs
+ * calculate the average of food that 1 resident needs
  * how many babies (for baby specific stuff) and woman (for woman specific stuff)
  * if anyone needs any pharmacies
  * total food that is in stock and total that needs to be maintained for 1 month
@@ -41,7 +41,7 @@
 #include "globals.h"
 
 #include "db_manager.h"
-#include "person.h"
+#include "resident.h"
 #include "textbox.h"
 #include "intbox.h"
 #include "floatbox.h"
@@ -50,7 +50,7 @@
 #include "button.h"
 #include "food.h"
 #include "main_menu_ui.h"
-#include "person_ui.h"
+#include "resident_ui.h"
 #include "food_ui.h"
 #include "error_handling.h"
 #include "app_state.h"
@@ -62,10 +62,10 @@ typedef struct floatbox floatbox;
 typedef struct checkbox checkbox;
 typedef struct dropdownbox dropdownbox;
 typedef struct button button;
-typedef struct person person;
+typedef struct resident resident;
 typedef struct foodbatch foodbatch;
 typedef struct main_menu_ui main_menu_ui;
-typedef struct person_ui person_ui;
+typedef struct resident_ui resident_ui;
 typedef struct food_ui food_ui;
 
 typedef enum error_code error_code;
@@ -99,13 +99,13 @@ int main()
 
 	// End initializing the main menu screen
 
-	// Start initializing the register person screen in order as they appear from top-down top-left
+	// Start initializing the register resident screen in order as they appear from top-down top-left
 
-	person_ui person_ui;
+	resident_ui resident_ui;
 
-	person_ui_init(&person_ui);
+	resident_ui_init(&resident_ui);
 
-	// End initializing the register person screen
+	// End initializing the register resident screen
 
 	// Start initializing the register food screen in order as they appear from top-down top-left
 
@@ -130,7 +130,7 @@ int main()
 
 		if (IsWindowResized()) {
 			update_window_size(GetScreenWidth(), GetScreenHeight());
-			person_ui_updt_pos(&person_ui);
+			resident_ui_updt_pos(&resident_ui);
 			food_ui_updt_pos(&food_ui);
 			style_options_bounds.x = window_width - 130;
 			style_options_label.x = style_options_bounds.x;
@@ -171,12 +171,15 @@ int main()
 		GuiComboBox(style_options_bounds, "Default;Jungle;Candy;Lavanda;Cyber;Terminal;Ashes;Bluish;Dark;Cherry;Sunny;Enefete;Amber", &active_style);
 
 		switch (app_state) {
+		case STATE_LOGIN_MENU:
+			//login_menu_draw();
+			break;
 		case STATE_MAIN_MENU:
 			main_menu_ui_draw(&main_menu_ui, &app_state, &error);
 			break;
 		
 		case STATE_REGISTER_PERSON:
-			person_ui_draw(&person_ui, &app_state, &error);
+			resident_ui_draw(&resident_ui, &app_state, &error);
 			break;
 		
 		case STATE_REGISTER_FOOD:
