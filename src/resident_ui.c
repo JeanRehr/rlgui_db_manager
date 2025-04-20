@@ -157,7 +157,7 @@ void resident_ui_draw(resident_ui *ui, app_state *state, error_code *error)
 			fprintf(stderr, "CPF must be 11 digits.\n");
 		} else if (db_check_cpf_exists(ui->tb_cpf.input)) {
 			SET_FLAG(&ui->flag, FLAG_CPF_EXISTS);
-		} else if (db_insert_person(ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
+		} else if (db_insert_resident(ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
 			*error = ERROR_INSERT_DB;
 			fprintf(stderr, "Error submitting to database.\n");
 		} else {
@@ -188,7 +188,7 @@ void resident_ui_draw(resident_ui *ui, app_state *state, error_code *error)
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve_all)) {
-		db_get_all_persons();
+		db_get_all_residents();
 	}
 
 	// End button actions
@@ -199,7 +199,7 @@ void resident_ui_draw(resident_ui *ui, app_state *state, error_code *error)
 	if (IS_FLAG_SET(&ui->flag, FLAG_CPF_EXISTS)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
 		if (result == 1) {
-			if (db_update_person(ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
+			if (db_update_resident(ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
 				*error = ERROR_UPDATE_DB;
 			}
 		}
