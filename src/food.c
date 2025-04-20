@@ -1,3 +1,3 @@
 #include "food.h"
 
-typedef struct fooditem fooditem;
+typedef struct foodbatch foodbatch;
