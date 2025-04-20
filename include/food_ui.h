@@ -30,6 +30,8 @@ struct food_ui {
 
 	struct checkbox cb_is_perishable;
 
+	Rectangle expirationDateText;
+
 	struct intbox ib_year;
 	struct intbox ib_month;
 	struct intbox ib_day;

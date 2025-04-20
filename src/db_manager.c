@@ -434,6 +434,44 @@ int db_update_food_batch(int batch_id, const char *name_input, int quantity_inpu
 	return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
+int db_delete_foodbatch_by_id(int batch_id)
+{
+	sqlite3 *db;
+	int rc;
+
+	// Open the database
+	rc = sqlite3_open(food_db_filename, &db);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+		return rc;
+	}
+
+	// Prepare the SQL delete statement
+	const char *sql = "DELETE FROM FoodBatch WHERE BatchId = ?;";
+
+	sqlite3_stmt *stmt;
+	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Failed to prepare delete statement: %s\n", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		return rc;
+	}
+
+	// Bind the BatchId parameter
+	sqlite3_bind_int(stmt, 1, batch_id);
+
+	// Execute the DELETE statement
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_DONE) {
+		fprintf(stderr, "Failed to execute delete statement: %s\n", sqlite3_errmsg(db));
+	}
+
+	// Finalize the statement and close the database
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
+}
+
 bool db_get_food_by_batchid(int batch_id, struct foodbatch *foodbatch)
 {
 	sqlite3 *db;

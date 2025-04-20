@@ -28,6 +28,8 @@ int db_insert_food_batch(int batch_id, const char *name, int quantity, bool isPe
 int db_update_food_batch(int batch_id, const char *name_input, int quantity_input, bool is_perishable_input,
 						 const char *expiration_date_input, float daily_consumption_rate_input);
 
+int db_delete_foodbatch_by_id(int batch_id);
+
 bool db_get_food_by_batchid(int batch_id, struct foodbatch *foodbatch);
 
 bool db_check_batchid_exists(int batch_id);
