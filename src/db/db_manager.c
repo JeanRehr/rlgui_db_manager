@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#include "error_handling.h"
+
 int db_init(database *db, const char *filename)
 {
 	int rc = sqlite3_open(filename, &db->db);
@@ -12,6 +14,21 @@ int db_init(database *db, const char *filename)
 	}
 
     return SQLITE_OK;
+}
+
+int db_init_with_tbl(database *db, const char *filename, int (*create_table)(database *))
+{
+	if (db_init(db, filename) != SQLITE_OK) {
+		fprintf(stderr, "Error opening database %s.\n", filename);
+		return ERROR_OPENING_DB;
+	}
+
+	if (create_table(db) != SQLITE_OK) {
+		fprintf(stderr, "Error creating table in database %s.\n", filename);
+		db_deinit(db);
+		return ERROR_CREATING_TABLE_DB;
+	}
+	return SQLITE_OK;
 }
 
 bool db_is_init(database *db)
