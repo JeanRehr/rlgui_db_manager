@@ -6,7 +6,7 @@
 
 #include "ui/ui_food.h"
 #include "food.h" // To get the definition and size of a foodbatch struct
-#include "db/db_manager.h"
+#include "db/foodbatch_db.h"
 #include "globals.h"
 #include "utilsfn.h"
 
@@ -80,7 +80,7 @@ void ui_food_init(ui_food *ui)
 	ui->flag = 0;
 }
 
-void ui_food_draw(ui_food *ui, app_state *state, error_code *error)
+void ui_food_draw(ui_food *ui, app_state *state, error_code *error, database *foodbatch_db)
 {
 	// Start draw UI elements
 
@@ -138,10 +138,10 @@ void ui_food_draw(ui_food *ui, app_state *state, error_code *error)
 		if (!is_valid_date) {
 			printf("Date not valid, year: %d, month: %d, day: %d\n", ui->ib_year.input, ui->ib_month.input, ui->ib_day.input);
 			SET_FLAG(&ui->flag, FLAG_INVALID_FOOD_DATE);
-		} else if (db_check_batchid_exists(ui->ib_batch_id.input)) {
+		} else if (foodbatch_db_check_batchid_exists(foodbatch_db, ui->ib_batch_id.input)) {
 			SET_FLAG(&ui->flag, FLAG_BATCHID_EXISTS);
 			printf("Food batch ID exists: %d\n", ui->ib_batch_id.input);
-		} else if (db_insert_food_batch(ui->ib_batch_id.input, ui->tb_name.input, ui->ib_quantity.input, ui->cb_is_perishable.checked, date_string, ui->fb_daily_consumption_rate.value) != SQLITE_OK) {
+		} else if (foodbatch_db_insert(foodbatch_db, ui->ib_batch_id.input, ui->tb_name.input, ui->ib_quantity.input, ui->cb_is_perishable.checked, date_string, ui->fb_daily_consumption_rate.value) != SQLITE_OK) {
 			*error = ERROR_INSERT_DB;
 			fprintf(stderr, "Error submitting to database.\n");
 		} else {
@@ -151,7 +151,7 @@ void ui_food_draw(ui_food *ui, app_state *state, error_code *error)
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve)) {
-		if (db_get_food_by_batchid(ui->ib_batch_id.input, &ui->foodbatch_retrieved)) {
+		if (foodbatch_db_get_by_batchid(foodbatch_db, ui->ib_batch_id.input, &ui->foodbatch_retrieved) == SQLITE_OK) {
 			printf("Retrieved Food Batch - Name: %s, Qauntity: %d, Is Perishable: %d, Expiration Date: %s, Daily Consumption Rate: %f\n", ui->foodbatch_retrieved.name, ui->foodbatch_retrieved.quantity, ui->foodbatch_retrieved.is_perishable, ui->foodbatch_retrieved.expiration_date, ui->foodbatch_retrieved.daily_consumption_rate);
 			SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
 		} else {
@@ -160,7 +160,7 @@ void ui_food_draw(ui_food *ui, app_state *state, error_code *error)
 	}
 
 	if (button_draw_updt(&ui->butn_delete)) {
-		if (!db_check_batchid_exists(ui->ib_batch_id.input)) {
+		if (!foodbatch_db_check_batchid_exists(foodbatch_db, ui->ib_batch_id.input)) {
 			SET_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND);
 		} else {
 			SET_FLAG(&ui->flag, FLAG_CONFIRM_FOOD_DELETE);
@@ -168,7 +168,7 @@ void ui_food_draw(ui_food *ui, app_state *state, error_code *error)
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve_all)) {
-		db_get_all_food();
+		foodbatch_db_get_all(foodbatch_db);
 	}
 
 	// End button actions
@@ -182,7 +182,7 @@ void ui_food_draw(ui_food *ui, app_state *state, error_code *error)
 			// Don't need to validate date here, as it's impossible to be wrong at this stage
 			char date_string[11] = {0}; // YYYY-MM-DD + null terminator
 			snprintf(date_string, sizeof(date_string), "%04d-%02d-%02d", ui->ib_year.input, ui->ib_month.input, ui->ib_day.input);
-			if (db_update_food_batch(ui->ib_batch_id.input, ui->tb_name.input, ui->ib_quantity.input, ui->cb_is_perishable.checked, date_string, ui->fb_daily_consumption_rate.value) != SQLITE_OK) {
+			if (foodbatch_db_update(foodbatch_db, ui->ib_batch_id.input, ui->tb_name.input, ui->ib_quantity.input, ui->cb_is_perishable.checked, date_string, ui->fb_daily_consumption_rate.value) != SQLITE_OK) {
 				*error = ERROR_UPDATE_DB;
 			}
 		}
@@ -197,7 +197,7 @@ void ui_food_draw(ui_food *ui, app_state *state, error_code *error)
 	if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_FOOD_DELETE)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Deleting Person!", "Are you sure you want to delete?", "Yes, delete;NO");
 		if (result == 1) {
-			db_delete_foodbatch_by_id(ui->ib_batch_id.input);
+			foodbatch_db_delete_by_id(foodbatch_db ,ui->ib_batch_id.input);
 			SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
 		}
 		if (result >= 0) {

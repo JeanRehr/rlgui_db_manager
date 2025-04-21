@@ -1,6 +1,7 @@
 #ifndef UI_RESIDENT_H
 #define UI_RESIDENT_H
 
+#include "db/db_manager.h"
 #include "ui_elements/button.h"
 #include "ui_elements/textbox.h"
 #include "ui_elements/intbox.h"
@@ -51,7 +52,7 @@ struct ui_resident {
 
 void ui_resident_init(struct ui_resident *ui);
 
-void ui_resident_draw(struct ui_resident *ui, enum app_state *state, enum error_code *error);
+void ui_resident_draw(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db);
 
 void ui_resident_updt_pos(struct ui_resident *ui);
 

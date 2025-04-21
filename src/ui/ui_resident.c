@@ -6,7 +6,7 @@
 
 #include "ui/ui_resident.h"
 #include "resident.h" // To get the definition and size of a resident struct
-#include "db/db_manager.h"
+#include "db/resident_db.h"
 #include "utilsfn.h"
 #include "globals.h"
 
@@ -78,7 +78,7 @@ void ui_resident_init(ui_resident *ui)
 	ui->flag = 0;
 }
 
-void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error)
+void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error, database *resident_db)
 {
 	// Start draw UI elements
 
@@ -155,9 +155,9 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error)
 		} else if (!is_valid_integer_input(ui->tb_cpf.input, 11, 11)) {
 			SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
 			fprintf(stderr, "CPF must be 11 digits.\n");
-		} else if (db_check_cpf_exists(ui->tb_cpf.input)) {
+		} else if (resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
 			SET_FLAG(&ui->flag, FLAG_CPF_EXISTS);
-		} else if (db_insert_resident(ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
+		} else if (resident_db_insert(resident_db, ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
 			*error = ERROR_INSERT_DB;
 			fprintf(stderr, "Error submitting to database.\n");
 		} else {
@@ -167,7 +167,7 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error)
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve)) {
-		if (db_get_resident_by_cpf(ui->tb_cpf.input, &ui->resident_retrieved)) {
+		if (resident_db_get_by_cpf(resident_db, ui->tb_cpf.input, &ui->resident_retrieved) == SQLITE_OK) {
 			printf("Retrieved Person - Name: %s, Age: %d, Health Status: %s, Needs: %s, Need Medical Assistance: %d Gender: %d, Entry Date: %s\n", ui->resident_retrieved.name, ui->resident_retrieved.age, ui->resident_retrieved.health_status, ui->resident_retrieved.needs, ui->resident_retrieved.medical_assistance, ui->resident_retrieved.gender, ui->resident_retrieved.entry_date);
 			SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
 		} else {
@@ -180,7 +180,7 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error)
 			SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
 		} else if (!is_valid_integer_input(ui->tb_cpf.input, 11, 11)) {
 			SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
-		} else if (!db_check_cpf_exists(ui->tb_cpf.input)) {
+		} else if (!resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
 			SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
 		} else {
 			SET_FLAG(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE);
@@ -188,7 +188,7 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error)
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve_all)) {
-		db_get_all_residents();
+		resident_db_get_all(resident_db);
 	}
 
 	// End button actions
@@ -199,7 +199,7 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error)
 	if (IS_FLAG_SET(&ui->flag, FLAG_CPF_EXISTS)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
 		if (result == 1) {
-			if (db_update_resident(ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
+			if (resident_db_update(resident_db ,ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
 				*error = ERROR_UPDATE_DB;
 			}
 		}
@@ -214,7 +214,7 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error)
 	if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE)) {
 		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Deleting Person!", "Are you sure you want to delete?", "Yes, delete;NO");
 		if (result == 1) {
-			db_delete_resident_by_cpf(ui->tb_cpf.input);
+			resident_db_delete_by_cpf(resident_db, ui->tb_cpf.input);
 			SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
 		}
 		if (result >= 0) {

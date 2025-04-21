@@ -1,6 +1,7 @@
 #ifndef UI_FOOD_H
 #define UI_FOOD_H
 
+#include "db/db_manager.h"
 #include "ui_elements/button.h"
 #include "ui_elements/textbox.h"
 #include "ui_elements/intbox.h"
@@ -52,7 +53,7 @@ struct ui_food {
 
 void ui_food_init(struct ui_food *ui);
 
-void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *error);
+void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *error, database *foodbatch_db);
 
 void ui_food_updt_pos(struct ui_food *ui);
 

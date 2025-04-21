@@ -17,6 +17,7 @@
 #include <external/raylib.h>
 #define RAYGUI_IMPLEMENTATION
 #include <external/raygui.h>
+#include <external/sqlite3.h>
 
 // raygui embedded styles
 // NOTE: Included in the same order as selector
@@ -41,6 +42,8 @@
 #include "globals.h"
 
 #include "db/db_manager.h"
+#include "db/foodbatch_db.h"
+#include "db/resident_db.h"
 #include "ui_elements/textbox.h"
 #include "ui_elements/intbox.h"
 #include "ui_elements/floatbox.h"
@@ -57,6 +60,7 @@
 #include "app_state.h"
 
 // typedefs
+typedef struct database database;
 typedef struct textbox textbox;
 typedef struct intbox intbox;
 typedef struct floatbox floatbox;
@@ -80,14 +84,28 @@ int main()
 {
 	// Initialization
 	//--------------------------------------------------------------------------------------
-	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-	InitWindow(window_width, window_height, "Shelter Management");
-	
-	// Initialize databases, close window and program if database initialization fails
-	if (db_init() != SQLITE_OK) {
-		CloseWindow(); 
+
+	// TODO: fix this scheiße initialization of dbs
+	database resident_db;
+	database foodbatch_db;
+	if (db_init(&resident_db, "resident_db.db") != SQLITE_OK) {
 		return ERROR_OPENING_DB;
 	}
+
+	if (db_init(&foodbatch_db, "foodbatch_db.db") != SQLITE_OK) {
+		return ERROR_OPENING_DB;
+	}
+
+	if (resident_db_create_table(&resident_db) != SQLITE_OK) {
+		return ERROR_CREATING_TABLE_DB;
+	}
+
+	if (foodbatch_db_create_table(&foodbatch_db) != SQLITE_OK) {
+		return ERROR_CREATING_TABLE_DB;
+	}
+
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+	InitWindow(window_width, window_height, "Shelter Management");
 
 	GuiSetStyle(DEFAULT, TEXT_SIZE, FONT_SIZE);
 
@@ -189,11 +207,11 @@ int main()
 			break;
 		
 		case STATE_REGISTER_RESIDENT:
-			ui_resident_draw(&ui_resident, &app_state, &error);
+			ui_resident_draw(&ui_resident, &app_state, &error, &resident_db);
 			break;
 		
 		case STATE_REGISTER_FOOD:
-			ui_food_draw(&ui_food, &app_state, &error);
+			ui_food_draw(&ui_food, &app_state, &error, &foodbatch_db);
 			break;
 
 		default:
@@ -206,6 +224,8 @@ int main()
 
 	// De-initialization
 	//--------------------------------------------------------------------------------------
+	db_deinit(&resident_db);
+	db_deinit(&foodbatch_db);
 	CloseWindow();
 	//--------------------------------------------------------------------------------------
 	return 0;
