@@ -32,9 +32,9 @@ SRC_FILES = $(shell find $(SRC_DIR) -name "*.c")
 # Automatically discover C source files by manually adding the subdirectory
 # Using the above find command, the following is not needed
 #SRC_FILES = $(wildcard $(SRC_DB_DIR)/*.c) \
-            $(wildcard $(SRC_UI_DIR)/*.c) \
-            $(wildcard $(SRC_UI_ELEMENTS_DIR)/*.c) \
-            $(wildcard $(SRC_DIR)/*.c)
+			 $(wildcard $(SRC_UI_DIR)/*.c) \
+			 $(wildcard $(SRC_UI_ELEMENTS_DIR)/*.c) \
+			 $(wildcard $(SRC_DIR)/*.c)
 
 # Automatically discover C source files in tests directory
 TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
