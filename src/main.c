@@ -84,28 +84,30 @@ int main()
 {
 	// Initialization
 	//--------------------------------------------------------------------------------------
+	int return_code = EXIT_SUCCESS;
+	database resident_db = {0};
+	database foodbatch_db = {0};
 
-	// TODO: fix this scheiße initialization of dbs
-	database resident_db;
-	database foodbatch_db;
-	if (db_init(&resident_db, "resident_db.db") != SQLITE_OK) {
-		return ERROR_OPENING_DB;
+	if (db_init_with_tbl(&resident_db, "resident_db.db", resident_db_create_table) != SQLITE_OK) {
+		fprintf(stderr, "Error opening resident db.\n");
+		ret = ERROR_OPENING_DB;
+		goto cleanup;
 	}
 
-	if (db_init(&foodbatch_db, "foodbatch_db.db") != SQLITE_OK) {
-		return ERROR_OPENING_DB;
-	}
-
-	if (resident_db_create_table(&resident_db) != SQLITE_OK) {
-		return ERROR_CREATING_TABLE_DB;
-	}
-
-	if (foodbatch_db_create_table(&foodbatch_db) != SQLITE_OK) {
-		return ERROR_CREATING_TABLE_DB;
+	if (db_init_with_tbl(&foodbatch_db, "foodbatch_db.db", foodbatch_db_create_table) != SQLITE_OK) {
+		fprintf(stderr, "Error opening foodbatch db.\n");
+		ret = ERROR_OPENING_DB;
+		goto cleanup;
 	}
 
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(window_width, window_height, "Shelter Management");
+
+	if (!IsWindowReady()) {
+		fprintf(stderr, "Error opening graphics window.\n");
+		ret EXIT_FAILURE;
+		goto cleanup;
+	}
 
 	GuiSetStyle(DEFAULT, TEXT_SIZE, FONT_SIZE);
 
@@ -224,9 +226,16 @@ int main()
 
 	// De-initialization
 	//--------------------------------------------------------------------------------------
-	db_deinit(&resident_db);
-	db_deinit(&foodbatch_db);
+cleanup:
+	if (db_is_init(&resident_db)) {
+		db_deinit(&resident_db);
+	}
+
+	if (db_is_init(&foodbatch_db)) {
+		db_deinit(&foodbatch_db);
+	}
+
 	CloseWindow();
 	//--------------------------------------------------------------------------------------
-	return 0;
+	return ret;
 }
