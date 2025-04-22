@@ -93,9 +93,9 @@ int resident_db_update(database *db, const char *cpf, const char *name_input, in
 
 	struct resident currentResident = {0};
 	int rc = resident_db_get_by_cpf(db, cpf, &currentResident);
-	
+
 	if (rc != SQLITE_OK) {
-		fprintf(stderr, "Not possible to get resident by cpf: %d on function %s, line %d: %s\n", cpf, __func__,
+		fprintf(stderr, "Not possible to get resident by cpf: %s on function %s, line %d: %s\n", cpf, __func__,
 				__LINE__, sqlite3_errmsg(db->db));
 		return rc;
 	}
