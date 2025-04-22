@@ -27,7 +27,7 @@ void ui_resident_init(ui_resident *ui)
 		(Rectangle){20, ui->butn_back.bounds.y + (ui->butn_back.bounds.height * 2), 300, 30},
 		"Name:"
 	);
-	ui->tb_cpf = textbox_init(
+	ui->tb_cpf = textboxint_init(
 		(Rectangle){20, ui->tb_name.bounds.y + (ui->tb_name.bounds.height * 2), 300, 30},
 		"CPF:"
 	);
@@ -77,7 +77,7 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error, data
 	GuiLabel(ui->menu_title_bounds, "Register Person");
 
 	textbox_draw(&ui->tb_name);
-	textbox_draw(&ui->tb_cpf);
+	textboxint_draw(&ui->tb_cpf);
 	intbox_draw(&ui->ib_age);
 
 	dropdownbox_draw(&ui->ddb_gender);

@@ -4,6 +4,7 @@
 #include "db/db_manager.h"
 #include "ui_elements/button.h"
 #include "ui_elements/textbox.h"
+#include "ui_elements/textboxint.h"
 #include "ui_elements/intbox.h"
 #include "ui_elements/dropdownbox.h"
 #include "ui_elements/checkbox.h"
@@ -27,7 +28,8 @@ enum resident_screen_flags {
 struct ui_resident {
 	Rectangle menu_title_bounds;
 	struct textbox tb_name;
-	struct textbox tb_cpf; // cpf makes sense still being a textbox, as it needs to contain zeroes at the start
+	//struct textbox tb_cpf; // cpf makes sense still being a textbox, as it needs to contain zeroes at the start
+	struct textboxint tb_cpf;
 
 	struct intbox ib_age;
 	
