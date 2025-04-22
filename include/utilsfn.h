@@ -19,8 +19,7 @@ void wrap_text(const char *input, char *output, const int wrap_width);
 // Input will only get written with digits, while it is less than max_len
 void filter_integer_input(char *input, const int max_len);
 
+// Validates if the given year, month and day is valid
 bool validate_date(int year, int month, int day);
-
-void int_to_str(int num, char *str);
 
 #endif //UTILSFN_H

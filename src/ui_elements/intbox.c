@@ -1,4 +1,4 @@
-#include <external/raygui.h>
+#include <external/raylib/raygui.h>
 
 #include <stddef.h>
 

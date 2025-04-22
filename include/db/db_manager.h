@@ -1,7 +1,7 @@
 #ifndef DB_MANAGER_H
 #define DB_MANAGER_H
 
-#include <external/sqlite3.h>
+#include <external/sqlite3/sqlite3.h>
 #include <stdbool.h>
 
 typedef struct database {

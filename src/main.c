@@ -14,10 +14,10 @@
  * one screen for inserting food, one screen for inserting people
  */
 
-#include <external/raylib.h>
+#include <external/raylib/raylib.h>
 #define RAYGUI_IMPLEMENTATION
-#include <external/raygui.h>
-#include <external/sqlite3.h>
+#include <external/raylib/raygui.h>
+#include <external/sqlite3/sqlite3.h>
 
 // raygui embedded styles
 // NOTE: Included in the same order as selector

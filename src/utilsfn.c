@@ -1,5 +1,6 @@
-#include <external/raygui.h>
+#include <external/raylib/raygui.h>
 
+#include <stdio.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
@@ -101,22 +102,4 @@ bool validate_date(int year, int month, int day)
 	}
 
 	return true;
-}
-
-void int_to_str(int num, char *str)
-{
-	int i = 0;
-
-	while (num > 0) {
-		str[i++] = num % 10 + '0';
-		num /= 10;
-	}
-
-	str[i] = '\0';
-
-	for (int j = 0, k = i - 1; j < k; j++, k--) {
-		char temp = str[j];
-		str[j] = str[k];
-		str[k] = temp;
-	}
 }
