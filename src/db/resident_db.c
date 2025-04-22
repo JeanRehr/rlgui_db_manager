@@ -91,11 +91,13 @@ int resident_db_update(database *db, const char *cpf, const char *name_input, in
 		return SQLITE_ERROR;
 	}
 
-	struct resident currentResident;
-	if (!resident_db_get_by_cpf(db, cpf, &currentResident)) {
+	struct resident currentResident = {0};
+	int rc = resident_db_get_by_cpf(db, cpf, &currentResident);
+	
+	if (rc != SQLITE_OK) {
 		fprintf(stderr, "Not possible to get resident by cpf: %d on function %s, line %d: %s\n", cpf, __func__,
-				__LINE__);
-		return SQLITE_ERROR;
+				__LINE__, sqlite3_errmsg(db->db));
+		return rc;
 	}
 
 	// Decide which fields to use for update based on inputs
@@ -112,7 +114,7 @@ int resident_db_update(database *db, const char *cpf, const char *name_input, in
 		"= ? WHERE CPF = ?;";
 
 	sqlite3_stmt *stmt;
-	int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+	rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
 	if (rc != SQLITE_OK) {
 		fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
 		return rc;
