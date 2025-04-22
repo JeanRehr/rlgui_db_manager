@@ -49,7 +49,7 @@ TEST_OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(TEST_FILES:.c=.o))) $(filter
 # Compiler and linker flags
 RELEASE_CFLAGS = -O3 -Wall -Wextra -pedantic -std=c99 -Wno-missing-braces
 DEBUG_CFLAGS = -g -Wall -Wextra -pedantic -std=c99 -Wno-missing-braces
-LDFLAGS = -L$(LIB_DIR) -lraylib -lsqlite3 -lopengl32 -lgdi32 -lwinmm
+LDFLAGS = -L$(LIB_DIR) -lraylib -lopengl32 -lwinmm -lsqlite3 -lcrypto -lgdi32 -luser32 -lws2_32 -ladvapi32
 INCLUDE_FLAGS = -I$(INCLUDE_DIR)
 
 # Set default target to debug
