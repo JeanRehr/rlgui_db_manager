@@ -63,7 +63,11 @@ release: $(MAIN_TARGET) $(TEST_TARGET)
 debug: CFLAGS = $(DEBUG_CFLAGS)
 debug: $(MAIN_TARGET) $(TEST_TARGET)
 
-# Build and run test
+# Build debug and run app
+run: debug
+	./$(MAIN_TARGET)
+
+# Build debug and run test
 test: debug
 	./$(TEST_TARGET)
 
@@ -71,7 +75,7 @@ test: debug
 clean:
 	rm -rf $(OBJ_DIR)/*.o $(MAIN_TARGET) $(TEST_TARGET)
 
-.PHONY: release debug test clean
+.PHONY: release debug test run clean
 
 # Build main application
 $(MAIN_TARGET): $(MAIN_OBJ_FILES)
@@ -123,4 +127,5 @@ $(OBJ_DIR)/%.o: $(TEST_DIR)/%.c
 #		make or make debug: Builds both the application and test binaries in debug mode.\
 #		make release: Builds both the application and test binaries in release mode.\
 #		make clean: Cleans up the directory by removing built executables and object files.\
-#		make test: Same as make or make debug, but runs tests.exe automatically
+#		make run: Same as make or make debug, but runs main.exe automatically.\
+#		make test: Same as make or make debug, but runs tests.exe automatically.
