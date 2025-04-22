@@ -9,7 +9,7 @@
 #include "CONSTANTS.h"
 #include "utilsfn.h"
 
-bool is_valid_integer_input(const char *input, const int min_len, const int max_len)
+bool is_int_between_min_max(const char *input, const int min_len, const int max_len)
 {
 	int length = strlen(input);
 	return length >= min_len && length <= max_len;

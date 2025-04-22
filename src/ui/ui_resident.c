@@ -152,7 +152,7 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error, data
 		if (*ui->tb_cpf.input == '\0') {
 			SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
 			fprintf(stderr, "CPF must not be empty.\n");
-		} else if (!is_valid_integer_input(ui->tb_cpf.input, 11, 11)) {
+		} else if (!is_int_between_min_max(ui->tb_cpf.input, 11, 11)) {
 			SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
 			fprintf(stderr, "CPF must be 11 digits.\n");
 		} else if (resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
@@ -178,7 +178,7 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error, data
 	if (button_draw_updt(&ui->butn_delete)) {
 		if (*ui->tb_cpf.input == '\0') {
 			SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
-		} else if (!is_valid_integer_input(ui->tb_cpf.input, 11, 11)) {
+		} else if (!is_int_between_min_max(ui->tb_cpf.input, 11, 11)) {
 			SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
 		} else if (!resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
 			SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
