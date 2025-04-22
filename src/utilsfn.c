@@ -8,16 +8,12 @@
 #include "CONSTANTS.h"
 #include "utilsfn.h"
 
-// Validate if integer input is between valid range of digits
 bool is_valid_integer_input(const char *input, const int min_len, const int max_len)
 {
 	int length = strlen(input);
 	return length >= min_len && length <= max_len;
 }
 
-// The function takes a block of text (input) and attempts to format it into multiple lines
-// Constructs the wrapped text into the output buffer, inserting newline characters (\n) where line breaks are made.
-// The buffer output must be larger than the initial input due to the newlines
 void wrap_text(const char *input, char *output, const int wrap_width)
 {
 	char buffer[256];
@@ -49,8 +45,6 @@ void wrap_text(const char *input, char *output, const int wrap_width)
 	output[output_index - 1] = '\0'; // Null-terminate string
 }
 
-// Function to filter integer input, max length will prevent the input from getting past the chosen number
-// Input will only get written with digits, while it is less than max_len
 void filter_integer_input(char *input, const int max_len)
 {
 	int index = 0;
