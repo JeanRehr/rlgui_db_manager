@@ -78,9 +78,12 @@ int foodbatch_db_update(database *db, int batch_id, const char *name_input, int 
 	}
 
 	struct foodbatch foodbatch;
+	int rc = foodbatch_db_get_by_batchid(db, batch_id, &foodbatch);
 
-	if (!foodbatch_db_get_by_batchid(db, batch_id, &foodbatch)) {
-		return SQLITE_ERROR;
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Not possible to get foodbatch by batchid: %d on function %s, line %d: %s\n", batch_id,
+				__func__, __LINE__, sqlite3_errmsg(db->db));
+		return rc;
 	}
 
 	// Decide which fields to use for update based on inputs
@@ -96,7 +99,7 @@ int foodbatch_db_update(database *db, int batch_id, const char *name_input, int 
 					  "DailyConsumptionRate = ? WHERE BatchId = ?;";
 
 	sqlite3_stmt *stmt;
-	int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+	rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
 	if (rc != SQLITE_OK) {
 		fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
 		return rc;
