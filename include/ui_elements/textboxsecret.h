@@ -5,15 +5,15 @@
 
 #include "CONSTANTS.h"
 
-struct textbox {
+struct textboxsecret {
 	Rectangle bounds;
 	char input[MAX_INPUT];
 	bool edit_mode;
 	const char *label;
 };
 
-struct textbox textbox_init(Rectangle bounds, const char *label);
+struct textboxsecret textboxsecret_init(Rectangle bounds, const char *label);
 
-void textbox_draw(struct textbox *tb);
+void textboxsecret_draw(struct textboxsecret *tbs);
 
 #endif // TEXTBOXSECRET_H
