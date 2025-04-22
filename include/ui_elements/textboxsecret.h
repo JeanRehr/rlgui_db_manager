@@ -1,0 +1,19 @@
+#ifndef TEXTBOXSECRET_H
+#define TEXTBOXSECRET_H
+
+#include <raylib.h>
+
+#include "CONSTANTS.h"
+
+struct textbox {
+	Rectangle bounds;
+	char input[MAX_INPUT];
+	bool edit_mode;
+	const char *label;
+};
+
+struct textbox textbox_init(Rectangle bounds, const char *label);
+
+void textbox_draw(struct textbox *tb);
+
+#endif // TEXTBOXSECRET_H
