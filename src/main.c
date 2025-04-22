@@ -60,7 +60,6 @@
 #include "app_state.h"
 
 // typedefs
-typedef struct database database;
 typedef struct textbox textbox;
 typedef struct intbox intbox;
 typedef struct floatbox floatbox;
@@ -90,13 +89,13 @@ int main()
 
 	if (db_init_with_tbl(&resident_db, "resident_db.db", resident_db_create_table) != SQLITE_OK) {
 		fprintf(stderr, "Error opening resident db.\n");
-		ret = ERROR_OPENING_DB;
+		return_code = ERROR_OPENING_DB;
 		goto cleanup;
 	}
 
 	if (db_init_with_tbl(&foodbatch_db, "foodbatch_db.db", foodbatch_db_create_table) != SQLITE_OK) {
 		fprintf(stderr, "Error opening foodbatch db.\n");
-		ret = ERROR_OPENING_DB;
+		return_code = ERROR_OPENING_DB;
 		goto cleanup;
 	}
 
@@ -105,7 +104,7 @@ int main()
 
 	if (!IsWindowReady()) {
 		fprintf(stderr, "Error opening graphics window.\n");
-		ret EXIT_FAILURE;
+		return_code = EXIT_FAILURE;
 		goto cleanup;
 	}
 
@@ -237,5 +236,5 @@ cleanup:
 
 	CloseWindow();
 	//--------------------------------------------------------------------------------------
-	return ret;
+	return return_code;
 }
