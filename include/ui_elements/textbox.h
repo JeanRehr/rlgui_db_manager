@@ -1,7 +1,7 @@
 #ifndef TEXTBOX_H
 #define TEXTBOX_H
 
-#include <raylib.h>
+#include <external/raylib/raylib.h>
 
 #include "CONSTANTS.h"
 

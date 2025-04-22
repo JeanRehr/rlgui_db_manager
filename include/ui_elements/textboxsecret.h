@@ -1,7 +1,7 @@
 #ifndef TEXTBOXSECRET_H
 #define TEXTBOXSECRET_H
 
-#include <raylib.h>
+#include <external/raylib/raylib.h>
 
 #include "CONSTANTS.h"
 

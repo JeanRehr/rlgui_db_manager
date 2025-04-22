@@ -1,7 +1,7 @@
 #ifndef FLOATBOX_H
 #define FLOATBOX_H
 
-#include <raylib.h>
+#include <external/raylib/raylib.h>
 
 #include <stdbool.h>
 

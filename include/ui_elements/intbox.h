@@ -1,7 +1,7 @@
 #ifndef INTBOX_H
 #define INTBOX_H
 
-#include <raylib.h>
+#include <external/raylib/raylib.h>
 
 #include <stdbool.h>
 
