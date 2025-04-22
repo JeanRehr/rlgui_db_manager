@@ -25,15 +25,11 @@ void ui_resident_init(ui_resident *ui)
 	);
 	ui->tb_name = textbox_init(
 		(Rectangle){20, ui->butn_back.bounds.y + (ui->butn_back.bounds.height * 2), 300, 30},
-		"Name:",
-		INPUT_TEXT,
-		0
+		"Name:"
 	);
 	ui->tb_cpf = textbox_init(
 		(Rectangle){20, ui->tb_name.bounds.y + (ui->tb_name.bounds.height * 2), 300, 30},
-		"CPF:",
-		INPUT_INTEGER,
-		11
+		"CPF:"
 	);
 	ui->ib_age = intbox_init(
 		(Rectangle){20, ui->tb_cpf.bounds.y + (ui->tb_cpf.bounds.height * 2), 125, 30},
@@ -43,15 +39,11 @@ void ui_resident_init(ui_resident *ui)
 	);
 	ui->tb_health_status = textbox_init(
 		(Rectangle){20, ui->ib_age.bounds.y + (ui->ib_age.bounds.height * 2), 300, 30},
-		"Health Status:",
-		INPUT_TEXT,
-		0
+		"Health Status:"
 	);
 	ui->tb_needs = textbox_init(
 		(Rectangle){20, ui->tb_health_status.bounds.y + (ui->tb_health_status.bounds.height * 2), 300, 30}, 
-		"Needs:",
-		INPUT_TEXT,
-		0
+		"Needs:"
 	);
 
 	ui->cb_medical_assistance = checkbox_init(

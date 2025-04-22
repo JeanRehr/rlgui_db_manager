@@ -32,9 +32,7 @@ void ui_food_init(ui_food *ui)
 	);
 	ui->tb_name = textbox_init(
 		(Rectangle){20, ui->ib_batch_id.bounds.y + (ui->ib_batch_id.bounds.height * 2), 300, 30},
-		"Food Name:",
-		INPUT_TEXT,
-		0
+		"Food Name:"
 	);
 	ui->ib_quantity = intbox_init(
 		(Rectangle){20, ui->tb_name.bounds.y + (ui->tb_name.bounds.height * 2), 125, 30},
