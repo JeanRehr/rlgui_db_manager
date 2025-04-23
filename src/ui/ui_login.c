@@ -20,6 +20,7 @@ void ui_login_draw(ui_login *ui, app_state *state, error_code *error)
     textboxsecret_draw(&ui->tbs_password);
 
     if (button_draw_updt(&ui->butn_login)) {
+        printf("password input: %s\n", ui->tbs_password.input);
 		*state = STATE_MAIN_MENU;
 	}
 }
