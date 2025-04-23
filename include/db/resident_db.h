@@ -9,11 +9,10 @@
 
 int resident_db_create_table(database *db);
 
-// Also inserts EntryDate, the current time of the system
 int resident_db_insert(database *db, const char *cpf, const char *name, int age, const char *health_status,
 					   const char *needs, bool medical_assistance, int gender);
 
-// Will not update CPF or EntryDate
+// Will not update CPF
 int resident_db_update(database *db, const char *cpf, const char *name_input, int age_input,
 					   const char *health_status_input, const char *needs_input, int medical_assistance_input,
 					   int gender_input);
