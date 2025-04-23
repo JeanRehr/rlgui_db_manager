@@ -12,7 +12,7 @@
 #include "app_state.h"
 #include "error_handling.h"
 
-// Flags to manage the popups, maybe this is specific only to resident screen, so should be an attr of the resident screen struct?
+// Flags to manage the popups
 enum resident_screen_flags {
 	FLAG_RESIDENT_OPERATION_DONE = 1 << 0, // 0001: Submission completed
 	FLAG_CONFIRM_RESIDENT_DELETE = 1 << 1, // 0010: Confirm deletion
