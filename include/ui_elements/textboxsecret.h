@@ -7,7 +7,9 @@
 
 struct textboxsecret {
 	Rectangle bounds;
-	char input[MAX_INPUT];
+	char input[MAX_INPUT]; // Actual storage of the input
+	char display_input[MAX_INPUT]; // Text to display (asterisks)
+	bool secret_view; // Toggle to display the actual text
 	bool edit_mode;
 	const char *label;
 };
