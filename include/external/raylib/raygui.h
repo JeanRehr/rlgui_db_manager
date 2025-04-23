@@ -765,6 +765,7 @@ RAYGUIAPI int GuiGrid(Rectangle bounds, const char *text, float spacing, int sub
 RAYGUIAPI int GuiListView(Rectangle bounds, const char *text, int *scrollIndex, int *active);          // List View control
 RAYGUIAPI int GuiListViewEx(Rectangle bounds, const char **text, int count, int *scrollIndex, int *active, int *focus); // List View with extended parameters
 RAYGUIAPI int GuiMessageBox(Rectangle bounds, const char *title, const char *message, const char *buttons); // Message Box control, displays a message
+RAYGUIAPI int GuiTextBoxSecret(Rectangle bounds, char *text, int textMaxSize, bool *secretViewActive); // My own implementation of a secret textbox
 RAYGUIAPI int GuiTextInputBox(Rectangle bounds, const char *title, const char *message, const char *buttons, char *text, int textMaxSize, bool *secretViewActive); // Text Input Box control, ask for text, supports secret
 RAYGUIAPI int GuiColorPicker(Rectangle bounds, const char *text, Color *color);                        // Color Picker control (multiple color controls)
 RAYGUIAPI int GuiColorPanel(Rectangle bounds, const char *text, Color *color);                         // Color Panel control
@@ -4071,6 +4072,56 @@ int GuiMessageBox(Rectangle bounds, const char *title, const char *message, cons
     //--------------------------------------------------------------------
 
     return result;
+}
+
+// My own TextBoxSecret implementation
+int GuiTextBoxSecret(Rectangle bounds, char *text, int textMaxSize, bool *secretViewActive)
+{
+    #if !defined(RAYGUI_TEXTINPUTBOX_BUTTON_HEIGHT)
+        #define RAYGUI_TEXTINPUTBOX_BUTTON_HEIGHT      24
+    #endif
+    #if !defined(RAYGUI_TEXTINPUTBOX_BUTTON_PADDING)
+        #define RAYGUI_TEXTINPUTBOX_BUTTON_PADDING     12
+    #endif
+    #if !defined(RAYGUI_TEXTINPUTBOX_HEIGHT)
+        #define RAYGUI_TEXTINPUTBOX_HEIGHT             26
+    #endif
+
+    // Used to enable text edit mode
+    // WARNING: No more than one GuiTextInputBox() should be open at the same time
+    static bool textEditMode = false;
+
+    int result = -1;
+
+    Rectangle textBounds = { 0 };
+
+    Rectangle textBoxBounds = { 0 };
+    textBoxBounds.x = bounds.x + RAYGUI_TEXTINPUTBOX_BUTTON_PADDING;
+    textBoxBounds.y = bounds.y + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT - RAYGUI_TEXTINPUTBOX_HEIGHT/2;
+    textBoxBounds.width = bounds.width - RAYGUI_TEXTINPUTBOX_BUTTON_PADDING*2;
+    textBoxBounds.height = RAYGUI_TEXTINPUTBOX_HEIGHT;
+
+    // Draw control
+    //--------------------------------------------------------------------
+
+    if (secretViewActive != NULL)
+    {
+        static char stars[] = "****************";
+        if (GuiTextBox(RAYGUI_CLITERAL(Rectangle){ textBoxBounds.x, textBoxBounds.y, textBoxBounds.width - 4 - RAYGUI_TEXTINPUTBOX_HEIGHT, textBoxBounds.height },
+            ((*secretViewActive == 1) || textEditMode)? text : stars, textMaxSize, textEditMode)) textEditMode = !textEditMode;
+
+        GuiToggle(RAYGUI_CLITERAL(Rectangle){ textBoxBounds.x + textBoxBounds.width - RAYGUI_TEXTINPUTBOX_HEIGHT, textBoxBounds.y, RAYGUI_TEXTINPUTBOX_HEIGHT, RAYGUI_TEXTINPUTBOX_HEIGHT }, (*secretViewActive == 1)? "#44#" : "#45#", secretViewActive);
+    }
+    else
+    {
+        if (GuiTextBox(textBoxBounds, text, textMaxSize, textEditMode)) textEditMode = !textEditMode;
+    }
+
+    if (result >= 0) textEditMode = false;
+
+    //--------------------------------------------------------------------
+
+    return result;      // Result is the pressed button index
 }
 
 // Text Input Box control, ask for text
