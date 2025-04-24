@@ -32,6 +32,11 @@ int user_db_create_table(database *db)
 		return rc;
 	}
 
+	if (!user_db_user_exists(db, "admin")) {
+		printf("Creating admin\n");
+		user_db_create(db, "admin", "admin", true);
+	}
+
 	return SQLITE_OK;
 }
 
@@ -99,9 +104,7 @@ bool user_db_authenticate(database *db, const char *username, const char *passwo
     hash_password(password, user.salt, computed_hash);
 
     if (strcmp(computed_hash, user.password_hash) != 0) {
-        printf("Password verification failed\n");
-        printf("Expected: %s\n", user.password_hash);
-        printf("Got: %s\n", computed_hash);
+        printf("Password verification failed.\n");
         return false;
     }
 
