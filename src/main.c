@@ -44,6 +44,7 @@
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
 #include "db/resident_db.h"
+#include "db/user_db.h"
 #include "ui_elements/textbox.h"
 #include "ui_elements/intbox.h"
 #include "ui_elements/floatbox.h"
@@ -56,6 +57,7 @@
 #include "ui/ui_food.h"
 #include "resident.h"
 #include "food.h"
+#include "user.h"
 #include "error_handling.h"
 #include "app_state.h"
 
@@ -86,6 +88,7 @@ int main()
 	int return_code = EXIT_SUCCESS;
 	database resident_db = {0};
 	database foodbatch_db = {0};
+	database user_db = {0};
 
 	if (db_init_with_tbl(&resident_db, "resident_db.db", resident_db_create_table) != SQLITE_OK) {
 		fprintf(stderr, "Error opening resident db.\n");
@@ -95,6 +98,12 @@ int main()
 
 	if (db_init_with_tbl(&foodbatch_db, "foodbatch_db.db", foodbatch_db_create_table) != SQLITE_OK) {
 		fprintf(stderr, "Error opening foodbatch db.\n");
+		return_code = ERROR_OPENING_DB;
+		goto cleanup;
+	}
+
+	if (db_init_with_tbl(&user_db, "user_db.db", user_db_create_table) != SQLITE_OK) {
+		fprintf(stderr, "Error opening user db.\n");
 		return_code = ERROR_OPENING_DB;
 		goto cleanup;
 	}
@@ -148,7 +157,8 @@ int main()
 	Rectangle style_options_bounds = {window_width - 130, 30, 120, 30};
 	Rectangle style_options_label = {style_options_bounds.x, style_options_bounds.y - 25, style_options_bounds.width, 20};
 
-	// Setting the initial state for screen and error code
+	// Setting the initial state of the app
+	struct user current_user = {0};
 	error_code error = NO_ERROR;
 	app_state app_state = STATE_LOGIN_MENU;
 
@@ -201,7 +211,7 @@ int main()
 
 		switch (app_state) {
 		case STATE_LOGIN_MENU:
-			ui_login_draw(&ui_login, &app_state, &error);
+			ui_login_draw(&ui_login, &app_state, &error, &user_db, &current_user);
 			break;
 		case STATE_MAIN_MENU:
 			ui_main_menu_draw(&ui_main_menu, &app_state, &error);
@@ -232,6 +242,10 @@ cleanup:
 
 	if (db_is_init(&foodbatch_db)) {
 		db_deinit(&foodbatch_db);
+	}
+
+	if (db_is_init(&user_db)) {
+		db_deinit(&user_db);
 	}
 
 	CloseWindow();
