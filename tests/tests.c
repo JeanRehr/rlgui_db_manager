@@ -600,7 +600,7 @@ void test_user_db_authenticate()
 	bool test_is_admin = false;
 
 	printf("Creating a test user for authentication\n");
-	int rc = user_db_create(&test_user_db, test_username, test_password, test_is_admin);
+	user_db_create(&test_user_db, test_username, test_password, test_is_admin);
 
 	printf("Attempting to authenticate with correct credentials\n");
 	bool auth_result = user_db_authenticate(&test_user_db, test_username, test_password);

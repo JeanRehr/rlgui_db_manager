@@ -1,5 +1,7 @@
 .vscode
+.vs
 **/*.exe
+**/*.out
 obj/*
 !obj/.gitkeep
 **/*.db
