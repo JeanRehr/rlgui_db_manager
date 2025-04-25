@@ -1,9 +1,14 @@
+#ifdef _WIN32
+// Isolated to this file to not have name mangling of functions
+// Not actually using anything windows specific
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h> // Isolated to this file to not have name mangling of functions
+#include <windows.h>
+#endif
 #include <external/openssl/rand.h>
 #include <external/openssl/sha.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include "utils_hash.h"
 
