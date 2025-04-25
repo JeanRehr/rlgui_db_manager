@@ -57,10 +57,10 @@ void ui_resident_init(ui_resident *ui)
 		"Gender"
 	);
 
-	ui->butn_submit = button_init((Rectangle) {20, window_height - 50, 100, 30}, "Submit");
-	ui->butn_retrieve = button_init((Rectangle) {ui->butn_submit.bounds.x + ui->butn_submit.bounds.width + 10, window_height - 50, 100, 30}, "Retrieve");
-	ui->butn_delete = button_init((Rectangle) {ui->butn_retrieve.bounds.x + ui->butn_retrieve.bounds.width + 10, window_height - 50, 100, 30}, "Delete");
-	ui->butn_retrieve_all = button_init((Rectangle) {ui->butn_delete.bounds.x + ui->butn_delete.bounds.width + 10, window_height - 50, 0, 30}, "Retrieve All");
+	ui->butn_submit = button_init((Rectangle) {20, window_height - 60, 100, 30}, "Submit");
+	ui->butn_retrieve = button_init((Rectangle) {ui->butn_submit.bounds.x + ui->butn_submit.bounds.width + 10, ui->butn_submit.bounds.y, 100, 30}, "Retrieve");
+	ui->butn_delete = button_init((Rectangle) {ui->butn_retrieve.bounds.x + ui->butn_retrieve.bounds.width + 10, ui->butn_submit.bounds.y, 100, 30}, "Delete");
+	ui->butn_retrieve_all = button_init((Rectangle) {ui->butn_delete.bounds.x + ui->butn_delete.bounds.width + 10, ui->butn_submit.bounds.y, 0, 30}, "Retrieve All");
 
 	memset(&ui->resident_retrieved, 0, sizeof(struct resident));
 	
@@ -252,9 +252,9 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error, data
 
 void ui_resident_updt_pos(ui_resident *ui)
 {
-	ui->butn_submit.bounds.y = window_height - 50;
-	ui->butn_retrieve.bounds.y = window_height - 50;
-	ui->butn_delete.bounds.y = window_height - 50;
-	ui->butn_retrieve_all.bounds.y = window_height - 50;
+	ui->butn_submit.bounds.y = window_height - 60;
+	ui->butn_retrieve.bounds.y = ui->butn_submit.bounds.y;
+	ui->butn_delete.bounds.y = ui->butn_submit.bounds.y;
+	ui->butn_retrieve_all.bounds.y = ui->butn_submit.bounds.y;
 	ui->panel_bounds.x = window_width / 2 - 150;
 }
