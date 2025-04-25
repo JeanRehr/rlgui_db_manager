@@ -1,8 +1,10 @@
 # Compiler
 CC = gcc
 
-# Directories
+# Detect OS
+UNAME_S := $(shell uname -s)
 
+# Directories
 # src directory and subdirectories
 SRC_DIR = src
 # Using the find command, the following SRC_* variables are not needed
@@ -23,8 +25,13 @@ INCLUDE_DIR = include
 LIB_DIR = lib
 
 # Targets
-MAIN_TARGET = main.exe
-TEST_TARGET = tests.exe
+ifeq ($(UNAME_S),Linux)
+    MAIN_TARGET = main.out
+    TEST_TARGET = tests.out
+else
+    MAIN_TARGET = main.exe
+    TEST_TARGET = tests.exe
+endif
 
 # Automatically find all source files with find command, maybe not cross-platform?
 SRC_FILES = $(shell find $(SRC_DIR) -name "*.c")
@@ -51,6 +58,17 @@ RELEASE_CFLAGS = -O3 -Wall -Wextra -pedantic -std=c99 -Wno-missing-braces
 DEBUG_CFLAGS = -ggdb3 -Wall -Wextra -pedantic -std=c99 -Wno-missing-braces
 LDFLAGS = -L$(LIB_DIR) -lraylib -lopengl32 -lwinmm -lcrypto -lgdi32 -luser32 -lws2_32 -ladvapi32
 INCLUDE_FLAGS = -I$(INCLUDE_DIR)
+
+# Platform-specific flags
+ifeq ($(UNAME_S),Linux)
+    # Linux static compilation flags
+    LDFLAGS = -L$(LIB_DIR) -l:linuxlibraylib.a -l:linuxlibcrypto.a -lz -lm -lpthread -ldl \
+              -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lXext \
+              -Wl,--no-as-needed -static
+else
+    # Windows flags
+    LDFLAGS = -L$(LIB_DIR) -lraylib -lopengl32 -lwinmm -lcrypto -lgdi32 -luser32 -lws2_32 -ladvapi32
+endif
 
 # Set default target to debug
 .DEFAULT_GOAL := debug
