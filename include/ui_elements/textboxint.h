@@ -9,8 +9,8 @@
 struct textboxint {
 	Rectangle bounds;
 	char input[MAX_INPUT];
-	bool edit_mode;
 	const char *label;
+	bool edit_mode;
 };
 
 struct textboxint textboxint_init(Rectangle bounds, const char *label);

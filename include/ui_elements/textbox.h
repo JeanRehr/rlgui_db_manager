@@ -8,8 +8,8 @@
 struct textbox {
 	Rectangle bounds;
 	char input[MAX_INPUT];
+	const char* label;
 	bool edit_mode;
-	const char *label;
 };
 
 struct textbox textbox_init(Rectangle bounds, const char *label);
