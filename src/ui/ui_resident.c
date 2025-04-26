@@ -46,7 +46,7 @@ static void handle_submit_action(struct ui_resident *ui, enum error_code *error,
 static void handle_retrieve_action(struct ui_resident *ui, database *resident_db);
 static void handle_delete_action(struct ui_resident *ui, database *resident_db);
 static void show_warning_messages(struct ui_resident *ui, enum error_code *error, database *resident_db);
-static void process_action_in_warning(
+static void process_db_action_in_warning(
     struct ui_resident *ui,
     enum error_code *error,
     struct db_action_info *action,
