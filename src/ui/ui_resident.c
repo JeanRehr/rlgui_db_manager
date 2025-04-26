@@ -10,7 +10,7 @@
 #include "utilsfn.h"
 #include "globals.h"
 
-// For when a warning message needs to perform a database operation
+// Tagged union for when a warning message needs to perform a database operation
 // Type of the operation
 enum db_action_type {
 	DB_ACTION_NONE,
@@ -22,7 +22,7 @@ enum db_action_type {
 struct db_action_info {
 	enum db_action_type type;
 	union {
-		struct update_data {
+		struct {
 			const char* cpf;
 			const char* name;
 			int age;
@@ -30,11 +30,11 @@ struct db_action_info {
 			const char* needs;
 			bool medical_assistance;
 			int gender;
-		} update_data;
-		
-		struct delete_data {
+		} update;
+
+		struct {
 			const char* cpf;
-		} delete_data;
+		} delete;
 	};
 } db_action_info;
 
@@ -45,6 +45,7 @@ static void handle_submit_action(struct ui_resident *ui, enum error_code *error,
 static void handle_retrieve_action(struct ui_resident *ui, database *resident_db);
 static void handle_delete_action(struct ui_resident *ui, database *resident_db);
 static void show_warning_messages(struct ui_resident *ui, enum error_code *error, database *resident_db);
+static void process_action_in_warning(struct ui_resident *ui, enum error_code *error, struct db_action_info *action, database *resident_db);
 static void clear_input_fields(struct ui_resident *ui);
 
 void ui_resident_init(struct ui_resident *ui)
@@ -216,18 +217,18 @@ static void handle_submit_action(struct ui_resident *ui, enum error_code *error,
 		SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
 		return;
 	}
-	
+
 	if (!is_int_between_min_max(ui->tb_cpf.input, 11, 11)) {
 		SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
 		return;
 	}
-	
+
 	// Check if CPF exists		
 	if (resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
 		SET_FLAG(&ui->flag, FLAG_CPF_EXISTS);
 		return;
 	}
-	
+
 	// Insert new resident
 	if (resident_db_insert(resident_db, ui->tb_cpf.input, ui->tb_name.input, 
 						  ui->ib_age.input, ui->tb_health_status.input, 
@@ -236,7 +237,7 @@ static void handle_submit_action(struct ui_resident *ui, enum error_code *error,
 		*error = ERROR_INSERT_DB;
 		return;
 	}
-	
+
 	SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
 	*error = NO_ERROR;
 }
@@ -284,34 +285,29 @@ static void show_warning_messages(struct ui_resident *ui, enum error_code *error
 	if (IS_FLAG_SET(&ui->flag, FLAG_INPUT_CPF_EMPTY)) {
 		message = "CPF must not be empty.";
 		flag_to_clear = FLAG_INPUT_CPF_EMPTY;
-	}
-	else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_NOT_VALID)) {
+	} else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_NOT_VALID)) {
 		message = "CPF must be 11 digits.";
 		flag_to_clear = FLAG_CPF_NOT_VALID;
-	}
-	else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_NOT_FOUND)) {
+	} else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_NOT_FOUND)) {
 		message = "CPF not found.";
 		flag_to_clear = FLAG_CPF_NOT_FOUND;
-	}
-	else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_EXISTS)) {
+	} else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_EXISTS)) {
 		message = "CPF already exists. Update existing record?";
 		flag_to_clear = FLAG_CPF_EXISTS;
 		action.type = DB_ACTION_UPDATE;
-		action.update_data.cpf = ui->tb_cpf.input;
-		action.update_data.name = ui->tb_name.input;
-		action.update_data.age = ui->ib_age.input;
-		action.update_data.health_status = ui->tb_health_status.input;
-		action.update_data.needs = ui->tb_needs.input;
-		action.update_data.medical_assistance = ui->cb_medical_assistance.checked;
-		action.update_data.gender = ui->ddb_gender.active_option;
-	}
-	else if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE)) {
+		action.update.cpf = ui->tb_cpf.input;
+		action.update.name = ui->tb_name.input;
+		action.update.age = ui->ib_age.input;
+		action.update.health_status = ui->tb_health_status.input;
+		action.update.needs = ui->tb_needs.input;
+		action.update.medical_assistance = ui->cb_medical_assistance.checked;
+		action.update.gender = ui->ddb_gender.active_option;
+	} else if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE)) {
 		message = "Are you sure you want to delete resident?";
 		flag_to_clear = FLAG_CONFIRM_RESIDENT_DELETE;
 		action.type = DB_ACTION_DELETE;
-		action.delete_data.cpf = ui->tb_cpf.input;
-	}
-	else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
+		action.delete.cpf = ui->tb_cpf.input;
+	} else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
 		message = "Error submitting to database.";
 		*error = NO_ERROR; // Clear error after showing
 	}
@@ -326,36 +322,41 @@ static void show_warning_messages(struct ui_resident *ui, enum error_code *error
 		);
 
 		if (result == 1 && action.type != DB_ACTION_NONE) {
-			switch (action.type) {
-				case DB_ACTION_UPDATE:
-					if (resident_db_update(resident_db, action.update_data.cpf,
-										 action.update_data.name,
-										 action.update_data.age,
-										 action.update_data.health_status,
-										 action.update_data.needs,
-										 action.update_data.medical_assistance,
-										 action.update_data.gender) == SQLITE_OK) {
-						SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
-					} else {
-						*error = ERROR_UPDATE_DB;
-					}
-					break;
-					
-				case DB_ACTION_DELETE:
-					if (resident_db_delete_by_cpf(resident_db, action.delete_data.cpf) == SQLITE_OK) {
-						SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
-					}
-					break;
-				
-				case DB_ACTION_NONE:
-				default:
-					break;
-			}
+			process_db_action_in_warning(ui, error, &action, resident_db);
 		}
 
 		if (result >= 0 && flag_to_clear) {
 			CLEAR_FLAG(&ui->flag, flag_to_clear);
 		}
+	}
+}
+
+static void process_db_action_in_warning(struct ui_resident *ui, enum error_code *error, struct db_action_info *action, database *resident_db)
+{
+	switch (action->type) {
+	case DB_ACTION_UPDATE:
+		if (resident_db_update(resident_db, action->update.cpf,
+							 action->update.name,
+							 action->update.age,
+							 action->update.health_status,
+							 action->update.needs,
+							 action->update.medical_assistance,
+							 action->update.gender) == SQLITE_OK) {
+			SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
+		} else {
+			*error = ERROR_UPDATE_DB;
+		}
+		break;
+
+	case DB_ACTION_DELETE:
+		if (resident_db_delete_by_cpf(resident_db, action->delete.cpf) == SQLITE_OK) {
+			SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
+		}
+		break;
+
+	case DB_ACTION_NONE:
+	default:
+		break;
 	}
 }
 
