@@ -3,11 +3,9 @@
 #include "CONSTANTS.h"
 #include "ui_elements/dropdownbox.h"
 
-typedef struct dropdownbox dropdownbox;
-
-dropdownbox dropdownbox_init(Rectangle bounds, const char *options, const char *label)
+struct dropdownbox dropdownbox_init(Rectangle bounds, const char *options, const char *label)
 {
-	dropdownbox ddb = {0};
+	struct dropdownbox ddb = {0};
 	ddb.bounds = bounds;
 	ddb.options = options;
 	ddb.label = label;
@@ -16,7 +14,7 @@ dropdownbox dropdownbox_init(Rectangle bounds, const char *options, const char *
 	return ddb;
 }
 
-void dropdownbox_draw(dropdownbox *ddb)
+void dropdownbox_draw(struct dropdownbox *ddb)
 {
 	GuiLabel((Rectangle){ddb->bounds.x, ddb->bounds.y - (FONT_SIZE + 5), ddb->bounds.width, 20}, ddb->label);
 

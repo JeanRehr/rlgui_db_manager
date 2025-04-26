@@ -4,11 +4,9 @@
 
 #include "ui_elements/textboxsecret.h"
 
-typedef struct textboxsecret textboxsecret;
-
-textboxsecret textboxsecret_init(Rectangle bounds, const char *label)
+struct textboxsecret textboxsecret_init(Rectangle bounds, const char *label)
 {
-	textboxsecret tbs = {0}; // Initialize struct with zeroed memory
+	struct textboxsecret tbs = {0}; // Initialize struct with zeroed memory
 	// inputs already initialized to 0 with above
 	tbs.bounds = bounds;
 	tbs.secret_view = false;
@@ -16,7 +14,7 @@ textboxsecret textboxsecret_init(Rectangle bounds, const char *label)
 	return tbs;
 }
 
-void textboxsecret_draw(textboxsecret *tbs)
+void textboxsecret_draw(struct textboxsecret *tbs)
 {
 	// Draw label above the textboxsecret
 	GuiLabel((Rectangle){tbs->bounds.x, tbs->bounds.y - (FONT_SIZE + 5), tbs->bounds.width, 20}, tbs->label);

@@ -61,23 +61,6 @@
 #include "error_handling.h"
 #include "app_state.h"
 
-// typedefs
-typedef struct textbox textbox;
-typedef struct intbox intbox;
-typedef struct floatbox floatbox;
-typedef struct checkbox checkbox;
-typedef struct dropdownbox dropdownbox;
-typedef struct button button;
-typedef struct resident resident;
-typedef struct foodbatch foodbatch;
-typedef struct ui_login ui_login;
-typedef struct ui_main_menu ui_main_menu;
-typedef struct ui_resident ui_resident;
-typedef struct ui_food ui_food;
-
-typedef enum error_code error_code;
-typedef enum app_state app_state;
-
 int active_style = 8; // Set default style to dark
 int prev_active_style = 7;
 
@@ -123,7 +106,7 @@ int main()
 
 	// Start initializing the login screen in order as they appear from top-down top-left
 
-	ui_login ui_login;
+	struct ui_login ui_login;
 
 	ui_login_init(&ui_login);
 
@@ -131,7 +114,7 @@ int main()
 
 	// Start initializing the main menu screen in order as they appear from top-down top-left
 
-	ui_main_menu ui_main_menu;
+	struct ui_main_menu ui_main_menu;
 
 	ui_main_menu_init(&ui_main_menu);
 
@@ -139,7 +122,7 @@ int main()
 
 	// Start initializing the register resident screen in order as they appear from top-down top-left
 
-	ui_resident ui_resident;
+	struct ui_resident ui_resident;
 
 	ui_resident_init(&ui_resident);
 
@@ -147,13 +130,13 @@ int main()
 
 	// Start initializing the register food screen in order as they appear from top-down top-left
 
-	ui_food ui_food;
+	struct ui_food ui_food;
 
 	ui_food_init(&ui_food);
 
 	// End initializing the register food screen
 
-	button logout_butn = button_init((Rectangle) {window_width - 100, window_height - 60, 0, 30}, "Log Out");
+	struct button logout_butn = button_init((Rectangle) {window_width - 100, window_height - 60, 0, 30}, "Log Out");
 
 	// Rectangle bounds for the style selector box, it is persistent across all screens
 	Rectangle style_options_bounds = {window_width - 130, 30, 120, 30};
@@ -161,8 +144,8 @@ int main()
 
 	// Setting the initial state of the app
 	struct user current_user = {0};
-	error_code error = NO_ERROR;
-	app_state app_state = STATE_LOGIN_MENU;
+	enum error_code error = NO_ERROR;
+	enum app_state app_state = STATE_LOGIN_MENU;
 
 	while (!WindowShouldClose()) {
 		// Update

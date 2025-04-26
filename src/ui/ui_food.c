@@ -10,12 +10,7 @@
 #include "globals.h"
 #include "utilsfn.h"
 
-typedef struct ui_food ui_food;
-typedef enum app_state app_state;
-typedef enum error_code error_code;
-typedef enum food_screen_flags food_screen_flags;
-
-void ui_food_init(ui_food *ui)
+void ui_food_init(struct ui_food *ui)
 {
 	ui->menu_title_bounds = (Rectangle) {10, 10, 150, 20};
 
@@ -78,7 +73,7 @@ void ui_food_init(ui_food *ui)
 	ui->flag = 0;
 }
 
-void ui_food_draw(ui_food *ui, app_state *state, error_code *error, database *foodbatch_db)
+void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *error, database *foodbatch_db)
 {
 	// Start draw UI elements
 

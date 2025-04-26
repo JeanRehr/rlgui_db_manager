@@ -5,11 +5,9 @@
 #include "ui_elements/textbox.h"
 #include "utilsfn.h"
 
-typedef struct textbox textbox;
-
-textbox textbox_init(Rectangle bounds, const char *label)
+struct textbox textbox_init(Rectangle bounds, const char *label)
 {
-	textbox textbox = {0}; // Initialize struct with zeroed memory
+	struct textbox textbox = {0}; // Initialize struct with zeroed memory
 	// input already initialized to 0 with above
 	textbox.bounds = bounds;
 	textbox.edit_mode = false;
@@ -17,7 +15,7 @@ textbox textbox_init(Rectangle bounds, const char *label)
 	return textbox;
 }
 
-void textbox_draw(textbox *textbox)
+void textbox_draw(struct textbox *textbox)
 {
 	// Draw label above the textbox
 	GuiLabel((Rectangle){textbox->bounds.x, textbox->bounds.y - (FONT_SIZE + 5), textbox->bounds.width, 20},

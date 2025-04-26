@@ -9,10 +9,6 @@
 #include "globals.h"
 #include "utilsfn.h"
 
-typedef struct ui_login ui_login;
-typedef enum app_state app_state;
-typedef enum error_code error_code;
-
 static void clear_data(struct ui_login *ui);
 
 static void show_login_messages(struct ui_login *ui, enum app_state *state, database *user_db,
@@ -21,7 +17,7 @@ static void show_login_messages(struct ui_login *ui, enum app_state *state, data
 static void handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_db,
 								 struct user *current_user);
 
-void ui_login_init(ui_login *ui)
+void ui_login_init(struct ui_login *ui)
 {
 	ui->menu_title_bounds = (Rectangle){10, 10, 150, 20};
 	ui->tb_username = textbox_init((Rectangle){window_width / 2 - 150, window_height / 2 - 15, 300, 30}, "Username:");
@@ -35,7 +31,7 @@ void ui_login_init(ui_login *ui)
 	ui->flag = 0;
 }
 
-void ui_login_draw(ui_login *ui, app_state *state, error_code *error, database *user_db, struct user *current_user)
+void ui_login_draw(struct ui_login *ui, enum app_state *state, enum error_code *error, database *user_db, struct user *current_user)
 {
 	// Draw UI elements
 	textbox_draw(&ui->tb_username);
@@ -57,7 +53,7 @@ void ui_login_draw(ui_login *ui, app_state *state, error_code *error, database *
 }
 
 // Helper function to handle login logic
-static void handle_login_attempt(ui_login *ui, app_state *state, database *user_db, struct user *current_user)
+static void handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user)
 {
 	// Clear previous flags
 	CLEAR_FLAG(&ui->flag,
@@ -101,7 +97,7 @@ static void handle_login_attempt(ui_login *ui, app_state *state, database *user_
 }
 
 // Helper function to show messages
-static void show_login_messages(ui_login *ui, app_state *state, database *user_db, struct user *current_user)
+static void show_login_messages(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user)
 {
 	const char *message = NULL;
 	enum login_screen_flags flag_to_clear = 0;
@@ -146,7 +142,7 @@ static void show_login_messages(ui_login *ui, app_state *state, database *user_d
 }
 
 // Helper function to clear sensitive data
-static void clear_data(ui_login *ui)
+static void clear_data(struct ui_login *ui)
 {
 	ui->tb_username.input[0] = '\0';
 	memset(ui->tbs_password.input, 0, sizeof(ui->tbs_password.input)); // More secure

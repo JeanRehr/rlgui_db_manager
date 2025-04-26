@@ -6,11 +6,9 @@
 #include "ui_elements/checkbox.h"
 #include "CONSTANTS.h"
 
-typedef struct checkbox checkbox;
-
-checkbox checkbox_init(Rectangle bounds, const char *title)
+struct checkbox checkbox_init(Rectangle bounds, const char *title)
 {
-    checkbox cb = {0};
+    struct checkbox cb = {0};
     cb.bounds = bounds;
     cb.title = title;
     cb.checked = false;

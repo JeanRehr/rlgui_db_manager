@@ -38,22 +38,16 @@ struct db_action_info {
 	};
 } db_action_info;
 
-
-typedef struct ui_resident ui_resident;
-typedef enum app_state app_state;
-typedef enum error_code error_code;
-typedef enum resident_screen_flags resident_screen_flags;
-
 // Helper function prototypes
-static void draw_resident_info_panel(ui_resident *ui);
-static void handle_button_actions(ui_resident *ui, app_state *state, error_code *error, database *resident_db);
-static void handle_submit_action(ui_resident *ui, error_code *error, database *resident_db);
-static void handle_retrieve_action(ui_resident *ui, database *resident_db);
-static void handle_delete_action(ui_resident *ui, database *resident_db);
-static void show_warning_messages(ui_resident *ui, error_code *error, database *resident_db);
-static void clear_input_fields(ui_resident *ui);
+static void draw_resident_info_panel(struct ui_resident *ui);
+static void handle_button_actions(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db);
+static void handle_submit_action(struct ui_resident *ui, enum error_code *error, database *resident_db);
+static void handle_retrieve_action(struct ui_resident *ui, database *resident_db);
+static void handle_delete_action(struct ui_resident *ui, database *resident_db);
+static void show_warning_messages(struct ui_resident *ui, enum error_code *error, database *resident_db);
+static void clear_input_fields(struct ui_resident *ui);
 
-void ui_resident_init(ui_resident *ui)
+void ui_resident_init(struct ui_resident *ui)
 {
 	ui->menu_title_bounds = (Rectangle) {10, 10, 120, 20};
 
@@ -108,7 +102,7 @@ void ui_resident_init(ui_resident *ui)
 	ui->flag = 0;
 }
 
-void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error, database *resident_db)
+void ui_resident_draw(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db)
 {
 	// Start draw UI elements
 
@@ -143,7 +137,7 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error, data
 	}
 }
 
-static void draw_resident_info_panel(ui_resident *ui)
+static void draw_resident_info_panel(struct ui_resident *ui)
 {
 	GuiPanel(ui->panel_bounds, TextFormat("CPF info retrieved: %s", ui->resident_retrieved.cpf));
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 30, 280, 20}, TextFormat("Name: %s", ui->resident_retrieved.name));
@@ -188,7 +182,7 @@ static void draw_resident_info_panel(ui_resident *ui)
 	}
 }
 
-static void handle_button_actions(ui_resident *ui, app_state *state, error_code *error, database *resident_db)
+static void handle_button_actions(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db)
 {
 	if (button_draw_updt(&ui->butn_back)) {
 		*state = STATE_MAIN_MENU;
@@ -212,7 +206,7 @@ static void handle_button_actions(ui_resident *ui, app_state *state, error_code 
 	}
 }
 
-static void handle_submit_action(ui_resident *ui, error_code *error, database *resident_db)
+static void handle_submit_action(struct ui_resident *ui, enum error_code *error, database *resident_db)
 {
 	// Clear previous flags
 	CLEAR_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY | FLAG_CPF_NOT_VALID | FLAG_CPF_EXISTS);
@@ -247,7 +241,7 @@ static void handle_submit_action(ui_resident *ui, error_code *error, database *r
 	*error = NO_ERROR;
 }
 
-static void handle_retrieve_action(ui_resident *ui, database *resident_db)
+static void handle_retrieve_action(struct ui_resident *ui, database *resident_db)
 {
 	CLEAR_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
 
@@ -259,7 +253,7 @@ static void handle_retrieve_action(ui_resident *ui, database *resident_db)
 	}
 }
 
-static void handle_delete_action(ui_resident *ui, database *resident_db)
+static void handle_delete_action(struct ui_resident *ui, database *resident_db)
 {
 	CLEAR_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY | FLAG_CPF_NOT_VALID | FLAG_CPF_NOT_FOUND | FLAG_CONFIRM_RESIDENT_DELETE);
 
@@ -281,7 +275,7 @@ static void handle_delete_action(ui_resident *ui, database *resident_db)
 	SET_FLAG(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE);
 }
 
-static void show_warning_messages(ui_resident *ui, error_code *error, database *resident_db)
+static void show_warning_messages(struct ui_resident *ui, enum error_code *error, database *resident_db)
 {
 	const char *message = NULL;
 	enum resident_screen_flags flag_to_clear = 0;
@@ -365,7 +359,7 @@ static void show_warning_messages(ui_resident *ui, error_code *error, database *
 	}
 }
 
-static void clear_input_fields(ui_resident *ui)
+static void clear_input_fields(struct ui_resident *ui)
 {
 	ui->tb_name.input[0] = '\0';
 	ui->tb_cpf.input[0] = '\0';
@@ -376,7 +370,7 @@ static void clear_input_fields(ui_resident *ui)
 	ui->ddb_gender.active_option = 0;
 }
 
-void ui_resident_updt_pos(ui_resident *ui)
+void ui_resident_updt_pos(struct ui_resident *ui)
 {
 	ui->butn_submit.bounds.y = window_height - 60;
 	ui->butn_retrieve.bounds.y = ui->butn_submit.bounds.y;

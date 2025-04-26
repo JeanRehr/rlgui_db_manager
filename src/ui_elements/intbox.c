@@ -5,11 +5,9 @@
 #include "CONSTANTS.h"
 #include "ui_elements/intbox.h"
 
-typedef struct intbox intbox;
-
-intbox intbox_init(Rectangle bounds, const char *label, const int min_val, const int max_val)
+struct intbox intbox_init(Rectangle bounds, const char *label, const int min_val, const int max_val)
 {
-	intbox ib = {0};
+	struct intbox ib = {0};
 	ib.bounds = bounds;
 	ib.label = label;
 	ib.input = 0;
@@ -19,7 +17,7 @@ intbox intbox_init(Rectangle bounds, const char *label, const int min_val, const
 	return ib;
 }
 
-void intbox_draw(intbox *ib)
+void intbox_draw(struct intbox *ib)
 {
 	// Check whether the provided width of the box is higher than the width of the title.
 	// If not, use the width of the title as width of the GuiLabel

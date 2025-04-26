@@ -6,12 +6,10 @@
 #include "ui_elements/button.h"
 #include "CONSTANTS.h"
 
-typedef struct button button;
-
 // Function to initialize a Button with given properties
-button button_init(Rectangle bounds, const char *label)
+struct button button_init(Rectangle bounds, const char *label)
 {
-	button button = {0};
+	struct button button = {0};
 
 	// Calculate the width of the label
 	int label_width = MeasureText(label, FONT_SIZE);
@@ -28,7 +26,7 @@ button button_init(Rectangle bounds, const char *label)
 	return button;
 }
 
-int button_draw_updt(button *button)
+int button_draw_updt(struct button *button)
 {
 	return GuiButton(button->bounds, button->label);
 }
