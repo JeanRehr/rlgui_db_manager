@@ -34,12 +34,4 @@ void ui_login_init(struct ui_login *ui);
 void ui_login_draw(struct ui_login *ui, enum app_state *state, enum error_code *error, database *user_db,
 				   struct user *current_user);
 
-static void clear_data(struct ui_login *ui);
-
-static void show_login_messages(struct ui_login *ui, enum app_state *state, database *user_db,
-								struct user *current_user);
-
-static void handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_db,
-								 struct user *current_user);
-
 #endif // UI_LOGIN_H
