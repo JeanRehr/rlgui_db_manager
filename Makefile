@@ -15,8 +15,8 @@ SRC_DIR = src
 # tests directory
 TEST_DIR = tests
 
-# obj directory
-OBJ_DIR = obj
+# output directory
+OUT_DIR = out
 
 # The include/ subdirectories are hardcoded into the source files
 INCLUDE_DIR = include
@@ -46,12 +46,12 @@ SRC_FILES = $(shell find $(SRC_DIR) -name "*.c")
 # Automatically discover C source files in tests directory
 TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
 
-# Transform source file paths to flat object file paths in obj/
+# Transform source file paths to flat object file paths in out/
 # Object files for main application (all src files)
-MAIN_OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(SRC_FILES:.c=.o)))
+MAIN_OUT_FILES = $(addprefix $(OUT_DIR)/,$(notdir $(SRC_FILES:.c=.o)))
 
 # Object files for test suite (test files + src files except main.c)
-TEST_OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(TEST_FILES:.c=.o))) $(filter-out $(OBJ_DIR)/main.o, $(MAIN_OBJ_FILES))
+TEST_OUT_FILES = $(addprefix $(OUT_DIR)/,$(notdir $(TEST_FILES:.c=.o))) $(filter-out $(OUT_DIR)/main.o, $(MAIN_OUT_FILES))
 
 # Compiler and linker flags
 RELEASE_CFLAGS = -O3 -Wall -Wextra -pedantic -std=c99 -Wno-missing-braces
@@ -91,34 +91,34 @@ test: debug
 
 # Clean up build artifacts
 clean:
-	rm -rf $(OBJ_DIR)/*.o $(MAIN_TARGET) $(TEST_TARGET)
+	rm -rf $(OUT_DIR)/*.o $(MAIN_TARGET) $(TEST_TARGET)
 
 .PHONY: release debug test run clean
 
 # Build main application
-$(MAIN_TARGET): $(MAIN_OBJ_FILES)
+$(MAIN_TARGET): $(MAIN_OUT_FILES)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 # Build tests
-$(TEST_TARGET): $(TEST_OBJ_FILES)
+$(TEST_TARGET): $(TEST_OUT_FILES)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
-# Rules to compile source files from various locations into flat obj directory
+# Rules to compile source files from various locations into flat out directory
 
 # For files directly in src/
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+$(OUT_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 # For files in src/subdir/
-$(OBJ_DIR)/%.o: $(SRC_DIR)/*/%.c
+$(OUT_DIR)/%.o: $(SRC_DIR)/*/%.c
 	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 # For files in src/subdir/subsubdir/
-$(OBJ_DIR)/%.o: $(SRC_DIR)/*/*/%.c
+$(OUT_DIR)/%.o: $(SRC_DIR)/*/*/%.c
 	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 # For test files in tests/
-$(OBJ_DIR)/%.o: $(TEST_DIR)/%.c
+$(OUT_DIR)/%.o: $(TEST_DIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 # Makefile Description:
@@ -128,12 +128,12 @@ $(OBJ_DIR)/%.o: $(TEST_DIR)/%.c
 #	DEBUG_CFLAGS: Flags for debug builds (includes debug symbols for easier debugging with gdb).\
 #	SRC_DIR: Directory containing source files (src/).\
 #	TEST_DIR: Directory containing test files (tests/).\
-#	OBJ_DIR: Directory for storing object files (obj/).\
+#	OUT_DIR: Directory for storing object files (out/).\
 #	INCLUDE_DIR: Directory containing header files (include/).\
 #	LIB_DIR: Directory containing external libraries (lib/).\
 #	SRC_FILES: Finds all .c files in the src directory.\
 #	TEST_FILES: Finds all .c files in the tests directory.\
-#	OBJ_FILES: Object files for both the main application and test executable.\
+#	OUT_FILES: Object files for both the main application and test executable.\
 #	LDFLAGS: Linker flags common to both the main application and test executable.\
 #	INCLUDE_FLAGS: Flags specifying include directories.\
 # Targets:\

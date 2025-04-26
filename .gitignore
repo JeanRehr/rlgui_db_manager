@@ -2,6 +2,6 @@
 .vs
 **/*.exe
 **/*.out
-obj/*
-!obj/.gitkeep
+out/*
+!out/.gitkeep
 **/*.db
