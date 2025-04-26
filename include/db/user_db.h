@@ -6,16 +6,26 @@
 #include "db/db_manager.h"
 #include "user.h"
 
+enum auth_result {
+    AUTH_SUCCESS,
+    AUTH_FAILURE,
+    AUTH_NEED_PASSWORD_RESET
+};
+
 int user_db_create_table(database *db);
 
 // User management functions
 int user_db_create(database *db, const char *username, const char *password, bool is_admin);
 
-bool user_db_authenticate(database *db, const char *username, const char *password);
+int user_db_create_user(database *db, const char *username, bool is_admin, bool reset_password);
+
+int user_db_create_admin(database *db);
+
+enum auth_result user_db_authenticate(database *db, const char *username, const char *password);
 
 int user_db_delete(database *db, int user_id);
 
-int user_db_update_password(database *db, int user_id, const char *new_password);
+int user_db_update_password(database *db, const char *username, const char *new_password);
 
 int user_db_update_admin_status(database *db, int user_id, bool is_admin);
 
