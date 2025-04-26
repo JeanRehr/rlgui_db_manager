@@ -10,10 +10,48 @@
 #include "utilsfn.h"
 #include "globals.h"
 
+// For when a warning message needs to perform a database operation
+// Type of the operation
+enum db_action_type {
+	DB_ACTION_NONE,
+	DB_ACTION_UPDATE,
+	DB_ACTION_DELETE,
+} db_action_type;
+
+// Info for the database operation based on the type
+struct db_action_info {
+	enum db_action_type type;
+	union {
+		struct update_data {
+			const char* cpf;
+			const char* name;
+			int age;
+			const char* health_status;
+			const char* needs;
+			bool medical_assistance;
+			int gender;
+		} update_data;
+		
+		struct delete_data {
+			const char* cpf;
+		} delete_data;
+	};
+} db_action_info;
+
+
 typedef struct ui_resident ui_resident;
 typedef enum app_state app_state;
 typedef enum error_code error_code;
 typedef enum resident_screen_flags resident_screen_flags;
+
+// Helper function prototypes
+static void draw_resident_info_panel(ui_resident *ui);
+static void handle_button_actions(ui_resident *ui, app_state *state, error_code *error, database *resident_db);
+static void handle_submit_action(ui_resident *ui, error_code *error, database *resident_db);
+static void handle_retrieve_action(ui_resident *ui, database *resident_db);
+static void handle_delete_action(ui_resident *ui, database *resident_db);
+static void show_warning_messages(ui_resident *ui, error_code *error, database *resident_db);
+static void clear_input_fields(ui_resident *ui);
 
 void ui_resident_init(ui_resident *ui)
 {
@@ -87,7 +125,26 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error, data
 
 	checkbox_draw(&ui->cb_medical_assistance);
 
-	// Start Info Panel
+	// End draw UI elements
+
+	// Draw info panel
+	draw_resident_info_panel(ui);
+
+	// Handle button actions
+	handle_button_actions(ui, state, error, resident_db);
+
+	// Show warning/error messages
+	show_warning_messages(ui, error, resident_db);
+
+	// Clear fields after successful operation
+	if (IS_FLAG_SET(&ui->flag, FLAG_RESIDENT_OPERATION_DONE)) {
+		clear_input_fields(ui);
+		CLEAR_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
+	}
+}
+
+static void draw_resident_info_panel(ui_resident *ui)
+{
 	GuiPanel(ui->panel_bounds, TextFormat("CPF info retrieved: %s", ui->resident_retrieved.cpf));
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 30, 280, 20}, TextFormat("Name: %s", ui->resident_retrieved.name));
 	GuiLabel((Rectangle){ui->panel_bounds.x + 10, ui->panel_bounds.y + 60, 280, 20}, TextFormat("Age: %d", ui->resident_retrieved.age));
@@ -129,125 +186,194 @@ void ui_resident_draw(ui_resident *ui, app_state *state, error_code *error, data
 		wrap_text(ui->resident_retrieved.needs, wrapped_text, 300);
 		GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2, 300, 300}, "#191#Full Needs", wrapped_text, "");
 	}
+}
 
-	// End Info Panel
-
-	// End draw UI elements
-
-	// Start button actions
-
+static void handle_button_actions(ui_resident *ui, app_state *state, error_code *error, database *resident_db)
+{
 	if (button_draw_updt(&ui->butn_back)) {
 		*state = STATE_MAIN_MENU;
+		return;
 	}
 
 	if (button_draw_updt(&ui->butn_submit)) {
-		if (*ui->tb_cpf.input == '\0') {
-			SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
-			fprintf(stderr, "CPF must not be empty.\n");
-		} else if (!is_int_between_min_max(ui->tb_cpf.input, 11, 11)) {
-			SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
-			fprintf(stderr, "CPF must be 11 digits.\n");
-		} else if (resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
-			SET_FLAG(&ui->flag, FLAG_CPF_EXISTS);
-		} else if (resident_db_insert(resident_db, ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
-			*error = ERROR_INSERT_DB;
-			fprintf(stderr, "Error submitting to database.\n");
-		} else {
-			*error = NO_ERROR;
-			SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
-		}
+		handle_submit_action(ui, error, resident_db);
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve)) {
-		if (resident_db_get_by_cpf(resident_db, ui->tb_cpf.input, &ui->resident_retrieved) == SQLITE_OK) {
-			printf("Retrieved Person - Name: %s, Age: %d, Health Status: %s, Needs: %s, Need Medical Assistance: %d Gender: %d, Entry Date: %s\n", ui->resident_retrieved.name, ui->resident_retrieved.age, ui->resident_retrieved.health_status, ui->resident_retrieved.needs, ui->resident_retrieved.medical_assistance, ui->resident_retrieved.gender, ui->resident_retrieved.entry_date);
-			SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
-		} else {
-			SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
-		}
+		handle_retrieve_action(ui, resident_db);
 	}
 
 	if (button_draw_updt(&ui->butn_delete)) {
-		if (*ui->tb_cpf.input == '\0') {
-			SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
-		} else if (!is_int_between_min_max(ui->tb_cpf.input, 11, 11)) {
-			SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
-		} else if (!resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
-			SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
-		} else {
-			SET_FLAG(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE);
-		}
+		handle_delete_action(ui, resident_db);
 	}
 
 	if (button_draw_updt(&ui->butn_retrieve_all)) {
 		resident_db_get_all(resident_db);
 	}
+}
 
-	// End button actions
+static void handle_submit_action(ui_resident *ui, error_code *error, database *resident_db)
+{
+	// Clear previous flags
+	CLEAR_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY | FLAG_CPF_NOT_VALID | FLAG_CPF_EXISTS);
 
-	// Start show warning/error boxes
+	// Validate inputs
+	if (ui->tb_cpf.input[0] == '\0') {
+		SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
+		return;
+	}
+	
+	if (!is_int_between_min_max(ui->tb_cpf.input, 11, 11)) {
+		SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
+		return;
+	}
+	
+	// Check if CPF exists		
+	if (resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
+		SET_FLAG(&ui->flag, FLAG_CPF_EXISTS);
+		return;
+	}
+	
+	// Insert new resident
+	if (resident_db_insert(resident_db, ui->tb_cpf.input, ui->tb_name.input, 
+						  ui->ib_age.input, ui->tb_health_status.input, 
+						  ui->tb_needs.input, ui->cb_medical_assistance.checked, 
+						  ui->ddb_gender.active_option) != SQLITE_OK) {
+		*error = ERROR_INSERT_DB;
+		return;
+	}
+	
+	SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
+	*error = NO_ERROR;
+}
 
-	// In case updating resident
-	if (IS_FLAG_SET(&ui->flag, FLAG_CPF_EXISTS)) {
-		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF Already exists.", "Update;Don't update");
-		if (result == 1) {
-			if (resident_db_update(resident_db ,ui->tb_cpf.input, ui->tb_name.input, ui->ib_age.input, ui->tb_health_status.input, ui->tb_needs.input, ui->cb_medical_assistance.checked, ui->ddb_gender.active_option) != SQLITE_OK) {
-				*error = ERROR_UPDATE_DB;
+static void handle_retrieve_action(ui_resident *ui, database *resident_db)
+{
+	CLEAR_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
+
+	if (resident_db_get_by_cpf(resident_db, ui->tb_cpf.input, &ui->resident_retrieved) == SQLITE_OK) {
+		printf("Retrieved Person - Name: %s, Age: %d\n", ui->resident_retrieved.name, ui->resident_retrieved.age);
+		SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
+	} else {
+		SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
+	}
+}
+
+static void handle_delete_action(ui_resident *ui, database *resident_db)
+{
+	CLEAR_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY | FLAG_CPF_NOT_VALID | FLAG_CPF_NOT_FOUND | FLAG_CONFIRM_RESIDENT_DELETE);
+
+	if (ui->tb_cpf.input[0] == '\0') {
+		SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
+		return;
+	}
+
+	if (!is_int_between_min_max(ui->tb_cpf.input, 11, 11)) {
+		SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
+		return;
+	}
+
+	if (!resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
+		SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
+		return;
+	}
+
+	SET_FLAG(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE);
+}
+
+static void show_warning_messages(ui_resident *ui, error_code *error, database *resident_db)
+{
+	const char *message = NULL;
+	enum resident_screen_flags flag_to_clear = 0;
+	struct db_action_info action = {DB_ACTION_NONE};
+
+	if (IS_FLAG_SET(&ui->flag, FLAG_INPUT_CPF_EMPTY)) {
+		message = "CPF must not be empty.";
+		flag_to_clear = FLAG_INPUT_CPF_EMPTY;
+	}
+	else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_NOT_VALID)) {
+		message = "CPF must be 11 digits.";
+		flag_to_clear = FLAG_CPF_NOT_VALID;
+	}
+	else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_NOT_FOUND)) {
+		message = "CPF not found.";
+		flag_to_clear = FLAG_CPF_NOT_FOUND;
+	}
+	else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_EXISTS)) {
+		message = "CPF already exists. Update existing record?";
+		flag_to_clear = FLAG_CPF_EXISTS;
+		action.type = DB_ACTION_UPDATE;
+		action.update_data.cpf = ui->tb_cpf.input;
+		action.update_data.name = ui->tb_name.input;
+		action.update_data.age = ui->ib_age.input;
+		action.update_data.health_status = ui->tb_health_status.input;
+		action.update_data.needs = ui->tb_needs.input;
+		action.update_data.medical_assistance = ui->cb_medical_assistance.checked;
+		action.update_data.gender = ui->ddb_gender.active_option;
+	}
+	else if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE)) {
+		message = "Are you sure you want to delete resident?";
+		flag_to_clear = FLAG_CONFIRM_RESIDENT_DELETE;
+		action.type = DB_ACTION_DELETE;
+		action.delete_data.cpf = ui->tb_cpf.input;
+	}
+	else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
+		message = "Error submitting to database.";
+		*error = NO_ERROR; // Clear error after showing
+	}
+
+	if (message) {
+		const char* buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
+		int result = GuiMessageBox(
+			(Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 100},
+			"#191#Warning!",
+			message,
+			buttons
+		);
+
+		if (result == 1 && action.type != DB_ACTION_NONE) {
+			switch (action.type) {
+				case DB_ACTION_UPDATE:
+					if (resident_db_update(resident_db, action.update_data.cpf,
+										 action.update_data.name,
+										 action.update_data.age,
+										 action.update_data.health_status,
+										 action.update_data.needs,
+										 action.update_data.medical_assistance,
+										 action.update_data.gender) == SQLITE_OK) {
+						SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
+					} else {
+						*error = ERROR_UPDATE_DB;
+					}
+					break;
+					
+				case DB_ACTION_DELETE:
+					if (resident_db_delete_by_cpf(resident_db, action.delete_data.cpf) == SQLITE_OK) {
+						SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
+					}
+					break;
+				
+				case DB_ACTION_NONE:
+				default:
+					break;
 			}
 		}
-		if (result >= 0) {
-			*error = NO_ERROR;
-			CLEAR_FLAG(&ui->flag, FLAG_CPF_EXISTS);
-			SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
+
+		if (result >= 0 && flag_to_clear) {
+			CLEAR_FLAG(&ui->flag, flag_to_clear);
 		}
 	}
+}
 
-	// In case deleting resident
-	if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE)) {
-		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Deleting Person!", "Are you sure you want to delete?", "Yes, delete;NO");
-		if (result == 1) {
-			resident_db_delete_by_cpf(resident_db, ui->tb_cpf.input);
-			SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
-		}
-		if (result >= 0) {
-			CLEAR_FLAG(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE);
-		}
-	}
-
-	// Warnings
-	if (IS_FLAG_SET(&ui->flag, FLAG_INPUT_CPF_EMPTY)) {
-		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF must not be empty.", "OK");
-		if (result >= 0) {
-			CLEAR_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
-		}
-	} else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_NOT_VALID)) {
-		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF must be 11 digits.", "OK");
-		if (result >= 0) {
-			CLEAR_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
-		}
-	} else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_NOT_FOUND)) {
-		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "CPF not found.", "OK");
-		if (result >= 0) {
-			CLEAR_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
-		}
-	} else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
-		int result = GuiMessageBox((Rectangle){ window_width / 2 - 150, window_height / 2 - 50, 300, 100 }, "#191#Warning!", "Error submitting to database.", "OK");
-		if (result >= 0) {
-			*error = NO_ERROR;
-		}
-	}
-
-	// End show warning/error boxes
-
-	// Clear the text buffer only after a successful operation
-	if (IS_FLAG_SET(&ui->flag, FLAG_RESIDENT_OPERATION_DONE)) {
-		ui->tb_name.input[0] = '\0';
-		ui->tb_cpf.input[0] = '\0';
-		ui->ib_age.input = 0;
-		ui->tb_health_status.input[0] = '\0';
-		ui->tb_needs.input[0] = '\0';
-		CLEAR_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
-	}
+static void clear_input_fields(ui_resident *ui)
+{
+	ui->tb_name.input[0] = '\0';
+	ui->tb_cpf.input[0] = '\0';
+	ui->ib_age.input = 0;
+	ui->tb_health_status.input[0] = '\0';
+	ui->tb_needs.input[0] = '\0';
+	ui->cb_medical_assistance.checked = false;
+	ui->ddb_gender.active_option = 0;
 }
 
 void ui_resident_updt_pos(ui_resident *ui)
