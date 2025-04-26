@@ -12,15 +12,15 @@
 
 // Tagged union for when a warning message needs to perform a database operation
 // Type of the operation
-enum db_action_type {
+enum ui_resident_db_action_type {
     DB_ACTION_NONE,
     DB_ACTION_UPDATE,
     DB_ACTION_DELETE,
-} db_action_type;
+};
 
 // Info for the database operation based on the type
-struct db_action_info {
-    enum db_action_type type;
+struct ui_resident_db_action_info {
+    enum ui_resident_db_action_type type;
     union {
         struct {
             const char *cpf;
@@ -36,7 +36,7 @@ struct db_action_info {
             const char *cpf;
         } delete;
     };
-} db_action_info;
+};
 
 // Helper function prototypes
 static void draw_resident_info_panel(struct ui_resident *ui);
@@ -49,7 +49,7 @@ static void show_warning_messages(struct ui_resident *ui, enum error_code *error
 static void process_db_action_in_warning(
     struct ui_resident *ui,
     enum error_code *error,
-    struct db_action_info *action,
+    struct ui_resident_db_action_info *action,
     database *resident_db
 );
 static void clear_input_fields(struct ui_resident *ui);
@@ -334,7 +334,7 @@ static void handle_delete_action(struct ui_resident *ui, database *resident_db) 
 static void show_warning_messages(struct ui_resident *ui, enum error_code *error, database *resident_db) {
     const char *message = NULL;
     enum resident_screen_flags flag_to_clear = 0;
-    struct db_action_info action = { DB_ACTION_NONE };
+    struct ui_resident_db_action_info action = { DB_ACTION_NONE };
 
     if (IS_FLAG_SET(&ui->flag, FLAG_INPUT_CPF_EMPTY)) {
         message = "CPF must not be empty.";
@@ -388,7 +388,7 @@ static void show_warning_messages(struct ui_resident *ui, enum error_code *error
 static void process_db_action_in_warning(
     struct ui_resident *ui,
     enum error_code *error,
-    struct db_action_info *action,
+    struct ui_resident_db_action_info *action,
     database *resident_db
 ) {
     switch (action->type) {

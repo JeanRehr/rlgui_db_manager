@@ -11,21 +11,21 @@
 
 // Tagged union for when a warning message needs to perform a database operation
 // Type of the operation
-enum db_action_type {
+enum ui_login_db_action_type {
     DB_ACTION_NONE,
     DB_ACTION_UPDT_PASS,
-} db_action_type;
+};
 
 // Info for the database operation based on the type
-struct db_action_info {
-    enum db_action_type type;
+struct ui_login_db_action_info {
+    enum ui_login_db_action_type type;
     union {
         struct {
             const char *username;
             const char *new_password;
         } updt_pass;
     };
-} db_action_info;
+};
 
 static void process_db_action_in_warning(
     struct ui_login *ui,
@@ -33,7 +33,7 @@ static void process_db_action_in_warning(
     enum error_code *error,
     database *user_db,
     struct user *current_user,
-    struct db_action_info *action
+    struct ui_login_db_action_info *action
 );
 
 static void clear_data(struct ui_login *ui);
@@ -151,7 +151,7 @@ static void show_login_messages(
 ) {
     const char *message = NULL;
     enum login_screen_flags flag_to_clear = 0;
-    struct db_action_info action = { DB_ACTION_NONE };
+    struct ui_login_db_action_info action = { DB_ACTION_NONE };
 
     if (IS_FLAG_SET(&ui->flag, FLAG_USERNAME_EMPTY)) {
         message = "Username must not be empty.";
@@ -181,7 +181,7 @@ static void show_login_messages(
 
         if (result == 1 && action.type != DB_ACTION_NONE) {
             process_db_action_in_warning(ui, state, error, user_db, current_user, &action);
-            if (error == ERROR_UPDATE_DB) {
+            if (*error == ERROR_UPDATE_DB) {
                 message = "Failed to update password. Please try again.";
                 GuiMessageBox(
                     (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
@@ -204,7 +204,7 @@ static void process_db_action_in_warning(
     enum error_code *error,
     database *user_db,
     struct user *current_user,
-    struct db_action_info *action
+    struct ui_login_db_action_info *action
 ) {
     switch (action->type) {
     case DB_ACTION_UPDT_PASS:
