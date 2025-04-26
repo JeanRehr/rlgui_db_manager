@@ -8,6 +8,7 @@
 #include <external/sqlite3/sqlite3.h>
 
 #include <assert.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -16,11 +17,64 @@
 #include "db/resident_db.h"
 #include "db/user_db.h"
 
+// Global context structure
+struct test_cleanup_ctx {
+    const char *db_filename;
+    database *db_handle;
+};
+
+static struct test_cleanup_ctx cleanup_ctx = { 0 };
+
+// Signal handler that cleans up
+void cleanup_handler(int sig) {
+    if (cleanup_ctx.db_handle) {
+        db_deinit(cleanup_ctx.db_handle);
+    }
+
+    if (cleanup_ctx.db_filename) {
+        remove(cleanup_ctx.db_filename);
+    }
+
+    fprintf(stderr, "Test failed with signal %d. Cleaned up resources.\n", sig);
+    exit(EXIT_FAILURE);
+}
+
+// Setup function
+void setup_cleanup(const char *filename, database *db) {
+    // Set up signal handlers
+    signal(SIGABRT, cleanup_handler); // assertion failure signal
+
+    // Store cleanup context
+    cleanup_ctx.db_filename = filename;
+    cleanup_ctx.db_handle = db;
+}
+
+// Teardown function
+void teardown_cleanup() {
+    // Normal cleanup
+    if (cleanup_ctx.db_handle) {
+        db_deinit(cleanup_ctx.db_handle);
+    }
+
+    if (cleanup_ctx.db_filename) {
+        remove(cleanup_ctx.db_filename);
+    }
+
+    // Reset context
+    cleanup_ctx = (struct test_cleanup_ctx) { 0 };
+
+    // Reset signal handler to default
+    signal(SIGABRT, SIG_DFL);
+}
+
 // TEST DB RESIDENT START
 
 void test_resident_db_insert() {
+    const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, "test_resident_db.db", resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+
+    setup_cleanup(test_resident_filename, &test_resident_db);
 
     const char *test_cpf = "01234567890";
     char *test_name = "Test Name";
@@ -80,18 +134,17 @@ void test_resident_db_insert() {
     assert(rc != SQLITE_OK);
     printf("Attempt to insert the same resident was unsuccessful.\n");
 
-    db_deinit(&test_resident_db);
-
-    if (remove("test_resident_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Resident database insertion test passed successfully.\n");
 }
 
 void test_resident_db_retrieve() {
+    const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, "test_resident_db.db", resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+
+    setup_cleanup(test_resident_filename, &test_resident_db);
 
     const char *test_cpf = "01234567890";
     char *test_name = "Test Name";
@@ -149,18 +202,17 @@ void test_resident_db_retrieve() {
 
     printf("Retrieve successful\n");
 
-    db_deinit(&test_resident_db);
-
-    if (remove("test_resident_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Resident database retrieval test passed.\n");
 }
 
 void test_resident_db_update() {
+    const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, "test_resident_db.db", resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+
+    setup_cleanup(test_resident_filename, &test_resident_db);
 
     const char *test_cpf = "01234567890";
     char *test_name = "Test Name";
@@ -241,18 +293,17 @@ void test_resident_db_update() {
     assert(strcmp(test_resident.name, updated_name) == 0);
     printf("Retrieved resident name has the updated name.\n");
 
-    db_deinit(&test_resident_db);
-
-    if (remove("test_resident_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Resident database update test passed successfully.\n");
 }
 
 void test_resident_db_check_cpf_exists() {
+    const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, "test_resident_db.db", resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+
+    setup_cleanup(test_resident_filename, &test_resident_db);
 
     const char *test_cpf = "01234567890";
     char *test_name = "Test Name";
@@ -309,18 +360,17 @@ void test_resident_db_check_cpf_exists() {
 
     printf("Exist.\n");
 
-    db_deinit(&test_resident_db);
-
-    if (remove("test_resident_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Resident database check cpf exists test passed successfully.\n");
 }
 
 void test_resident_db_delete_by_cpf() {
+    const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, "test_resident_db.db", resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+
+    setup_cleanup(test_resident_filename, &test_resident_db);
 
     const char *test_cpf = "01234567890";
     char *test_name = "Test Name";
@@ -376,11 +426,7 @@ void test_resident_db_delete_by_cpf() {
 
     printf("Operation successful.\n");
 
-    db_deinit(&test_resident_db);
-
-    if (remove("test_resident_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Resident database delete test passed successfully.\n");
 }
@@ -390,8 +436,11 @@ void test_resident_db_delete_by_cpf() {
 // TEST DB FOODBATCH START
 
 void test_foodbatch_db_insert() {
+    const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, "test_foodbatch_db.db", foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+
+    setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
     int test_batch_id = 1;
     char *test_name = "Test Food";
@@ -444,18 +493,17 @@ void test_foodbatch_db_insert() {
     assert(rc != SQLITE_OK);
     printf("Attempt to insert the same food batch was unsuccessful.\n");
 
-    db_deinit(&test_foodbatch_db);
-
-    if (remove("test_foodbatch_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Food batch database insertion test passed successfully.\n");
 }
 
 void test_foodbatch_db_retrieve() {
+    const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, "test_foodbatch_db.db", foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+
+    setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
     int test_batch_id = 1;
     char *test_name = "Test Food";
@@ -506,18 +554,17 @@ void test_foodbatch_db_retrieve() {
 
     printf("Retrieve successful\n");
 
-    db_deinit(&test_foodbatch_db);
-
-    if (remove("test_foodbatch_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Food batch database retrieval test passed.\n");
 }
 
 void test_foodbatch_db_update() {
+    const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, "test_foodbatch_db.db", foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+
+    setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
     int test_batch_id = 1;
     char *test_name = "Test Food";
@@ -591,18 +638,17 @@ void test_foodbatch_db_update() {
     assert(test_foodbatch.quantity == updated_quantity);
     printf("Retrieved food batch has the updated values.\n");
 
-    db_deinit(&test_foodbatch_db);
-
-    if (remove("test_foodbatch_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Food batch database update test passed successfully.\n");
 }
 
 void test_foodbatch_db_check_batchid_exists() {
+    const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, "test_foodbatch_db.db", foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+
+    setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
     int test_batch_id = 1;
     char *test_name = "Test Food";
@@ -651,18 +697,17 @@ void test_foodbatch_db_check_batchid_exists() {
     assert(exists == true);
     printf("Exists.\n");
 
-    db_deinit(&test_foodbatch_db);
-
-    if (remove("test_foodbatch_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Food batch database check batch ID exists test passed successfully.\n");
 }
 
 void test_foodbatch_db_delete_by_id() {
+    const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, "test_foodbatch_db.db", foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+
+    setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
     int test_batch_id = 1;
     char *test_name = "Test Food";
@@ -711,11 +756,7 @@ void test_foodbatch_db_delete_by_id() {
     assert(exists == false);
     printf("Operation successful.\n");
 
-    db_deinit(&test_foodbatch_db);
-
-    if (remove("test_foodbatch_db.db") == 0) {
-        printf("Test database file deleted successfully.\n");
-    }
+    teardown_cleanup();
 
     printf("Food batch database delete test passed successfully.\n");
 }
@@ -725,8 +766,11 @@ void test_foodbatch_db_delete_by_id() {
 // TEST DB USER START
 
 void test_user_db_create_user() {
+    const char *test_user_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, "test_user_db.db", user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+
+    setup_cleanup(test_user_filename, &test_user_db);
 
     const char *test_username = "testuser";
     bool test_is_admin = false;
@@ -751,14 +795,17 @@ void test_user_db_create_user() {
     assert(rc == SQLITE_CONSTRAINT);
     printf("Attempt to create duplicate user failed as expected.\n");
 
-    db_deinit(&test_user_db);
-    remove("test_user_db.db");
+    teardown_cleanup();
+
     printf("User creation test passed successfully.\n");
 }
 
 void test_user_db_authenticate() {
+    const char *test_user_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, "test_user_db.db", user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+
+    setup_cleanup(test_user_filename, &test_user_db);
 
     const char *test_username = "testuser";
     const char *test_password = "password123";
@@ -788,14 +835,17 @@ void test_user_db_authenticate() {
     assert(result == AUTH_FAILURE);
     printf("Authentication failed for non-existent user as expected.\n");
 
-    db_deinit(&test_user_db);
-    remove("test_user_db.db");
+    teardown_cleanup();
+
     printf("Authentication test passed successfully.\n");
 }
 
 void test_user_db_get_by_username() {
+    const char *test_user_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, "test_user_db.db", user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+
+    setup_cleanup(test_user_filename, &test_user_db);
 
     const char *test_username = "testuser";
     bool test_is_admin = false;
@@ -820,14 +870,17 @@ void test_user_db_get_by_username() {
     assert(rc == SQLITE_NOTFOUND);
     printf("Non-existent user retrieval failed as expected.\n");
 
-    db_deinit(&test_user_db);
-    remove("test_user_db.db");
+    teardown_cleanup();
+
     printf("User retrieval test passed successfully.\n");
 }
 
 void test_user_db_update_password() {
+    const char *test_user_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, "test_user_db.db", user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+
+    setup_cleanup(test_user_filename, &test_user_db);
 
     const char *test_username = "testuser";
     const char *old_password = "oldpassword";
@@ -862,14 +915,17 @@ void test_user_db_update_password() {
     result = user_db_authenticate(&test_user_db, test_username, new_password);
     assert(result == AUTH_SUCCESS);
 
-    db_deinit(&test_user_db);
-    remove("test_user_db.db");
+    teardown_cleanup();
+
     printf("Password update test passed successfully.\n");
 }
 
 void test_user_db_update_admin_status() {
+    const char *test_user_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, "test_user_db.db", user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+
+    setup_cleanup(test_user_filename, &test_user_db);
 
     const char *test_username = "testuser";
     bool initial_admin_status = false;
@@ -896,14 +952,17 @@ void test_user_db_update_admin_status() {
     assert(rc == SQLITE_OK);
     assert(test_user.is_admin == new_admin_status);
 
-    db_deinit(&test_user_db);
-    remove("test_user_db.db");
+    teardown_cleanup();
+
     printf("Admin status update test passed successfully.\n");
 }
 
 void test_user_db_delete() {
+    const char *test_user_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, "test_user_db.db", user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+
+    setup_cleanup(test_user_filename, &test_user_db);
 
     const char *test_username = "testuser";
     bool test_is_admin = false;
@@ -929,14 +988,17 @@ void test_user_db_delete() {
     exists = user_db_user_exists(&test_user_db, test_username);
     assert(exists == false);
 
-    db_deinit(&test_user_db);
-    remove("test_user_db.db");
+    teardown_cleanup();
+
     printf("User deletion test passed successfully.\n");
 }
 
 void test_user_db_admin_creation() {
+    const char *test_user_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, "test_user_db.db", user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+
+    setup_cleanup(test_user_filename, &test_user_db);
 
     printf("Verifying admin user exists\n");
     bool exists = user_db_user_exists(&test_user_db, "admin");
@@ -947,8 +1009,8 @@ void test_user_db_admin_creation() {
     assert(result == AUTH_SUCCESS);
     printf("Admin doesn't require password reset as expected.\n");
 
-    db_deinit(&test_user_db);
-    remove("test_user_db.db");
+    teardown_cleanup();
+
     printf("Admin creation test passed successfully.\n");
 }
 
