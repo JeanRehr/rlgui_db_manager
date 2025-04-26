@@ -13,6 +13,14 @@ typedef struct ui_login ui_login;
 typedef enum app_state app_state;
 typedef enum error_code error_code;
 
+static void clear_data(struct ui_login *ui);
+
+static void show_login_messages(struct ui_login *ui, enum app_state *state, database *user_db,
+								struct user *current_user);
+
+static void handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_db,
+								 struct user *current_user);
+
 void ui_login_init(ui_login *ui)
 {
 	ui->menu_title_bounds = (Rectangle){10, 10, 150, 20};
@@ -96,21 +104,21 @@ static void handle_login_attempt(ui_login *ui, app_state *state, database *user_
 static void show_login_messages(ui_login *ui, app_state *state, database *user_db, struct user *current_user)
 {
 	const char *message = NULL;
-	enum login_screen_flags *flag_to_clear = NULL;
+	enum login_screen_flags flag_to_clear = 0;
 	bool perform_password_reset = false;
 
 	if (IS_FLAG_SET(&ui->flag, FLAG_USERNAME_EMPTY)) {
 		message = "Username must not be empty.";
-		flag_to_clear = &ui->flag;
+		flag_to_clear = FLAG_USERNAME_EMPTY;
 	} else if (IS_FLAG_SET(&ui->flag, FLAG_PASSWD_EMPTY)) {
 		message = "Password must not be empty";
-		flag_to_clear = &ui->flag;
+		flag_to_clear = FLAG_PASSWD_EMPTY;
 	} else if (IS_FLAG_SET(&ui->flag, FLAG_USER_NOT_EXISTS | FLAG_WRONG_PASSWD)) {
 		message = "Invalid username or password";
-		flag_to_clear = &ui->flag;
+		flag_to_clear = FLAG_USER_NOT_EXISTS | FLAG_WRONG_PASSWD;
 	} else if (IS_FLAG_SET(&ui->flag, FLAG_PASSWD_RESET)) {
 		message = "Please set a new password. The password you entered will become your new password.";
-		flag_to_clear = &ui->flag;
+		flag_to_clear = FLAG_PASSWD_RESET;
 		perform_password_reset = true;
 	}
 
@@ -128,11 +136,11 @@ static void show_login_messages(ui_login *ui, app_state *state, database *user_d
 					SET_FLAG(&ui->flag, FLAG_LOGIN_DONE);
 				} else {
 					message = "Failed to update password. Please try again.";
-					GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 100}, "#191#Warning!",
-								  message, "OK");
+					GuiMessageBox((Rectangle){window_width / 2 - 150, window_height / 2 - 50, 300, 100},
+								  "#191#Warning!", message, "OK");
 				}
 			}
-			*flag_to_clear = 0; // Clear the flag
+			CLEAR_FLAG(&ui->flag, flag_to_clear); // Clear the flag
 		}
 	}
 }
