@@ -1,10 +1,10 @@
 #ifndef UI_CREATE_USER_H
 #define UI_CREATE_USER_H
 
-#include "ui_elements/button.h"
-#include "db/db_manager.h"
 #include "app_state.h"
+#include "db/db_manager.h"
 #include "error_handling.h"
+#include "ui_elements/button.h"
 
 enum create_user_screen_flags {
     FLAG_CREATE_USER_OPERATION_DONE = 1 << 0, // 0001: Submission completed

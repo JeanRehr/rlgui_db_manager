@@ -6,8 +6,8 @@
 #include <stdbool.h>
 
 struct button {
-	Rectangle bounds;
-	const char *label;
+    Rectangle bounds;
+    const char *label;
 };
 
 // If no width (bounds.width) is specified when initiating the button, or a width which is less than the text width of

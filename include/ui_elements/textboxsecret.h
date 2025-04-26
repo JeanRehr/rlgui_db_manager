@@ -6,10 +6,10 @@
 #include "CONSTANTS.h"
 
 struct textboxsecret {
-	Rectangle bounds;
-	const char *label;
-	char input[MAX_INPUT];
-	bool secret_view; // Toggle to display the actual text
+    Rectangle bounds;
+    const char *label;
+    char input[MAX_INPUT];
+    bool secret_view; // Toggle to display the actual text
 };
 
 struct textboxsecret textboxsecret_init(Rectangle bounds, const char *label);

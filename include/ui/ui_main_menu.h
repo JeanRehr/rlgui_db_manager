@@ -1,15 +1,15 @@
 #ifndef UI_MAIN_MENU_H
 #define UI_MAIN_MENU_H
 
-#include "ui_elements/button.h"
 #include "app_state.h"
 #include "error_handling.h"
+#include "ui_elements/button.h"
 
 // To manage the state of the main menu screen
 struct ui_main_menu {
-	Rectangle menu_title_bounds;
-	struct button reg_resident_butn;
-	struct button reg_food_butn;
+    Rectangle menu_title_bounds;
+    struct button reg_resident_butn;
+    struct button reg_food_butn;
 };
 
 void ui_main_menu_init(struct ui_main_menu *ui);

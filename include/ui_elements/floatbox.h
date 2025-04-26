@@ -8,8 +8,8 @@
 #include "CONSTANTS.h"
 
 struct floatbox {
-	Rectangle bounds;
-	const char *title;
+    Rectangle bounds;
+    const char *title;
     char text_input[MAX_INPUT];
     float value;
     bool edit_mode;

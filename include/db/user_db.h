@@ -6,11 +6,7 @@
 #include "db/db_manager.h"
 #include "user.h"
 
-enum auth_result {
-    AUTH_SUCCESS,
-    AUTH_FAILURE,
-    AUTH_NEED_PASSWORD_RESET
-};
+enum auth_result { AUTH_SUCCESS, AUTH_FAILURE, AUTH_NEED_PASSWORD_RESET };
 
 int user_db_create_table(database *db);
 

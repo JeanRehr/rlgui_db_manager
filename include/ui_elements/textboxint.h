@@ -7,10 +7,10 @@
 
 // For when there is the need to keep leading zeroes, but input must only integer
 struct textboxint {
-	Rectangle bounds;
-	char input[MAX_INPUT];
-	const char *label;
-	bool edit_mode;
+    Rectangle bounds;
+    char input[MAX_INPUT];
+    const char *label;
+    bool edit_mode;
 };
 
 struct textboxint textboxint_init(Rectangle bounds, const char *label);

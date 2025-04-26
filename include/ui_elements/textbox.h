@@ -6,10 +6,10 @@
 #include "CONSTANTS.h"
 
 struct textbox {
-	Rectangle bounds;
-	char input[MAX_INPUT];
-	const char* label;
-	bool edit_mode;
+    Rectangle bounds;
+    char input[MAX_INPUT];
+    const char *label;
+    bool edit_mode;
 };
 
 struct textbox textbox_init(Rectangle bounds, const char *label);

@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 typedef struct database {
-    sqlite3* db;
+    sqlite3 *db;
 } database;
 
 // Only initialized a database

@@ -9,13 +9,26 @@
 
 int foodbatch_db_create_table(database *db);
 
-int foodbatch_db_insert(database *db, int batch_id, const char *name, int quantity, bool isPerishable,
-						const char *expirationDate, float dailyConsumptionRate);
+int foodbatch_db_insert(
+    database *db,
+    int batch_id,
+    const char *name,
+    int quantity,
+    bool isPerishable,
+    const char *expirationDate,
+    float dailyConsumptionRate
+);
 
 // Doesn't update BatchId
-int foodbatch_db_update(database *db, int batch_id, const char *name_input, int quantity_input,
-						bool is_perishable_input, const char *expiration_date_input,
-						float daily_consumption_rate_input);
+int foodbatch_db_update(
+    database *db,
+    int batch_id,
+    const char *name_input,
+    int quantity_input,
+    bool is_perishable_input,
+    const char *expiration_date_input,
+    float daily_consumption_rate_input
+);
 
 int foodbatch_db_delete_by_id(database *db, int batch_id);
 

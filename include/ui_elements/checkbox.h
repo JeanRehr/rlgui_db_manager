@@ -6,8 +6,8 @@
 #include <stdbool.h>
 
 struct checkbox {
-	Rectangle bounds;
-	const char *title;
+    Rectangle bounds;
+    const char *title;
     bool checked;
 };
 
