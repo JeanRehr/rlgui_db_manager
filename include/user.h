@@ -14,6 +14,7 @@ struct user {
 	char password_hash[PASSWORD_HASH_LEN + 1]; // Store the hash, not the password
 	char salt[SALT_LEN + 1]; // Salt for password hashing
 	bool is_admin;
+	bool reset_password;
 	time_t created_at;
 	time_t last_login;
 };
