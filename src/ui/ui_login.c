@@ -9,10 +9,42 @@
 #include "globals.h"
 #include "utilsfn.h"
 
+// Tagged union for when a warning message needs to perform a database operation
+// Type of the operation
+enum db_action_type {
+    DB_ACTION_NONE,
+    DB_ACTION_UPDT_PASS,
+} db_action_type;
+
+// Info for the database operation based on the type
+struct db_action_info {
+    enum db_action_type type;
+    union {
+        struct {
+            const char *username;
+            const char *new_password;
+        } updt_pass;
+    };
+} db_action_info;
+
+static void process_db_action_in_warning(
+    struct ui_login *ui,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db,
+    struct user *current_user,
+    struct db_action_info *action
+);
+
 static void clear_data(struct ui_login *ui);
 
-static void
-show_login_messages(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user);
+static void show_login_messages(
+    struct ui_login *ui,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db,
+    struct user *current_user
+);
 
 static void
 handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user);
@@ -54,7 +86,7 @@ void ui_login_draw(
     }
 
     // Show warning/error messages
-    show_login_messages(ui, state, user_db, current_user);
+    show_login_messages(ui, state, error, user_db, current_user);
 
     // Clear sensitive data after successful login
     if (IS_FLAG_SET(&ui->flag, FLAG_LOGIN_DONE)) {
@@ -110,11 +142,16 @@ handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_
 }
 
 // Helper function to show messages
-static void
-show_login_messages(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user) {
+static void show_login_messages(
+    struct ui_login *ui,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db,
+    struct user *current_user
+) {
     const char *message = NULL;
     enum login_screen_flags flag_to_clear = 0;
-    bool perform_password_reset = false;
+    struct db_action_info action = { DB_ACTION_NONE };
 
     if (IS_FLAG_SET(&ui->flag, FLAG_USERNAME_EMPTY)) {
         message = "Username must not be empty.";
@@ -128,37 +165,61 @@ show_login_messages(struct ui_login *ui, enum app_state *state, database *user_d
     } else if (IS_FLAG_SET(&ui->flag, FLAG_PASSWD_RESET)) {
         message = "Please set a new password. The password you entered will become your new password.";
         flag_to_clear = FLAG_PASSWD_RESET;
-        perform_password_reset = true;
+        action.type = DB_ACTION_UPDT_PASS;
+        action.updt_pass.username = ui->tb_username.input;
+        action.updt_pass.new_password = ui->tbs_password.input;
     }
 
     if (message) {
+        const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "Ok";
         int result = GuiMessageBox(
             (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
             "#191#Warning!",
             message,
-            "OK"
+            buttons
         );
 
-        if (result >= 0 && flag_to_clear) {
-            if (perform_password_reset) {
-                // Update the password in the database
-                if (user_db_update_password(user_db, ui->tb_username.input, ui->tbs_password.input) == SQLITE_OK) {
-                    // Log the user in after successful password reset
-                    user_db_get_by_username(user_db, ui->tb_username.input, current_user);
-                    *state = STATE_MAIN_MENU;
-                    SET_FLAG(&ui->flag, FLAG_LOGIN_DONE);
-                } else {
-                    message = "Failed to update password. Please try again.";
-                    GuiMessageBox(
-                        (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
-                        "#191#Warning!",
-                        message,
-                        "OK"
-                    );
-                }
+        if (result == 1 && action.type != DB_ACTION_NONE) {
+            process_db_action_in_warning(ui, state, error, user_db, current_user, &action);
+            if (error == ERROR_UPDATE_DB) {
+                message = "Failed to update password. Please try again.";
+                GuiMessageBox(
+                    (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
+                    "#191#Warning!",
+                    message,
+                    "OK"
+                );
             }
+        }
+
+        if (result >= 0 && flag_to_clear) {
             CLEAR_FLAG(&ui->flag, flag_to_clear); // Clear the flag
         }
+    }
+}
+
+static void process_db_action_in_warning(
+    struct ui_login *ui,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db,
+    struct user *current_user,
+    struct db_action_info *action
+) {
+    switch (action->type) {
+    case DB_ACTION_UPDT_PASS:
+        if (user_db_update_password(user_db, action->updt_pass.username, action->updt_pass.new_password) == SQLITE_OK) {
+            user_db_get_by_username(user_db, ui->tb_username.input, current_user);
+            *state = STATE_MAIN_MENU;
+            SET_FLAG(&ui->flag, FLAG_LOGIN_DONE);
+        } else {
+            *error = ERROR_UPDATE_DB;
+        }
+        break;
+
+    case DB_ACTION_NONE:
+    default:
+        break;
     }
 }
 
