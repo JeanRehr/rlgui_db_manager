@@ -36,7 +36,7 @@ static void process_db_action_in_warning(
     struct ui_login_db_action_info *action
 );
 
-static void clear_data(struct ui_login *ui);
+static void clear_input_fields(struct ui_login *ui);
 
 static void show_login_messages(
     struct ui_login *ui,
@@ -90,7 +90,7 @@ void ui_login_draw(
 
     // Clear sensitive data after successful login
     if (IS_FLAG_SET(&ui->flag, FLAG_LOGIN_DONE)) {
-        clear_data(ui);
+        clear_input_fields(ui);
         CLEAR_FLAG(&ui->flag, FLAG_LOGIN_DONE);
     }
 }
@@ -224,7 +224,7 @@ static void process_db_action_in_warning(
 }
 
 // Helper function to clear sensitive data
-static void clear_data(struct ui_login *ui) {
+static void clear_input_fields(struct ui_login *ui) {
     ui->tb_username.input[0] = '\0';
     memset(ui->tbs_password.input, 0, sizeof(ui->tbs_password.input)); // More secure
 }
