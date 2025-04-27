@@ -7,6 +7,7 @@ enum error_code {
     ERROR_CREATING_TABLE_DB,
     ERROR_INSERT_DB,
     ERROR_UPDATE_DB,
+    ERROR_DELETE_DB,
 };
 
 #endif // ERROR_HANDLING_H
