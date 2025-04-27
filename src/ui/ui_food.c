@@ -10,6 +10,55 @@
 #include "ui/ui_food.h"
 #include "utilsfn.h"
 
+// Tagged union for when a warning message needs to perform a database operation
+// Type of the operation
+enum ui_food_db_action_type {
+    DB_ACTION_NONE,
+    DB_ACTION_UPDATE,
+    DB_ACTION_DELETE,
+};
+
+// Info for the database operation based on the type
+struct ui_food_db_action_info {
+    enum ui_food_db_action_type type;
+    union {
+        struct {
+            int batch_id;
+            const char *name;
+            int quantity;
+            bool is_perishable;
+            const char *date_string;
+            float daily_consumption_rate;
+        } update;
+
+        struct {
+            int batch_id;
+        } delete;
+    };
+};
+
+static void draw_foodbatch_info_panel(struct ui_food *ui);
+
+static void
+handle_button_actions(struct ui_food *ui, enum app_state *state, enum error_code *error, database *foodbatch_db);
+
+static void handle_submit_action(struct ui_food *ui, enum error_code *error, database *foodbatch_db);
+
+static void handle_retrieve_action(struct ui_food *ui, database *foodbatch_db);
+
+static void handle_delete_action(struct ui_food *ui, database *foodbatch_db);
+
+static void show_warning_messages(struct ui_food *ui, enum error_code *error, database *foodbatch_db);
+
+static void process_db_action_in_warning(
+    struct ui_food *ui,
+    enum error_code *error,
+    struct ui_food_db_action_info *action,
+    database *foodbatch_db
+);
+
+static void clear_input_fields(struct ui_food *ui);
+
 void ui_food_init(struct ui_food *ui) {
     ui->menu_title_bounds = (Rectangle) { 10, 10, 150, 20 };
 
@@ -22,7 +71,7 @@ void ui_food_init(struct ui_food *ui) {
         0,
         99999999
     );
-	
+
     ui->tb_name = textbox_init(
         (Rectangle) { 20, ui->ib_batch_id.bounds.y + (ui->ib_batch_id.bounds.height * 2), 300, 30 },
         "Food Name:"
@@ -143,6 +192,33 @@ void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *er
     floatbox_draw(&ui->fb_daily_consumption_rate);
 
     // Start Info Panel
+    draw_foodbatch_info_panel(ui);
+
+    // End Info Panel
+
+    // End draw UI elements
+
+    // Start button actions
+    handle_button_actions(ui, state, error, foodbatch_db);
+
+    // End button actions
+
+    // Start show warning/error boxes
+    show_warning_messages(ui, error, foodbatch_db);
+
+    // End show warning/error boxes
+
+    // Clear the text buffer only after a successful operation
+    if (IS_FLAG_SET(&ui->flag, FLAG_FOOD_OPERATION_DONE)) {
+        clear_input_fields(ui);
+        CLEAR_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
+    }
+
+    // Warnings
+    // End show warning/error boxes
+}
+
+static void draw_foodbatch_info_panel(struct ui_food *ui) {
     GuiPanel(ui->panel_bounds, TextFormat("Batch ID retrieved: %d", ui->foodbatch_retrieved.batch_id));
 
     GuiLabel(
@@ -168,19 +244,138 @@ void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *er
         (Rectangle) { ui->panel_bounds.x + 10, ui->panel_bounds.y + 150, 280, 20 },
         TextFormat("Daily Consumption Rate: %.2f", ui->foodbatch_retrieved.daily_consumption_rate)
     );
+}
 
-    // End Info Panel
-
-    // End draw UI elements
-
-    // Start button actions
-
+static void
+handle_button_actions(struct ui_food *ui, enum app_state *state, enum error_code *error, database *foodbatch_db) {
     if (button_draw_updt(&ui->butn_back)) {
         *state = STATE_MAIN_MENU;
+        return;
     }
 
     if (button_draw_updt(&ui->butn_submit)) {
-        bool is_valid_date = validate_date(ui->ib_year.input, ui->ib_month.input, ui->ib_day.input);
+        handle_submit_action(ui, error, foodbatch_db);
+    }
+
+    if (button_draw_updt(&ui->butn_retrieve)) {
+        handle_retrieve_action(ui, foodbatch_db);
+    }
+
+    if (button_draw_updt(&ui->butn_delete)) {
+        handle_delete_action(ui, foodbatch_db);
+    }
+
+    if (button_draw_updt(&ui->butn_retrieve_all)) {
+        foodbatch_db_get_all(foodbatch_db);
+    }
+}
+
+static void handle_submit_action(struct ui_food *ui, enum error_code *error, database *foodbatch_db) {
+    // Clear flags
+    CLEAR_FLAG(&ui->flag, FLAG_BATCHID_EXISTS | FLAG_INVALID_FOOD_DATE);
+
+    // Validate inputs
+    bool is_valid_date = validate_date(ui->ib_year.input, ui->ib_month.input, ui->ib_day.input);
+
+    if (!is_valid_date) {
+        printf(
+            "Date not valid, year: %d, month: %d, day: %d\n",
+            ui->ib_year.input,
+            ui->ib_month.input,
+            ui->ib_day.input
+        );
+        SET_FLAG(&ui->flag, FLAG_INVALID_FOOD_DATE);
+        return;
+    }
+
+    if (foodbatch_db_check_batchid_exists(foodbatch_db, ui->ib_batch_id.input)) {
+        SET_FLAG(&ui->flag, FLAG_BATCHID_EXISTS);
+        printf("Food batch ID exists: %d\n", ui->ib_batch_id.input);
+        return;
+    }
+
+    char date_string[11] = { 0 }; // YYYY-MM-DD + null terminator
+
+    snprintf(
+        date_string,
+        sizeof(date_string),
+        "%04d-%02d-%02d",
+        ui->ib_year.input,
+        ui->ib_month.input,
+        ui->ib_day.input
+    );
+
+    if (foodbatch_db_insert(
+            foodbatch_db,
+            ui->ib_batch_id.input,
+            ui->tb_name.input,
+            ui->ib_quantity.input,
+            ui->cb_is_perishable.checked,
+            date_string,
+            ui->fb_daily_consumption_rate.value
+        )
+        != SQLITE_OK)
+    {
+        *error = ERROR_INSERT_DB;
+        fprintf(stderr, "Error submitting to database.\n");
+        return;
+    }
+
+    SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
+    *error = NO_ERROR;
+}
+
+static void handle_retrieve_action(struct ui_food *ui, database *foodbatch_db) {
+    CLEAR_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND);
+
+    if (foodbatch_db_get_by_batchid(foodbatch_db, ui->ib_batch_id.input, &ui->foodbatch_retrieved) != SQLITE_OK) {
+        SET_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND);
+    }
+
+    printf(
+        "Retrieved Food Batch - Name: %s, Qauntity: %d, Is Perishable: %d, Expiration Date: %s, Daily Consumption Rate: %f\n",
+        ui->foodbatch_retrieved.name,
+        ui->foodbatch_retrieved.quantity,
+        ui->foodbatch_retrieved.is_perishable,
+        ui->foodbatch_retrieved.expiration_date,
+        ui->foodbatch_retrieved.daily_consumption_rate
+    );
+
+    SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
+}
+
+static void handle_delete_action(struct ui_food *ui, database *foodbatch_db) {
+    CLEAR_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND | FLAG_CONFIRM_FOOD_DELETE);
+
+    if (!foodbatch_db_check_batchid_exists(foodbatch_db, ui->ib_batch_id.input)) {
+        SET_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND);
+        return;
+    }
+
+    SET_FLAG(&ui->flag, FLAG_CONFIRM_FOOD_DELETE);
+}
+
+static void show_warning_messages(struct ui_food *ui, enum error_code *error, database *foodbatch_db) {
+    const char *message = NULL;
+    enum food_screen_flags flag_to_clear = 0;
+    struct ui_food_db_action_info action = { DB_ACTION_NONE };
+
+    // Warnings
+    if (IS_FLAG_SET(&ui->flag, FLAG_BATCHID_NOT_FOUND)) {
+        message = "Batch ID not found.";
+        flag_to_clear = FLAG_BATCHID_NOT_FOUND;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_INVALID_FOOD_DATE)) {
+        message = "Date inserted is not valid.";
+        flag_to_clear = FLAG_INVALID_FOOD_DATE;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_BATCHID_EXISTS)) {
+        message = "Batch ID already exists. Update?";
+        flag_to_clear = FLAG_BATCHID_EXISTS;
+        action.type = DB_ACTION_UPDATE;
+        action.update.batch_id = ui->ib_batch_id.input;
+        action.update.name = ui->tb_name.input;
+        action.update.quantity = ui->ib_quantity.input;
+        action.update.is_perishable = ui->cb_is_perishable.checked;
+        // Don't need to validate date here, as it's impossible to be wrong at this stage
         char date_string[11] = { 0 }; // YYYY-MM-DD + null terminator
         snprintf(
             date_string,
@@ -190,178 +385,85 @@ void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *er
             ui->ib_month.input,
             ui->ib_day.input
         );
-        if (!is_valid_date) {
-            printf(
-                "Date not valid, year: %d, month: %d, day: %d\n",
-                ui->ib_year.input,
-                ui->ib_month.input,
-                ui->ib_day.input
-            );
-            SET_FLAG(&ui->flag, FLAG_INVALID_FOOD_DATE);
-        } else if (foodbatch_db_check_batchid_exists(foodbatch_db, ui->ib_batch_id.input)) {
-            SET_FLAG(&ui->flag, FLAG_BATCHID_EXISTS);
-            printf("Food batch ID exists: %d\n", ui->ib_batch_id.input);
-        } else if (foodbatch_db_insert(
-                       foodbatch_db,
-                       ui->ib_batch_id.input,
-                       ui->tb_name.input,
-                       ui->ib_quantity.input,
-                       ui->cb_is_perishable.checked,
-                       date_string,
-                       ui->fb_daily_consumption_rate.value
-                   )
-                   != SQLITE_OK)
-        {
-            *error = ERROR_INSERT_DB;
-            fprintf(stderr, "Error submitting to database.\n");
-        } else {
-            *error = NO_ERROR;
-            SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
-        }
+        action.update.date_string = date_string;
+        action.update.daily_consumption_rate = ui->fb_daily_consumption_rate.value;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_FOOD_DELETE)) {
+        message = "Are you sure you want to delete?";
+        flag_to_clear = FLAG_CONFIRM_FOOD_DELETE;
+        action.type = DB_ACTION_DELETE;
+        action.delete.batch_id = ui->ib_batch_id.input;
+    } else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
+        message = "Database error. Try again.";
+        *error = NO_ERROR;
     }
 
-    if (button_draw_updt(&ui->butn_retrieve)) {
-        if (foodbatch_db_get_by_batchid(foodbatch_db, ui->ib_batch_id.input, &ui->foodbatch_retrieved) == SQLITE_OK) {
-            printf(
-                "Retrieved Food Batch - Name: %s, Qauntity: %d, Is Perishable: %d, Expiration Date: %s, Daily Consumption Rate: %f\n",
-                ui->foodbatch_retrieved.name,
-                ui->foodbatch_retrieved.quantity,
-                ui->foodbatch_retrieved.is_perishable,
-                ui->foodbatch_retrieved.expiration_date,
-                ui->foodbatch_retrieved.daily_consumption_rate
-            );
-            SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
-        } else {
-            SET_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND);
-        }
-    }
+    if (message) {
+        const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
 
-    if (button_draw_updt(&ui->butn_delete)) {
-        if (!foodbatch_db_check_batchid_exists(foodbatch_db, ui->ib_batch_id.input)) {
-            SET_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND);
-        } else {
-            SET_FLAG(&ui->flag, FLAG_CONFIRM_FOOD_DELETE);
-        }
-    }
-
-    if (button_draw_updt(&ui->butn_retrieve_all)) {
-        foodbatch_db_get_all(foodbatch_db);
-    }
-
-    // End button actions
-
-    // Start show warning/error boxes
-
-    // In case updating food batch
-    if (IS_FLAG_SET(&ui->flag, FLAG_BATCHID_EXISTS)) {
         int result = GuiMessageBox(
             (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
             "#191#Warning!",
-            "Batch ID already exists.",
-            "Update;Don't update"
+            message,
+            buttons
         );
-        if (result == 1) {
-            // Don't need to validate date here, as it's impossible to be wrong at this stage
-            char date_string[11] = { 0 }; // YYYY-MM-DD + null terminator
-            snprintf(
-                date_string,
-                sizeof(date_string),
-                "%04d-%02d-%02d",
-                ui->ib_year.input,
-                ui->ib_month.input,
-                ui->ib_day.input
-            );
-            if (foodbatch_db_update(
-                    foodbatch_db,
-                    ui->ib_batch_id.input,
-                    ui->tb_name.input,
-                    ui->ib_quantity.input,
-                    ui->cb_is_perishable.checked,
-                    date_string,
-                    ui->fb_daily_consumption_rate.value
-                )
-                != SQLITE_OK)
-            {
-                *error = ERROR_UPDATE_DB;
-            }
+
+        if (result == 1 && action.type != DB_ACTION_NONE) {
+            process_db_action_in_warning(ui, error, &action, foodbatch_db);
         }
-        if (result >= 0) {
-            *error = NO_ERROR;
-            CLEAR_FLAG(&ui->flag, FLAG_BATCHID_EXISTS);
-            SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
+
+        if (result >= 0 && flag_to_clear) {
+            CLEAR_FLAG(&ui->flag, flag_to_clear);
         }
     }
+}
 
-    // In case deleting food batch
-    if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_FOOD_DELETE)) {
-        int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
-            "#191#Deleting Person!",
-            "Are you sure you want to delete?",
-            "Yes, delete;NO"
-        );
-        if (result == 1) {
-            foodbatch_db_delete_by_id(foodbatch_db, ui->ib_batch_id.input);
-            SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
+static void process_db_action_in_warning(
+    struct ui_food *ui,
+    enum error_code *error,
+    struct ui_food_db_action_info *action,
+    database *foodbatch_db
+) {
+    switch (action->type) {
+    case DB_ACTION_UPDATE:
+        if (foodbatch_db_update(
+            foodbatch_db,
+            action->update.batch_id,
+            action->update.name,
+            action->update.quantity,
+            action->update.is_perishable,
+            action->update.date_string,
+            action->update.daily_consumption_rate
+        ) != SQLITE_OK) {
+            *error = ERROR_UPDATE_DB;
+            break;
         }
-        if (result >= 0) {
-            CLEAR_FLAG(&ui->flag, FLAG_CONFIRM_FOOD_DELETE);
+        SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
+        break;
+
+    case DB_ACTION_DELETE:
+        if (foodbatch_db_delete_by_id(foodbatch_db, action->delete.batch_id) != SQLITE_OK) {
+            *error = ERROR_DELETE_DB;
+            break;
         }
+        SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
+        break;
+
+    case DB_ACTION_NONE:
+    default:
+        break;
     }
+}
 
-    // Warnings
-    if (IS_FLAG_SET(&ui->flag, FLAG_BATCHID_NOT_FOUND)) {
-        int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
-            "#191#Warning!",
-            "Batch ID not found.",
-            "OK"
-        );
-        if (result >= 0) {
-            CLEAR_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND);
-        }
-    } else if (IS_FLAG_SET(&ui->flag, FLAG_INVALID_FOOD_DATE)) {
-        int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
-            "#191#Warning!",
-            "Date inserted is not valid.",
-            "OK"
-        );
-        if (result >= 0) {
-            CLEAR_FLAG(&ui->flag, FLAG_INVALID_FOOD_DATE);
-        }
-    } else if (*error == ERROR_INSERT_DB) {
-        int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
-            "#191#Warning!",
-            "Error submitting to database.",
-            "OK"
-        );
-        if (result >= 0) {
-            *error = NO_ERROR;
-        }
-    }
-
-    // In case updating food batch
-
-    // End show warning/error boxes
-
-    // Clear the text buffer only after a successful operation
-    if (IS_FLAG_SET(&ui->flag, FLAG_FOOD_OPERATION_DONE)) {
-        ui->ib_batch_id.input = 0;
-        ui->tb_name.input[0] = '\0';
-        ui->ib_quantity.input = 0;
-        ui->cb_is_perishable.checked = false;
-        ui->ib_year.input = 0;
-        ui->ib_month.input = 0;
-        ui->ib_day.input = 0;
-        ui->fb_daily_consumption_rate.value = 0;
-        ui->fb_daily_consumption_rate.text_input[0] = '\0';
-        CLEAR_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
-    }
-
-    // Warnings
-    // End show warning/error boxes
+static void clear_input_fields(struct ui_food *ui) {
+    ui->ib_batch_id.input = 0;
+    ui->tb_name.input[0] = '\0';
+    ui->ib_quantity.input = 0;
+    ui->cb_is_perishable.checked = false;
+    ui->ib_year.input = 0;
+    ui->ib_month.input = 0;
+    ui->ib_day.input = 0;
+    ui->fb_daily_consumption_rate.value = 0;
+    ui->fb_daily_consumption_rate.text_input[0] = '\0';
 }
 
 void ui_food_updt_pos(struct ui_food *ui) {
