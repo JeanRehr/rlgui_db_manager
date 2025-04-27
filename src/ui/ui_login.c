@@ -114,7 +114,7 @@ handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_
         return;
     }
 
-    if (!user_db_user_exists(user_db, ui->tb_username.input)) {
+    if (!user_db_check_exists(user_db, ui->tb_username.input)) {
         SET_FLAG(&ui->flag, FLAG_USER_NOT_EXISTS);
         return;
     }
