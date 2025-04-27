@@ -179,6 +179,11 @@ int resident_db_delete_by_cpf(database *db, const char *cpf) {
         return SQLITE_ERROR;
     }
 
+    if (!resident_db_check_cpf_exists(db, cpf)) {
+        fprintf(stderr, "CPF not found in the dabatase.\n");
+        return SQLITE_NOTFOUND;
+    }
+
     // Prepare the SQL delete statement
     const char *sql = "DELETE FROM Resident WHERE CPF = ?;";
 
