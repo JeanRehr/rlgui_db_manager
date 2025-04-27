@@ -189,7 +189,7 @@ int user_db_delete(database *db, const char *username) {
 
     if (strcmp(username, "admin") == 0) {
         fprintf(stderr, "Default admin cannot be deleted.\n");
-        return SQLITE_ERROR;
+        return SQLITE_CONSTRAINT;
     }
 
     const char *sql = "DELETE FROM Users WHERE Username = ?;";
@@ -264,7 +264,7 @@ int user_db_update_admin_status(database *db, const char *username, bool is_admi
 
     if (strcmp(username, "admin") == 0) {
         fprintf(stderr, "Can't change default admin status.\n");
-        return SQLITE_ERROR;
+        return SQLITE_CONSTRAINT;
     }
 
     const char *sql = "UPDATE Users SET IsAdmin = ? WHERE Username = ?;";
@@ -388,7 +388,7 @@ int user_db_change_username(database *db, const char *old_username, const char *
 
     if (strcmp(old_username, "admin") == 0) {
         fprintf(stderr, "Can't change default admin username.\n");
-        return SQLITE_ERROR;
+        return SQLITE_CONSTRAINT;
     }
 
     // Check if the old username exists
