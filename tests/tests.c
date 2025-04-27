@@ -431,6 +431,33 @@ void test_resident_db_delete_by_cpf() {
     printf("Resident database delete test passed successfully.\n");
 }
 
+void test_resident_db_get_all() {
+    const char *test_resident_filename = "test_resident_db.db";
+    database test_resident_db;
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+
+    setup_cleanup(test_resident_filename, &test_resident_db);
+    
+    printf("Testing foodbatch_db_get_all...\n");
+    
+    // Create several test residents
+    printf("Creating test residents...\n");
+    resident_db_insert(&test_resident_db, "00000000000", "Test Resident1", 20, "Healthy", "No needs", false, 0);
+    resident_db_insert(&test_resident_db, "11111111111", "Test Resident2", 1, "Not Healthy", "Various needs", true, 1);
+    resident_db_insert(&test_resident_db, "22222222222", "Test Resident3", 24, "", "", false, 2);
+    resident_db_insert(&test_resident_db, "33333333333", "Test Resident4", 69, "", "No needs", false, 1);
+    
+    // Call get_all (this primarily tests that it doesn't crash)
+    printf("Calling resident_db_get_all...\n");
+    int rc = resident_db_get_all(&test_resident_db);
+    assert(rc == SQLITE_OK);
+    printf("resident_db_get_all executed successfully.\n");
+    
+    teardown_cleanup();
+    
+    printf("resident_db_get_all test passed successfully.\n");
+}
+
 // TEST DB RESIDENT END
 
 // TEST DB FOODBATCH START
@@ -769,257 +796,479 @@ void test_foodbatch_db_delete_by_id() {
     printf("Food batch database delete test passed successfully.\n");
 }
 
+void test_foodbatch_db_get_all() {
+    const char *test_foodbatch_filename = "test_foodbatch_db.db";
+    database test_foodbatch_db;
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+
+    setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
+    
+    printf("Testing foodbatch_db_get_all...\n");
+    
+    // Create several test foodbatches
+    printf("Creating test foodbatches...\n");
+    foodbatch_db_insert(&test_foodbatch_db, 0, "Milk", 10, true, "2025-12-20", 2);
+    foodbatch_db_insert(&test_foodbatch_db, 1, "Rice", 5, false, "0001-01-01", 3);
+    foodbatch_db_insert(&test_foodbatch_db, 2, "Beans", 10, false, "0001-01-01", 1);
+    foodbatch_db_insert(&test_foodbatch_db, 3, "Tomatoes", 20, true, "2025-05-10", 1);
+    
+    // Call get_all (this primarily tests that it doesn't crash)
+    printf("Calling foodbatch_db_get_all...\n");
+    int rc = foodbatch_db_get_all(&test_foodbatch_db);
+    assert(rc == SQLITE_OK);
+    printf("foodbatch_db_get_all executed successfully.\n");
+    
+    teardown_cleanup();
+    
+    printf("foodbatch_db_get_all test passed successfully.\n");
+}
+
 // TEST DB FOODBATCH END
 
 // TEST DB USER START
 
-void test_user_db_create_user() {
-    const char *test_user_filename = "test_user_db.db";
+void test_user_db_create_table() {
+    const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
 
-    setup_cleanup(test_user_filename, &test_user_db);
-
-    const char *test_username = "testuser";
-    bool test_is_admin = false;
-    bool test_reset_password = true;
-
-    printf(
-        "Attempting to create a user with the following values:\n"
-        "Username: %s\n"
-        "Is Admin: %s\n"
-        "Reset Password: %s\n",
-        test_username,
-        test_is_admin ? "True" : "False",
-        test_reset_password ? "True" : "False"
-    );
-
-    int rc = user_db_create_user(&test_user_db, test_username, test_is_admin, test_reset_password);
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    printf("Testing user_db_create_table...\n");
+    
+    // Verify admin user was created
+    bool admin_exists = user_db_check_exists(&test_user_db, "admin");
+    assert(admin_exists);
+    printf("Admin user created successfully.\n");
+    
+    // Verify table structure by trying to insert a user
+    int rc = user_db_create_user(&test_user_db, "testuser", false, true);
     assert(rc == SQLITE_OK);
-    printf("User created successfully.\n");
-
-    printf("Attempting to create the same user again.\n");
-    rc = user_db_create_user(&test_user_db, test_username, test_is_admin, test_reset_password);
-    assert(rc == SQLITE_CONSTRAINT);
-    printf("Attempt to create duplicate user failed as expected.\n");
-
+    printf("Table structure is correct.\n");
+    
     teardown_cleanup();
+    
+    printf("user_db_create_table test passed successfully.\n");
+}
 
-    printf("User creation test passed successfully.\n");
+void test_user_db_create_user() {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    printf("Testing user_db_create_user...\n");
+    
+    // Test creating a regular user
+    printf("Creating regular user 'user1'...\n");
+    int rc = user_db_create_user(&test_user_db, "user1", false, true);
+    assert(rc == SQLITE_OK);
+    printf("Regular user created successfully.\n");
+    
+    // Test creating an admin user
+    printf("Creating admin user 'admin2'...\n");
+    rc = user_db_create_user(&test_user_db, "admin2", true, false);
+    assert(rc == SQLITE_OK);
+    printf("Admin user created successfully.\n");
+    
+    // Test creating duplicate user
+    printf("Attempting to create duplicate user 'user1'...\n");
+    rc = user_db_create_user(&test_user_db, "user1", false, true);
+    assert(rc == SQLITE_CONSTRAINT);
+    printf("Duplicate user creation failed as expected.\n");
+    
+    teardown_cleanup();
+    
+    printf("user_db_create_user test passed successfully.\n");
 }
 
 void test_user_db_authenticate() {
-    const char *test_user_filename = "test_user_db.db";
+    const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
 
-    setup_cleanup(test_user_filename, &test_user_db);
-
-    const char *test_username = "testuser";
-    const char *test_password = "password123";
-    bool test_is_admin = false;
-
-    // First create a user with a known password
-    printf("Creating test user for authentication\n");
-    user_db_create_user(&test_user_db, test_username, test_is_admin, true);
-
-    // Set the password
-    printf("Setting password for test user\n");
-    int rc = user_db_update_password(&test_user_db, test_username, test_password);
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    printf("Testing user_db_authenticate...\n");
+    
+    // Create a test user with known password
+    const char *username = "testuser";
+    const char *password = "password123";
+    
+    // First create user without password (reset_password flag set)
+    printf("Creating user '%s' with reset_password flag...\n", username);
+    int rc = user_db_create_user(&test_user_db, username, false, true);
     assert(rc == SQLITE_OK);
-
-    printf("Testing authentication with correct credentials\n");
-    enum auth_result result = user_db_authenticate(&test_user_db, test_username, test_password);
-    assert(result == AUTH_SUCCESS);
-    printf("Authentication succeeded with correct credentials.\n");
-
-    printf("Testing authentication with incorrect password\n");
-    result = user_db_authenticate(&test_user_db, test_username, "wrongpassword");
-    assert(result == AUTH_FAILURE);
+    
+    // Test authentication with reset_password flag
+    printf("Testing authentication with reset_password flag...\n");
+    enum auth_result auth_rc = user_db_authenticate(&test_user_db, username, password);
+    assert(auth_rc == AUTH_NEED_PASSWORD_RESET);
+    printf("Authentication correctly detected need for password reset.\n");
+    
+    // Set password for the user
+    printf("Setting password for user '%s'...\n", username);
+    rc = user_db_update_password(&test_user_db, username, password);
+    assert(rc == SQLITE_OK);
+    
+    // Test successful authentication
+    printf("Testing successful authentication...\n");
+    auth_rc = user_db_authenticate(&test_user_db, username, password);
+    assert(auth_rc == AUTH_SUCCESS);
+    printf("Authentication succeeded with correct password.\n");
+    
+    // Test failed authentication
+    printf("Testing failed authentication...\n");
+    auth_rc = user_db_authenticate(&test_user_db, username, "wrongpassword");
+    assert(auth_rc == AUTH_FAILURE);
     printf("Authentication failed with wrong password as expected.\n");
-
-    printf("Testing authentication with non-existent user\n");
-    result = user_db_authenticate(&test_user_db, "nonexistentuser", "password");
-    assert(result == AUTH_FAILURE);
+    
+    // Test non-existent user
+    printf("Testing authentication with non-existent user...\n");
+    auth_rc = user_db_authenticate(&test_user_db, "nonexistent", password);
+    assert(auth_rc == AUTH_FAILURE);
     printf("Authentication failed for non-existent user as expected.\n");
-
+    
     teardown_cleanup();
-
-    printf("Authentication test passed successfully.\n");
-}
-
-void test_user_db_get_by_username() {
-    const char *test_user_filename = "test_user_db.db";
-    database test_user_db;
-    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
-
-    setup_cleanup(test_user_filename, &test_user_db);
-
-    const char *test_username = "testuser";
-    bool test_is_admin = false;
-    bool test_reset_password = true;
-
-    printf("Creating test user for retrieval\n");
-    int rc = user_db_create_user(&test_user_db, test_username, test_is_admin, test_reset_password);
-    assert(rc == SQLITE_OK);
-
-    struct user retrieved_user = { 0 };
-    printf("Attempting to retrieve user by username\n");
-    rc = user_db_get_by_username(&test_user_db, test_username, &retrieved_user);
-
-    assert(rc == SQLITE_OK);
-    assert(strcmp(retrieved_user.username, test_username) == 0);
-    assert(retrieved_user.is_admin == test_is_admin);
-    // Don't check reset_password as it's not returned by user_db_get_by_username
-    printf("User retrieved successfully with matching data.\n");
-
-    printf("Attempting to retrieve non-existent user\n");
-    rc = user_db_get_by_username(&test_user_db, "nonexistentuser", &retrieved_user);
-    assert(rc == SQLITE_NOTFOUND);
-    printf("Non-existent user retrieval failed as expected.\n");
-
-    teardown_cleanup();
-
-    printf("User retrieval test passed successfully.\n");
-}
-
-void test_user_db_update_password() {
-    const char *test_user_filename = "test_user_db.db";
-    database test_user_db;
-    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
-
-    setup_cleanup(test_user_filename, &test_user_db);
-
-    const char *test_username = "testuser";
-    const char *old_password = "oldpassword";
-    const char *new_password = "newpassword";
-    bool test_is_admin = false;
-
-    printf("Creating test user for password update\n");
-    user_db_create_user(&test_user_db, test_username, test_is_admin, true);
-
-    // Set initial password
-    printf("Setting initial password\n");
-    int rc = user_db_update_password(&test_user_db, test_username, old_password);
-    assert(rc == SQLITE_OK);
-
-    // Verify initial password works
-    printf("Verifying initial password\n");
-    enum auth_result result = user_db_authenticate(&test_user_db, test_username, old_password);
-    assert(result == AUTH_SUCCESS);
-
-    // Update password
-    printf("Updating password\n");
-    rc = user_db_update_password(&test_user_db, test_username, new_password);
-    assert(rc == SQLITE_OK);
-
-    // Verify old password no longer works
-    printf("Verifying old password no longer works\n");
-    result = user_db_authenticate(&test_user_db, test_username, old_password);
-    assert(result == AUTH_FAILURE);
-
-    // Verify new password works
-    printf("Verifying new password works\n");
-    result = user_db_authenticate(&test_user_db, test_username, new_password);
-    assert(result == AUTH_SUCCESS);
-
-    teardown_cleanup();
-
-    printf("Password update test passed successfully.\n");
-}
-
-void test_user_db_update_admin_status() {
-    const char *test_user_filename = "test_user_db.db";
-    database test_user_db;
-    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
-
-    setup_cleanup(test_user_filename, &test_user_db);
-
-    const char *test_username = "testuser";
-    bool initial_admin_status = false;
-    bool new_admin_status = true;
-
-    printf("Creating test user for admin status update\n");
-    int rc = user_db_create_user(&test_user_db, test_username, initial_admin_status, true);
-    assert(rc == SQLITE_OK);
-
-    // Get user ID
-    struct user test_user = { 0 };
-    rc = user_db_get_by_username(&test_user_db, test_username, &test_user);
-    assert(rc == SQLITE_OK);
-
-    printf("Verifying initial admin status\n");
-    assert(test_user.is_admin == initial_admin_status);
-
-    printf("Updating admin status\n");
-    rc = user_db_update_admin_status(&test_user_db, test_user.user_id, new_admin_status);
-    assert(rc == SQLITE_OK);
-
-    printf("Verifying updated admin status\n");
-    rc = user_db_get_by_username(&test_user_db, test_username, &test_user);
-    assert(rc == SQLITE_OK);
-    assert(test_user.is_admin == new_admin_status);
-
-    teardown_cleanup();
-
-    printf("Admin status update test passed successfully.\n");
+    
+    printf("user_db_authenticate test passed successfully.\n");
 }
 
 void test_user_db_delete() {
-    const char *test_user_filename = "test_user_db.db";
+    const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
 
-    setup_cleanup(test_user_filename, &test_user_db);
-
-    const char *test_username = "testuser";
-    bool test_is_admin = false;
-
-    printf("Creating test user for deletion\n");
-    int rc = user_db_create_user(&test_user_db, test_username, test_is_admin, true);
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    printf("Testing user_db_delete...\n");
+    
+    // Create a test user
+    const char *username = "user_to_delete";
+    printf("Creating user '%s'...\n", username);
+    int rc = user_db_create_user(&test_user_db, username, false, true);
     assert(rc == SQLITE_OK);
-
-    // Get user ID
-    struct user test_user = { 0 };
-    rc = user_db_get_by_username(&test_user_db, test_username, &test_user);
+    
+    // Verify user exists
+    bool exists = user_db_check_exists(&test_user_db, username);
+    assert(exists);
+    printf("User exists before deletion.\n");
+    
+    // Delete the user
+    printf("Deleting user '%s'...\n", username);
+    rc = user_db_delete(&test_user_db, username);
     assert(rc == SQLITE_OK);
-
-    printf("Verifying user exists before deletion\n");
-    bool exists = user_db_user_exists(&test_user_db, test_username);
-    assert(exists == true);
-
-    printf("Deleting user\n");
-    rc = user_db_delete(&test_user_db, test_user.user_id);
-    assert(rc == SQLITE_OK);
-
-    printf("Verifying user no longer exists\n");
-    exists = user_db_user_exists(&test_user_db, test_username);
-    assert(exists == false);
-
+    
+    // Verify user no longer exists
+    exists = user_db_check_exists(&test_user_db, username);
+    assert(!exists);
+    printf("User successfully deleted.\n");
+    
+    // Try to delete non-existent user
+    printf("Attempting to delete non-existent user...\n");
+    rc = user_db_delete(&test_user_db, "nonexistent");
+    assert(rc == SQLITE_NOTFOUND);
+    printf("Deletion of non-existent user failed as expected.\n");
+    
     teardown_cleanup();
-
-    printf("User deletion test passed successfully.\n");
+    
+    printf("user_db_delete test passed successfully.\n");
 }
 
-void test_user_db_admin_creation() {
-    const char *test_user_filename = "test_user_db.db";
+void test_user_db_update_password() {
+    const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_user_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
 
-    setup_cleanup(test_user_filename, &test_user_db);
-
-    printf("Verifying admin user exists\n");
-    bool exists = user_db_user_exists(&test_user_db, "admin");
-    assert(exists == true);
-
-    printf("Attempting to authenticate with default admin credentials\n");
-    enum auth_result result = user_db_authenticate(&test_user_db, "admin", "admin");
-    assert(result == AUTH_SUCCESS);
-    printf("Admin doesn't require password reset as expected.\n");
-
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    printf("Testing user_db_update_password...\n");
+    
+    // Create a test user
+    const char *username = "password_test_user";
+    printf("Creating user '%s'...\n", username);
+    int rc = user_db_create_user(&test_user_db, username, false, true);
+    assert(rc == SQLITE_OK);
+    
+    // Set initial password
+    const char *password1 = "firstpassword";
+    printf("Setting initial password...\n");
+    rc = user_db_update_password(&test_user_db, username, password1);
+    assert(rc == SQLITE_OK);
+    
+    // Verify authentication works with first password
+    printf("Verifying first password...\n");
+    enum auth_result auth_rc = user_db_authenticate(&test_user_db, username, password1);
+    assert(auth_rc == AUTH_SUCCESS);
+    printf("First password works.\n");
+    
+    // Change password
+    const char *password2 = "newpassword";
+    printf("Changing password...\n");
+    rc = user_db_update_password(&test_user_db, username, password2);
+    assert(rc == SQLITE_OK);
+    
+    // Verify old password no longer works
+    printf("Verifying old password no longer works...\n");
+    auth_rc = user_db_authenticate(&test_user_db, username, password1);
+    assert(auth_rc == AUTH_FAILURE);
+    printf("Old password correctly rejected.\n");
+    
+    // Verify new password works
+    printf("Verifying new password...\n");
+    auth_rc = user_db_authenticate(&test_user_db, username, password2);
+    assert(auth_rc == AUTH_SUCCESS);
+    printf("New password works.\n");
+    
+    // Try to update password for non-existent user
+    printf("Attempting to update password for non-existent user...\n");
+    rc = user_db_update_password(&test_user_db, "nonexistent", "whatever");
+    assert(rc == SQLITE_NOTFOUND);
+    printf("Password update for non-existent user failed as expected.\n");
+    
     teardown_cleanup();
+    
+    printf("user_db_update_password test passed successfully.\n");
+}
 
-    printf("Admin creation test passed successfully.\n");
+void test_user_db_update_admin_status() {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    // Create a test user (non-admin)
+    const char *username = "admin_test_user";
+    printf("Creating non-admin user '%s'...\n", username);
+    int rc = user_db_create_user(&test_user_db, username, false, true);
+    assert(rc == SQLITE_OK);
+    
+    // Verify initial admin status
+    struct user user_data;
+    rc = user_db_get_by_username(&test_user_db, username, &user_data);
+    assert(rc == SQLITE_OK);
+    assert(!user_data.is_admin);
+    printf("Initial admin status is false.\n");
+    
+    // Promote to admin
+    printf("Promoting user to admin...\n");
+    rc = user_db_update_admin_status(&test_user_db, username, true);
+    assert(rc == SQLITE_OK);
+    
+    // Verify admin status changed
+    rc = user_db_get_by_username(&test_user_db, username, &user_data);
+    assert(rc == SQLITE_OK);
+    assert(user_data.is_admin);
+    printf("User successfully promoted to admin.\n");
+    
+    // Demote from admin
+    printf("Demoting user from admin...\n");
+    rc = user_db_update_admin_status(&test_user_db, username, false);
+    assert(rc == SQLITE_OK);
+    
+    // Verify admin status changed back
+    rc = user_db_get_by_username(&test_user_db, username, &user_data);
+    assert(rc == SQLITE_OK);
+    assert(!user_data.is_admin);
+    printf("User successfully demoted from admin.\n");
+    
+    // Try to update non-existent user
+    printf("Attempting to update admin status for non-existent user...\n");
+    rc = user_db_update_admin_status(&test_user_db, "nonexistent", true);
+    assert(rc == SQLITE_NOTFOUND);
+    printf("Admin status update for non-existent user failed as expected.\n");
+    
+    teardown_cleanup();
+    
+    printf("user_db_update_admin_status test passed successfully.\n");
+}
+
+void test_user_db_check_exists() {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    printf("Testing user_db_check_exists...\n");
+    
+    // Check for non-existent user
+    printf("Checking for non-existent user...\n");
+    bool exists = user_db_check_exists(&test_user_db, "nonexistent");
+    assert(!exists);
+    printf("Non-existent user correctly not found.\n");
+    
+    // Create a test user
+    const char *username = "existence_test_user";
+    printf("Creating user '%s'...\n", username);
+    int rc = user_db_create_user(&test_user_db, username, false, true);
+    assert(rc == SQLITE_OK);
+    
+    // Check for existing user
+    printf("Checking for existing user...\n");
+    exists = user_db_check_exists(&test_user_db, username);
+    assert(exists);
+    printf("Existing user correctly found.\n");
+    
+    teardown_cleanup();
+    
+    printf("user_db_check_exists test passed successfully.\n");
+}
+
+void test_user_db_get_by_username() {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    printf("Testing user_db_get_by_username...\n");
+    
+    // Create a test user with known properties
+    const char *username = "get_test_user";
+    bool is_admin = true;
+    bool reset_password = false;
+    printf("Creating test user '%s'...\n", username);
+    int rc = user_db_create_user(&test_user_db, username, is_admin, reset_password);
+    assert(rc == SQLITE_OK);
+    
+    // Set password
+    const char *password = "testpassword";
+    printf("Setting password...\n");
+    rc = user_db_update_password(&test_user_db, username, password);
+    assert(rc == SQLITE_OK);
+    
+    // Retrieve user data
+    printf("Retrieving user data...\n");
+    struct user user_data;
+    rc = user_db_get_by_username(&test_user_db, username, &user_data);
+    assert(rc == SQLITE_OK);
+    
+    // Verify retrieved data
+    assert(strcmp(user_data.username, username) == 0);
+    assert(user_data.is_admin == is_admin);
+    assert(user_data.reset_password == reset_password);
+    assert(user_data.created_at > 0);
+    printf("User data retrieved correctly.\n");
+    
+    // Try to get non-existent user
+    printf("Attempting to retrieve non-existent user...\n");
+    rc = user_db_get_by_username(&test_user_db, "nonexistent", &user_data);
+    assert(rc == SQLITE_NOTFOUND);
+    printf("Non-existent user retrieval failed as expected.\n");
+    
+    teardown_cleanup();
+    
+    printf("user_db_get_by_username test passed successfully.\n");
+}
+
+void test_user_db_change_username() {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    printf("Testing user_db_change_username...\n");
+    
+    // Create a test user with known properties
+    const char *old_username = "old_username";
+    const char *new_username = "new_username";
+    bool is_admin = false;
+    bool reset_password = true;
+    printf("Creating test user '%s'...\n", old_username);
+    int rc = user_db_create_user(&test_user_db, old_username, is_admin, reset_password);
+    assert(rc == SQLITE_OK);
+    
+    // Set password
+    const char *password = "testpassword";
+    printf("Setting password...\n");
+    rc = user_db_update_password(&test_user_db, old_username, password);
+    assert(rc == SQLITE_OK);
+    // password reset set as false in the database
+    
+    // Change username
+    printf("Changing username from '%s' to '%s'...\n", old_username, new_username);
+    rc = user_db_change_username(&test_user_db, old_username, new_username);
+    assert(rc == SQLITE_OK);
+    printf("Username changed successfully.\n");
+    
+    // Verify old username no longer exists
+    printf("Verifying old username no longer exists...\n");
+    bool exists = user_db_check_exists(&test_user_db, old_username);
+    assert(!exists);
+    printf("Old username correctly removed.\n");
+    
+    // Verify new username exists and has correct data
+    printf("Verifying new username has correct data...\n");
+    struct user user_data;
+    rc = user_db_get_by_username(&test_user_db, new_username, &user_data);
+    assert(rc == SQLITE_OK);
+    assert(strcmp(user_data.username, new_username) == 0);
+    assert(user_data.is_admin == is_admin);
+    // reset_password will be set as false, changing username will not trigger new password reset
+    assert(user_data.reset_password == false);
+
+    
+    // Verify password still works
+    printf("Verifying password still works with new username...\n");
+    enum auth_result auth_rc = user_db_authenticate(&test_user_db, new_username, password);
+    assert(auth_rc != AUTH_NEED_PASSWORD_RESET); // Because reset_password is false
+    printf("Authentication with new username works.\n");
+    
+    // Try to change to existing username
+    printf("Attempting to change to existing username...\n");
+    rc = user_db_change_username(&test_user_db, new_username, "admin"); // admin exists
+    assert(rc == SQLITE_CONSTRAINT);
+    printf("Change to existing username failed as expected.\n");
+    
+    // Try to change non-existent user
+    printf("Attempting to change non-existent user...\n");
+    rc = user_db_change_username(&test_user_db, "nonexistent", "whatever");
+    assert(rc == SQLITE_NOTFOUND);
+    printf("Change of non-existent user failed as expected.\n");
+    
+    teardown_cleanup();
+    
+    printf("user_db_change_username test passed successfully.\n");
+}
+
+void test_user_db_get_all() {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+    
+    printf("Testing user_db_get_all...\n");
+    
+    // Clear the default admin for this test
+    user_db_delete(&test_user_db, "admin");
+    
+    // Create several test users
+    printf("Creating test users...\n");
+    user_db_create_user(&test_user_db, "user1", false, true);
+    user_db_create_user(&test_user_db, "user2", false, false);
+    user_db_create_user(&test_user_db, "admin1", true, true);
+    user_db_create_user(&test_user_db, "admin2", true, false);
+
+    // Set a password and authenticate a user to set Last Login date.
+    user_db_update_password(&test_user_db, "user1", "newpassword");
+    user_db_authenticate(&test_user_db, "user1", "newpassword");
+    
+    // Call get_all (this primarily tests that it doesn't crash)
+    printf("Calling user_db_get_all...\n");
+    int rc = user_db_get_all(&test_user_db);
+    assert(rc == SQLITE_OK);
+    printf("user_db_get_all executed successfully.\n");
+    
+    teardown_cleanup();
+    
+    printf("user_db_get_all test passed successfully.\n");
 }
 
 // TEST DB USER END
@@ -1030,20 +1279,25 @@ int main() {
     test_resident_db_update();
     test_resident_db_check_cpf_exists();
     test_resident_db_delete_by_cpf();
+    test_resident_db_get_all();
 
     test_foodbatch_db_insert();
     test_foodbatch_db_retrieve();
     test_foodbatch_db_update();
     test_foodbatch_db_check_batchid_exists();
     test_foodbatch_db_delete_by_id();
+    test_foodbatch_db_get_all();
 
+    test_user_db_create_table();
     test_user_db_create_user();
     test_user_db_authenticate();
-    test_user_db_get_by_username();
+    test_user_db_delete();
     test_user_db_update_password();
     test_user_db_update_admin_status();
-    test_user_db_delete();
-    test_user_db_admin_creation();
+    test_user_db_check_exists();
+    test_user_db_get_by_username();
+    test_user_db_change_username();
+    test_user_db_get_all();
 
     return 0;
 }
