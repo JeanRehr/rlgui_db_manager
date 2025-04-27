@@ -262,6 +262,11 @@ int user_db_update_admin_status(database *db, const char *username, bool is_admi
         return SQLITE_NOTFOUND;
     }
 
+    if (strcmp(username, "admin") == 0) {
+        fprintf(stderr, "Can't change default admin status.\n");
+        return SQLITE_ERROR;
+    }
+
     const char *sql = "UPDATE Users SET IsAdmin = ? WHERE Username = ?;";
 
     sqlite3_stmt *stmt;
