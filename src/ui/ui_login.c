@@ -208,13 +208,13 @@ static void process_db_action_in_warning(
 ) {
     switch (action->type) {
     case DB_ACTION_UPDT_PASS:
-        if (user_db_update_password(user_db, action->updt_pass.username, action->updt_pass.new_password) == SQLITE_OK) {
-            user_db_get_by_username(user_db, ui->tb_username.input, current_user);
-            *state = STATE_MAIN_MENU;
-            SET_FLAG(&ui->flag, FLAG_LOGIN_DONE);
-        } else {
+        if (user_db_update_password(user_db, action->updt_pass.username, action->updt_pass.new_password) != SQLITE_OK) {
             *error = ERROR_UPDATE_DB;
+            break;
         }
+        user_db_get_by_username(user_db, ui->tb_username.input, current_user);
+        *state = STATE_MAIN_MENU;
+        SET_FLAG(&ui->flag, FLAG_LOGIN_DONE);
         break;
 
     case DB_ACTION_NONE:

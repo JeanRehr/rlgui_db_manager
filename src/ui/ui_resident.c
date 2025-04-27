@@ -299,12 +299,14 @@ static void handle_submit_action(struct ui_resident *ui, enum error_code *error,
 static void handle_retrieve_action(struct ui_resident *ui, database *resident_db) {
     CLEAR_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
 
-    if (resident_db_get_by_cpf(resident_db, ui->tb_cpf.input, &ui->resident_retrieved) == SQLITE_OK) {
-        printf("Retrieved Person - Name: %s, Age: %d\n", ui->resident_retrieved.name, ui->resident_retrieved.age);
-        SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
-    } else {
+    if (resident_db_get_by_cpf(resident_db, ui->tb_cpf.input, &ui->resident_retrieved) != SQLITE_OK) {
         SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
+        return;
+
     }
+    printf("Retrieved Person - Name: %s, Age: %d\n", ui->resident_retrieved.name, ui->resident_retrieved.age);
+    
+    SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
 }
 
 static void handle_delete_action(struct ui_resident *ui, database *resident_db) {
@@ -362,7 +364,7 @@ static void show_warning_messages(struct ui_resident *ui, enum error_code *error
         action.type = DB_ACTION_DELETE;
         action.delete.cpf = ui->tb_cpf.input;
     } else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
-        message = "Error submitting to database.";
+        message = "Database error. Try Again";
         *error = NO_ERROR; // Clear error after showing
     }
 
@@ -403,18 +405,20 @@ static void process_db_action_in_warning(
                 action->update.medical_assistance,
                 action->update.gender
             )
-            == SQLITE_OK)
+            != SQLITE_OK)
         {
-            SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
-        } else {
             *error = ERROR_UPDATE_DB;
+            break;
         }
+        SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
         break;
 
     case DB_ACTION_DELETE:
-        if (resident_db_delete_by_cpf(resident_db, action->delete.cpf) == SQLITE_OK) {
-            SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
+        if (resident_db_delete_by_cpf(resident_db, action->delete.cpf) != SQLITE_OK) {
+            *error = ERROR_DELETE_DB;
+            break;
         }
+        SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
         break;
 
     case DB_ACTION_NONE:
