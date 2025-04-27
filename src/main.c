@@ -52,6 +52,7 @@
 #include "ui/ui_food.h"
 #include "ui/ui_login.h"
 #include "ui/ui_main_menu.h"
+#include "ui/ui_persistent.h"
 #include "ui/ui_resident.h"
 #include "ui_elements/button.h"
 #include "ui_elements/checkbox.h"
@@ -119,16 +120,9 @@ int main() {
 
     ui_food_init(&ui_food);
 
-    // End initializing the register food screen
+    struct ui_persistent ui_persistent;
 
-    struct button logout_butn = button_init((Rectangle) { window_width - 100, window_height - 60, 0, 30 }, "Log Out");
-
-    // Rectangle bounds for the style selector box, it is persistent across all screens
-    Rectangle style_options_bounds = { window_width - 130, 30, 120, 30 };
-    Rectangle style_options_label = { style_options_bounds.x,
-                                      style_options_bounds.y - 25,
-                                      style_options_bounds.width,
-                                      20 };
+    ui_persistent_init(&ui_persistent);
 
     // Setting the initial state of the app
     struct user current_user = { 0 };
@@ -144,8 +138,7 @@ int main() {
             update_window_size(GetScreenWidth(), GetScreenHeight());
             ui_resident_updt_pos(&ui_resident);
             ui_food_updt_pos(&ui_food);
-            style_options_bounds.x = window_width - 130;
-            style_options_label.x = style_options_bounds.x;
+            ui_persistent_updt_pos(&ui_persistent);
         }
 
         if (active_style != prev_active_style) {
@@ -203,14 +196,6 @@ int main() {
         BeginDrawing();
         ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
 
-        // Visuals options
-        GuiLabel(style_options_label, "Style:");
-        GuiComboBox(
-            style_options_bounds,
-            "Default;Jungle;Candy;Lavanda;Cyber;Terminal;Ashes;Bluish;Dark;Cherry;Sunny;Enefete;Amber",
-            &active_style
-        );
-
         switch (app_state) {
         case STATE_LOGIN_MENU:
             ui_login_draw(&ui_login, &app_state, &error, &user_db, &current_user);
@@ -231,15 +216,7 @@ int main() {
             break;
         }
 
-        if (button_draw_updt(&logout_butn)) {
-            memset(&current_user, 0, sizeof(current_user));
-            app_state = STATE_LOGIN_MENU;
-        }
-
-        GuiStatusBar(
-            (Rectangle) { 0, window_height - 20, window_width, 20 },
-            TextFormat("Logged: %s", current_user.username)
-        );
+        ui_persistent_draw(&ui_persistent, &current_user, &app_state, &active_style);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
