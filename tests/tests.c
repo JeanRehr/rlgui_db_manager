@@ -756,6 +756,14 @@ void test_foodbatch_db_delete_by_id() {
     assert(exists == false);
     printf("Operation successful.\n");
 
+    printf("Attempting to delete a non-existent foodbatch.\n");
+
+    rc = foodbatch_db_delete_by_id(&test_foodbatch_db, test_batch_id);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Foodbatch not found.\n");
+
     teardown_cleanup();
 
     printf("Food batch database delete test passed successfully.\n");

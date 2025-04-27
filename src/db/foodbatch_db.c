@@ -157,6 +157,11 @@ int foodbatch_db_delete_by_id(database *db, int batch_id) {
         return SQLITE_ERROR;
     }
 
+    if (!foodbatch_db_check_batchid_exists(db, batch_id)) {
+        fprintf(stderr, "Batch ID not found in the dabatase.\n");
+        return SQLITE_NOTFOUND;
+    }
+
     // Prepare the SQL delete statement
     const char *sql = "DELETE FROM FoodBatch WHERE BatchId = ?;";
 
