@@ -187,6 +187,11 @@ int user_db_delete(database *db, const char *username) {
         return SQLITE_NOTFOUND;
     }
 
+    if (strcmp(username, "admin") == 0) {
+        fprintf(stderr, "Default admin cannot be deleted.\n");
+        return SQLITE_ERROR;
+    }
+
     const char *sql = "DELETE FROM Users WHERE Username = ?;";
 
     sqlite3_stmt *stmt;
@@ -373,6 +378,11 @@ int user_db_get_by_username(database *db, const char *username, struct user *use
 int user_db_change_username(database *db, const char *old_username, const char *new_username) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (strcmp(old_username, "admin") == 0) {
+        fprintf(stderr, "Can't change default admin username.\n");
         return SQLITE_ERROR;
     }
 
