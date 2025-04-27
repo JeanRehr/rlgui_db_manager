@@ -103,31 +103,17 @@ int main() {
 
     SetTargetFPS(60);
 
-    // Start initializing the login screen in order as they appear from top-down top-left
-
     struct ui_login ui_login;
 
     ui_login_init(&ui_login);
-
-    // End initializing the login screen
-
-    // Start initializing the main menu screen in order as they appear from top-down top-left
 
     struct ui_main_menu ui_main_menu;
 
     ui_main_menu_init(&ui_main_menu);
 
-    // End initializing the main menu screen
-
-    // Start initializing the register resident screen in order as they appear from top-down top-left
-
     struct ui_resident ui_resident;
 
     ui_resident_init(&ui_resident);
-
-    // End initializing the register resident screen
-
-    // Start initializing the register food screen in order as they appear from top-down top-left
 
     struct ui_food ui_food;
 
