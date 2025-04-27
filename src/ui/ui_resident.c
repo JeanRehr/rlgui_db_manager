@@ -6,7 +6,6 @@
 
 #include "db/resident_db.h"
 #include "globals.h"
-#include "resident.h" // To get the definition and size of a resident struct
 #include "ui/ui_resident.h"
 #include "utilsfn.h"
 
