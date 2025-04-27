@@ -20,8 +20,6 @@ enum login_screen_flags {
 
 // To manage the state of the login menu screen
 struct ui_login {
-    Rectangle menu_title_bounds;
-
     struct textbox tb_username;
     struct textboxsecret tbs_password;
     struct button butn_login;
@@ -38,5 +36,7 @@ void ui_login_draw(
     database *user_db,
     struct user *current_user
 );
+
+void ui_login_updt_pos(struct ui_login *ui);
 
 #endif // UI_LOGIN_H

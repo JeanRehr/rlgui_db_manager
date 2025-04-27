@@ -50,7 +50,6 @@ static void
 handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user);
 
 void ui_login_init(struct ui_login *ui) {
-    ui->menu_title_bounds = (Rectangle) { 10, 10, 150, 20 };
     ui->tb_username =
         textbox_init((Rectangle) { window_width / 2 - 150, window_height / 2 - 15, 300, 30 }, "Username:");
     ui->tbs_password = textboxsecret_init(
@@ -227,4 +226,15 @@ static void process_db_action_in_warning(
 static void clear_input_fields(struct ui_login *ui) {
     ui->tb_username.input[0] = '\0';
     memset(ui->tbs_password.input, 0, sizeof(ui->tbs_password.input)); // More secure
+}
+
+void ui_login_updt_pos(struct ui_login *ui) {
+    ui->tb_username.bounds.x = window_width / 2 - 150;
+    ui->tb_username.bounds.y = window_height / 2 - 15;
+
+    ui->tbs_password.bounds.x = ui->tb_username.bounds.x;
+    ui->tbs_password.bounds.y = ui->tb_username.bounds.y + (ui->tb_username.bounds.height * 2);
+
+    ui->butn_login.bounds.x = ui->tbs_password.bounds.x + (ui->tbs_password.bounds.width / 2) - 50;
+    ui->butn_login.bounds.y = ui->tbs_password.bounds.y + (ui->tbs_password.bounds.height * 2);
 }

@@ -136,6 +136,7 @@ int main() {
 
         if (IsWindowResized()) {
             update_window_size(GetScreenWidth(), GetScreenHeight());
+            ui_login_updt_pos(&ui_login);
             ui_resident_updt_pos(&ui_resident);
             ui_food_updt_pos(&ui_food);
             ui_persistent_updt_pos(&ui_persistent);
