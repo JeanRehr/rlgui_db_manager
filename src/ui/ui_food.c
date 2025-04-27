@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "db/foodbatch_db.h"
-#include "food.h" // To get the definition and size of a foodbatch struct
 #include "globals.h"
 #include "ui/ui_food.h"
 #include "utilsfn.h"

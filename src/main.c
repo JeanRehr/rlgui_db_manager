@@ -47,7 +47,7 @@
 #include "db/resident_db.h"
 #include "db/user_db.h"
 #include "error_handling.h"
-#include "food.h"
+#include "foodbatch.h"
 #include "resident.h"
 #include "ui/ui_food.h"
 #include "ui/ui_login.h"

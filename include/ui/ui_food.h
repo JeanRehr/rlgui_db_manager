@@ -4,7 +4,7 @@
 #include "app_state.h"
 #include "db/db_manager.h"
 #include "error_handling.h"
-#include "food.h"
+#include "foodbatch.h"
 #include "ui_elements/button.h"
 #include "ui_elements/checkbox.h"
 #include "ui_elements/floatbox.h"
