@@ -1,7 +1,10 @@
-.vscode
-.vs
+**/.*
+!/.gitignore
+
 **/*.exe
 **/*.out
+
+**/*.db
+
 out/*
 !out/.gitkeep
-**/*.db
