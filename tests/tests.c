@@ -1243,8 +1243,6 @@ void test_user_db_default_admin_changes() {
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
-    setup_cleanup(test_userdb_filename, &test_user_db);
-
     printf("Trying to delete the default admin...\n");
     int rc = user_db_delete(&test_user_db, "admin");
     assert(rc != SQLITE_OK);
@@ -1269,6 +1267,36 @@ void test_user_db_default_admin_changes() {
     teardown_cleanup();
 
     printf("user_db_update_admin_status test passed successfully.\n");
+}
+
+void test_user_db_check_admin() {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+
+    printf("Checking if default admin is admin...\n");
+    bool is_admin = user_db_check_admin_status(&test_user_db, "admin");
+
+    assert(is_admin == true);
+    printf("Default admin is correctly an admin.\n");
+
+    printf("Checking if a newly created admin user is admin...\n");
+    user_db_create_user(&test_user_db, "testadmin", true, true);
+
+    is_admin = user_db_check_admin_status(&test_user_db, "testadmin");
+    assert(is_admin == true);
+    printf("Newly create admin user is correctly an admin.\n");
+
+    printf("Checking if a newly created non-admin user is admin...\n");
+    user_db_create_user(&test_user_db, "test_nonadmin", false, true);
+
+    is_admin = user_db_check_admin_status(&test_user_db, "test_nonadmin");
+    assert(is_admin == false);
+    printf("Newly create non-admin user is correctly not an admin.\n");
+
+    teardown_cleanup();
 }
 
 void test_user_db_get_all() {
@@ -1329,6 +1357,7 @@ int main() {
     test_user_db_get_by_username();
     test_user_db_change_username();
     test_user_db_default_admin_changes();
+    test_user_db_check_admin();
     test_user_db_get_all();
 
     return 0;
