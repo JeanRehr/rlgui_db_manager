@@ -44,6 +44,18 @@ void ui_main_menu_init(struct ui_main_menu *ui);
  * @param state Pointer to application state (modified on navigation)
  * @param error Pointer to error code
  */
-void ui_main_menu_draw(struct ui_main_menu *ui, enum app_state *state, enum error_code *error);
+
+/**
+ * @brief Updates main menu element positions
+ *
+ * Adjusts UI element positions based on current window dimensions.
+ * Should be called when the window is resized.
+ *
+ * @param ui Pointer to ui_main_menu struct to update
+ * 
+ * @note If any ui element is initialized with window_width or window_height
+ *       in their bounds, they must be updated here
+ */
+void ui_main_menu_updt_pos(struct ui_main_menu *ui);
 
 #endif // UI_MAIN_MENU_H
