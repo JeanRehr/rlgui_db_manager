@@ -16,8 +16,10 @@
  * Contains all interactive elements for the main menu navigation.
  */
 #include "app_state.h"
+#include "db/user_db.h"
 #include "error_handling.h"
 #include "ui_elements/button.h"
+#include "user.h"
 
 // To manage the state of the main menu screen
 struct ui_main_menu {
@@ -43,7 +45,16 @@ void ui_main_menu_init(struct ui_main_menu *ui);
  * @param ui Pointer to initialized ui_main_menu struct
  * @param state Pointer to application state (modified on navigation)
  * @param error Pointer to error code
+ * @param current_user Pointer to the current user (used to know if it is admin or not)
+ * @param user_db Pointer to the user database for querying if the current user is really admin
  */
+void ui_main_menu_draw(
+    struct ui_main_menu *ui,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db,
+    struct user *current_user
+);
 
 /**
  * @brief Updates main menu element positions
