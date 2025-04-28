@@ -54,10 +54,7 @@ static void process_db_action_in_warning(
 static void clear_input_fields(struct ui_resident *ui);
 
 void ui_resident_init(struct ui_resident *ui) {
-    ui->menu_title_bounds = (Rectangle) { 10, 10, 120, 20 };
-
-    ui->butn_back =
-        button_init((Rectangle) { 20, ui->menu_title_bounds.y + (ui->menu_title_bounds.height * 2), 0, 30 }, "Back");
+    ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
     ui->tb_name =
         textbox_init((Rectangle) { 20, ui->butn_back.bounds.y + (ui->butn_back.bounds.height * 2), 300, 30 }, "Name:");
     ui->tb_cpf =
@@ -109,8 +106,6 @@ void ui_resident_init(struct ui_resident *ui) {
 
 void ui_resident_draw(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db) {
     // Start draw UI elements
-
-    GuiLabel(ui->menu_title_bounds, "Register Person");
 
     textbox_draw(&ui->tb_name);
     textboxint_draw(&ui->tb_cpf);
@@ -301,10 +296,9 @@ static void handle_retrieve_action(struct ui_resident *ui, database *resident_db
     if (resident_db_get_by_cpf(resident_db, ui->tb_cpf.input, &ui->resident_retrieved) != SQLITE_OK) {
         SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
         return;
-
     }
     printf("Retrieved Person - Name: %s, Age: %d\n", ui->resident_retrieved.name, ui->resident_retrieved.age);
-    
+
     SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
 }
 

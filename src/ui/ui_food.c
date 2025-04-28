@@ -59,10 +59,7 @@ static void process_db_action_in_warning(
 static void clear_input_fields(struct ui_food *ui);
 
 void ui_food_init(struct ui_food *ui) {
-    ui->menu_title_bounds = (Rectangle) { 10, 10, 150, 20 };
-
-    ui->butn_back =
-        button_init((Rectangle) { 20, ui->menu_title_bounds.y + (ui->menu_title_bounds.height * 2), 0, 30 }, "Back");
+    ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
 
     ui->ib_batch_id = intbox_init(
         (Rectangle) { 20, ui->butn_back.bounds.y + (ui->butn_back.bounds.height * 2), 130, 30 },
@@ -150,8 +147,6 @@ void ui_food_init(struct ui_food *ui) {
 
 void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *error, database *foodbatch_db) {
     // Start draw UI elements
-
-    GuiLabel(ui->menu_title_bounds, "Register Food Batch");
 
     intbox_draw(&ui->ib_batch_id);
     textbox_draw(&ui->tb_name);
@@ -425,14 +420,16 @@ static void process_db_action_in_warning(
     switch (action->type) {
     case DB_ACTION_UPDATE:
         if (foodbatch_db_update(
-            foodbatch_db,
-            action->update.batch_id,
-            action->update.name,
-            action->update.quantity,
-            action->update.is_perishable,
-            action->update.date_string,
-            action->update.daily_consumption_rate
-        ) != SQLITE_OK) {
+                foodbatch_db,
+                action->update.batch_id,
+                action->update.name,
+                action->update.quantity,
+                action->update.is_perishable,
+                action->update.date_string,
+                action->update.daily_consumption_rate
+            )
+            != SQLITE_OK)
+        {
             *error = ERROR_UPDATE_DB;
             break;
         }

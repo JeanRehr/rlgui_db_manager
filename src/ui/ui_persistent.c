@@ -25,13 +25,13 @@ void ui_persistent_draw(struct ui_persistent *ui, struct user *current_user, enu
     );
 
     if (button_draw_updt(&ui->logout_butn)) {
-        memset(current_user, 0, sizeof(current_user));
+        memset(current_user, 0, sizeof(struct user));
         *state = STATE_LOGIN_MENU;
     }
 
     GuiStatusBar(
         ui->statusbar_bounds,
-        TextFormat("Logged: %s", current_user->username)
+        TextFormat("Logged: %s    Current screen: %s", current_user->username, app_state_to_string(state))
     );
 }
 
