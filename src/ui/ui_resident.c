@@ -249,18 +249,22 @@ handle_button_actions(struct ui_resident *ui, enum app_state *state, enum error_
 
     if (button_draw_updt(&ui->butn_submit)) {
         handle_submit_action(ui, error, resident_db);
+        return;
     }
 
     if (button_draw_updt(&ui->butn_retrieve)) {
         handle_retrieve_action(ui, resident_db);
+        return;
     }
 
     if (button_draw_updt(&ui->butn_delete)) {
         handle_delete_action(ui, resident_db);
+        return;
     }
 
     if (button_draw_updt(&ui->butn_retrieve_all)) {
         resident_db_get_all(resident_db);
+        return;
     }
 }
 
