@@ -33,7 +33,6 @@ struct button {
  * @return Configured button instance with:
  *         - Width automatically adjusted for text if needed
  *         - Height preserved from input bounds
- *         - Title pointer stored (must remain valid)
  *
  * @note Expands width if text is wider than initial bounds
  * @warning Title pointer is stored directly (must remain valid)
