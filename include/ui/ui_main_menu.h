@@ -16,8 +16,7 @@
  * Tracks various states and validation results for the main menu.
  */
 enum main_menu_screen_flags {
-    FLAG_MAIN_MENU_OPERATION_DONE = 1 << 0, ///< Main menu operation done
-    FLAG_MAIN_MENU_WARN_NOT_ADMIN = 1 << 1, ///< Flag for warning current user is not admin
+    FLAG_MAIN_MENU_WARN_NOT_ADMIN = 1 << 0, ///< Flag for warning current user is not admin
 };
 
 /**
