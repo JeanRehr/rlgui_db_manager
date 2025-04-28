@@ -10,6 +10,17 @@
 #define UI_MAIN_MENU_H
 
 /**
+ * @enum main_menu_screen_flags
+ * @brief State flags for the main menu
+ *
+ * Tracks various states and validation results for the main menu.
+ */
+enum main_menu_screen_flags {
+    FLAG_MAIN_MENU_OPERATION_DONE = 1 << 0, ///< Main menu operation done
+    FLAG_MAIN_MENU_WARN_NOT_ADMIN = 1 << 1, ///< Flag for warning current user is not admin
+};
+
+/**
  * @struct ui_main_menu
  * @brief Main menu screen UI components
  *
@@ -27,6 +38,7 @@ struct ui_main_menu {
     struct button reg_food_butn;     ///< Button for food inventory management
     struct button create_user_butn;  ///< Button for the create user screen
 
+    enum main_menu_screen_flags flag; ///< Flags for the struct
 };
 
 /**
