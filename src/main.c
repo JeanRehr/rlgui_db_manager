@@ -176,7 +176,7 @@ int main() {
             case 5: GuiLoadStyleTerminal(); break;
             case 6: GuiLoadStyleAshes(); break;
             case 7: GuiLoadStyleBluish(); break;
-            case 8: uiLoadStyleDark(); break;
+            case 8: GuiLoadStyleDark(); break;
             case 9: GuiLoadStyleCherry(); break;
             case 10: GuiLoadStyleSunny(); break;
             case 11: GuiLoadStyleEnefete(); break;
