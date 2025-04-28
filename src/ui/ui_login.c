@@ -38,7 +38,7 @@ static void process_db_action_in_warning(
 
 static void clear_input_fields(struct ui_login *ui);
 
-static void show_login_messages(
+static void show_warning_messages(
     struct ui_login *ui,
     enum app_state *state,
     enum error_code *error,
@@ -47,7 +47,7 @@ static void show_login_messages(
 );
 
 static void
-handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user);
+handle_login_button(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user);
 
 void ui_login_init(struct ui_login *ui) {
     ui->tb_username =
@@ -79,15 +79,15 @@ void ui_login_draw(
     textbox_draw(&ui->tb_username);
     textboxsecret_draw(&ui->tbs_password);
 
-    // Handle login button press
+    // Handle button actions
     if (button_draw_updt(&ui->butn_login)) {
-        handle_login_attempt(ui, state, user_db, current_user);
+        handle_login_button(ui, state, user_db, current_user);
     }
 
     // Show warning/error messages
-    show_login_messages(ui, state, error, user_db, current_user);
+    show_warning_messages(ui, state, error, user_db, current_user);
 
-    // Clear sensitive data after successful login
+    // Clear data after successful login
     if (IS_FLAG_SET(&ui->flag, FLAG_LOGIN_DONE)) {
         clear_input_fields(ui);
         CLEAR_FLAG(&ui->flag, FLAG_LOGIN_DONE);
@@ -96,7 +96,7 @@ void ui_login_draw(
 
 // Helper function to handle login logic
 static void
-handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user) {
+handle_login_button(struct ui_login *ui, enum app_state *state, database *user_db, struct user *current_user) {
     // Clear previous flags
     CLEAR_FLAG(
         &ui->flag,
@@ -141,7 +141,7 @@ handle_login_attempt(struct ui_login *ui, enum app_state *state, database *user_
 }
 
 // Helper function to show messages
-static void show_login_messages(
+static void show_warning_messages(
     struct ui_login *ui,
     enum app_state *state,
     enum error_code *error,
@@ -162,7 +162,7 @@ static void show_login_messages(
         message = "Invalid username or password";
         flag_to_clear = FLAG_USER_NOT_EXISTS | FLAG_WRONG_PASSWD;
     } else if (IS_FLAG_SET(&ui->flag, FLAG_PASSWD_RESET)) {
-        message = "Please set a new password. The password you entered will become your new password.";
+        message = "New password must be set.\nThe password you entered will become\nyour new password.";
         flag_to_clear = FLAG_PASSWD_RESET;
         action.type = DB_ACTION_UPDT_PASS;
         action.updt_pass.username = ui->tb_username.input;
@@ -172,7 +172,7 @@ static void show_login_messages(
     if (message) {
         const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "Ok";
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
+            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -183,7 +183,7 @@ static void show_login_messages(
             if (*error == ERROR_UPDATE_DB) {
                 message = "Failed to update password. Please try again.";
                 GuiMessageBox(
-                    (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
+                    (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
                     "#191#Warning!",
                     message,
                     "OK"
