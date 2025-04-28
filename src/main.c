@@ -47,6 +47,7 @@
 #include "error_handling.h"
 #include "foodbatch.h"
 #include "resident.h"
+#include "ui/ui_create_user.h"
 #include "ui/ui_food.h"
 #include "ui/ui_login.h"
 #include "ui/ui_main_menu.h"
@@ -124,6 +125,14 @@ int main() {
         goto cleanup;
     }
 
+    /**
+     * Initializing a non-admin user here just for testing ui permissions
+     */
+
+    // Create a test user (non-admin)
+    const char *test_user = "test";
+    user_db_create_user(&user_db, test_user, false, true);
+
     // Initialize UI systems
     struct ui_login ui_login = { 0 }; ///< Login screen interface
     ui_login_init(&ui_login);
@@ -136,6 +145,9 @@ int main() {
 
     struct ui_food ui_food = { 0 }; ///< Food management interface
     ui_food_init(&ui_food);
+
+    struct ui_create_user ui_create_user = { 0 };
+    ui_create_user_init(&ui_create_user);
 
     struct ui_persistent ui_persistent = { 0 }; ///< Persistent UI elements
     ui_persistent_init(&ui_persistent);
@@ -199,7 +211,7 @@ int main() {
             ui_login_draw(&ui_login, &app_state, &error, &user_db, &current_user);
             break;
         case STATE_MAIN_MENU:
-            ui_main_menu_draw(&ui_main_menu, &app_state, &error);
+            ui_main_menu_draw(&ui_main_menu, &app_state, &error, &user_db, &current_user);
             break;
         case STATE_REGISTER_RESIDENT:
             ui_resident_draw(&ui_resident, &app_state, &error, &resident_db);
@@ -207,6 +219,8 @@ int main() {
         case STATE_REGISTER_FOOD:
             ui_food_draw(&ui_food, &app_state, &error, &foodbatch_db);
             break;
+        case STATE_CREATE_USER:
+            ui_create_user_draw(&ui_create_user, &app_state, &error, &user_db);
         default:
             break;
         }
