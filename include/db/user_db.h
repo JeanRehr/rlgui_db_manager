@@ -154,6 +154,15 @@ int user_db_get_by_username(database *db, const char *username, struct user *use
 int user_db_change_username(database *db, const char *old_username, const char *new_username);
 
 /**
+ * @brief Check if the given username has admin status
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] username Username to check
+ * @return true if username has admin status, false otherwise
+ */
+bool user_db_check_admin_status(database *db, const char *username);
+
+/**
  * @brief Retrieves and displays all user accounts
  *
  * Fetches all user records and displays them in a formatted table showing
