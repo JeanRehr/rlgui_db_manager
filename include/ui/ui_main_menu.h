@@ -25,6 +25,8 @@
 struct ui_main_menu {
     struct button reg_resident_butn; ///< Button for resident management
     struct button reg_food_butn;     ///< Button for food inventory management
+    struct button create_user_butn;  ///< Button for the create user screen
+
 };
 
 /**
