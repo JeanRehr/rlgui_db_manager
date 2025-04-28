@@ -16,6 +16,7 @@
 #include "db/db_manager.h"
 #include "error_handling.h"
 #include "ui_elements/button.h"
+#include "user.h"
 
 /**
  * @enum create_user_screen_flags
@@ -34,7 +35,9 @@ enum create_user_screen_flags {
  * Contains all UI elements and state information needed to manage
  * creation of users.
  */
-struct ui_create_user {};
+struct ui_create_user {
+    struct button butn_back; ///< Navigation back button
+};
 
 /**
  * @brief Initializes user management screen
@@ -55,7 +58,12 @@ void ui_create_user_init(struct ui_create_user *ui);
  * @param error Pointer to error tracking variable
  * @param user_db Pointer to user database connection
  */
-void ui_create_user_draw(struct ui_create_user *ui, enum app_state *state, enum error_code *error, database *user_db);
+void ui_create_user_draw(
+    struct ui_create_user *ui,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db
+);
 
 /**
  * @brief Updates screen element positions
