@@ -6,7 +6,6 @@
 #include "CONSTANTS.h"
 #include "ui_elements/button.h"
 
-// Function to initialize a Button with given properties
 struct button button_init(Rectangle bounds, const char *title) {
     struct button button = { 0 };
 
