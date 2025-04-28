@@ -3,22 +3,21 @@
 
 #include "CONSTANTS.h"
 #include "ui_elements/textbox.h"
-#include "utilsfn.h"
 
-struct textbox textbox_init(Rectangle bounds, const char *label) {
+struct textbox textbox_init(Rectangle bounds, const char *title) {
     struct textbox textbox = { 0 }; // Initialize struct with zeroed memory
     // input already initialized to 0 with above
     textbox.bounds = bounds;
     textbox.edit_mode = false;
-    textbox.label = label;
+    textbox.title = title;
     return textbox;
 }
 
 void textbox_draw(struct textbox *textbox) {
-    // Draw label above the textbox
+    // Draw title above the textbox
     GuiLabel(
         (Rectangle) { textbox->bounds.x, textbox->bounds.y - (FONT_SIZE + 5), textbox->bounds.width, 20 },
-        textbox->label
+        textbox->title
     );
 
     // Draw and manage textbox
