@@ -10,7 +10,9 @@ const char* app_state_to_string(const enum app_state const *state) {
         return "Register Resident";
     case STATE_REGISTER_FOOD:
         return "Register Food";
+    case STATE_CREATE_USER:
+        return "Create User";
     default:
-        return "!!!UNKNOWN MENU!!!";
+        return "!!!*UNKNOWN MENU*!!!";
     }
 }

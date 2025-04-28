@@ -53,6 +53,15 @@ enum app_state {
      * - STATE_MAIN_MENU on going back
      */
     STATE_REGISTER_FOOD,
+
+    /**
+     * @brief Create user screen
+     * 
+     * Only admins can access this screen.
+     * Transitions back to:
+     * - STATE_MAIN_MENU on going back
+     */
+    STATE_CREATE_USER,
 };
 
 /**
