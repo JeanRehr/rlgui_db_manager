@@ -38,6 +38,15 @@ struct ui_food_db_action_info {
 
 static void draw_foodbatch_info_panel(struct ui_food *ui);
 
+/**
+ * @brief Private function to handle the button actions.
+ * Simple actions like only changing state are made directly here.
+ * 
+ * @param ui Pointer to ui_food struct to handle button action
+ * @param state Pointer to the state of the app
+ * @param error Pointer to the error code
+ * @param foodbatch_db Pointer to the foodbatch_db database
+ */
 static void
 handle_button_actions(struct ui_food *ui, enum app_state *state, enum error_code *error, database *foodbatch_db);
 
@@ -188,19 +197,13 @@ void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *er
     // Start Info Panel
     draw_foodbatch_info_panel(ui);
 
-    // End Info Panel
-
     // End draw UI elements
 
     // Start button actions
     handle_button_actions(ui, state, error, foodbatch_db);
 
-    // End button actions
-
     // Start show warning/error boxes
     show_warning_messages(ui, error, foodbatch_db);
-
-    // End show warning/error boxes
 
     // Clear the text buffer only after a successful operation
     if (IS_FLAG_SET(&ui->flag, FLAG_FOOD_OPERATION_DONE)) {

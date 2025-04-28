@@ -39,18 +39,34 @@ struct ui_resident_db_action_info {
 
 // Helper function prototypes
 static void draw_resident_info_panel(struct ui_resident *ui);
+
+/**
+ * @brief Private function to handle the button actions.
+ * Simple actions like only changing state are made directly here.
+ * 
+ * @param ui Pointer to ui_resident struct to handle button action
+ * @param state Pointer to the state of the app
+ * @param error Pointer to the error code
+ * @param resident_db Pointer to the resident_db database
+ */
 static void
 handle_button_actions(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db);
+
 static void handle_submit_action(struct ui_resident *ui, enum error_code *error, database *resident_db);
+
 static void handle_retrieve_action(struct ui_resident *ui, database *resident_db);
+
 static void handle_delete_action(struct ui_resident *ui, database *resident_db);
+
 static void show_warning_messages(struct ui_resident *ui, enum error_code *error, database *resident_db);
+
 static void process_db_action_in_warning(
     struct ui_resident *ui,
     enum error_code *error,
     struct ui_resident_db_action_info *action,
     database *resident_db
 );
+
 static void clear_input_fields(struct ui_resident *ui);
 
 void ui_resident_init(struct ui_resident *ui) {
