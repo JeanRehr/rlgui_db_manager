@@ -1,24 +1,35 @@
-#ifndef resident_H
-#define resident_H
+#ifndef RESIDENT_H
+#define RESIDENT_H
 
 #include <stdbool.h>
 
 #include "CONSTANTS.h"
 
-enum gender { GENDER_OTHER = 0, GENDER_MALE, GENDER_FEMALE };
-
-struct resident {
-    const char cpf[MAX_CPF_LENGTH];
-    char name[MAX_INPUT];
-    int age;
-    char health_status[MAX_INPUT];
-    char needs[MAX_INPUT];
-    bool medical_assistance;
-    enum gender gender;
-    const char entry_date[11]; // ISO format +null terminator
+/**
+ * @enum gender
+ * @brief Gender enumeration for resident records
+ * 
+ * This enumeration defines standard gender options for resident records.
+ */
+enum gender {
+    GENDER_OTHER = 0, ///< Non-binary/other gender identification
+    GENDER_MALE,      ///< Male gender identification
+    GENDER_FEMALE     ///< Female gender identification
 };
 
-struct resident
-resident_init(char *name, int age, char *health_status, char *needs, bool medical_assistance, enum gender gender);
+/**
+ * @struct resident
+ * @brief Represents a resident record in the database
+ */
+struct resident {
+    char cpf[MAX_CPF_LENGTH];      ///< Resident's CPF (Brazilian ID number)
+    char name[MAX_INPUT];          ///< Resident's full name
+    int age;                       ///< Resident's age
+    char health_status[MAX_INPUT]; ///< Description of health status
+    char needs[MAX_INPUT];         ///< Special needs or requirements
+    bool medical_assistance;       ///< Whether medical assistance is required
+    enum gender gender;            ///< Gender (0=Other, 1=Male, 2=Female)
+    char entry_date[11];           ///< ISO 8601 formatted date (YYYY-MM-DD + null)
+};
 
-#endif // resident_H
+#endif // RESIDENT_H

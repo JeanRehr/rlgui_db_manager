@@ -5,18 +5,22 @@
 
 #include "CONSTANTS.h"
 
-#define PASSWORD_HASH_LEN 64
-#define SALT_LEN 32
+/** Length constants for password hashing */
+#define PASSWORD_HASH_LEN 64   ///< Length of SHA-256 hex string (2 chars per byte)
+#define SALT_LEN 32            ///< Recommended length for cryptographic salts
 
+/**
+ * @struct user
+ * @brief Represents a user account in the database
+ */
 struct user {
-    int user_id;
-    char username[MAX_INPUT];
-    char password_hash[PASSWORD_HASH_LEN + 1]; // Store the hash, not the password
-    char salt[SALT_LEN + 1]; // Salt for password hashing
-    bool is_admin;
-    bool reset_password;
-    time_t created_at;
-    time_t last_login;
+    char username[MAX_INPUT];                  ///< Unique username identifier
+    char password_hash[PASSWORD_HASH_LEN + 1]; ///< Hashed password
+    char salt[SALT_LEN + 1];                   ///< Password salt
+    bool is_admin;                             ///< Administrator flag
+    bool reset_password;                       ///< Password reset required flag
+    time_t created_at;                         ///< Account creation timestamp
+    time_t last_login;                         ///< Last login timestamp (0 if never)
 };
 
 #endif // USER_H

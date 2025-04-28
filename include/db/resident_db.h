@@ -1,14 +1,47 @@
+/**
+ * @file resident_db.h
+ * @brief Resident Database Operations
+ *
+ * This header defines operations for managing resident records in an SQLite database,
+ * including creation, insertion, updating, deletion, and querying of resident information.
+ */
+
 #ifndef RESIDENT_DB_H
 #define RESIDENT_DB_H
 
 #include "db_manager.h"
-
+#include "resident.h"
 #include <stdbool.h>
 
-#include "resident.h" // to get the definition of a struct resident to populate
-
+/**
+ * @brief Creates the Resident table in the database
+ *
+ * Creates a new Resident table if it doesn't already exist. The table includes fields for
+ * CPF, name, age, health status, needs, medical assistance requirement, gender, and entry date.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @return SQLITE_OK on success, SQLite error code on failure
+ * @warning Requires an initialized database connection
+ */
 int resident_db_create_table(database *db);
 
+/**
+ * @brief Inserts a new resident record into the database
+ *
+ * Adds a new record to the Resident table with the provided parameters.
+ * The entry date is automatically set to the current date.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] cpf Resident's CPF
+ * @param[in] name Resident's full name
+ * @param[in] age Resident's age
+ * @param[in] health_status Description of health status
+ * @param[in] needs Special needs or requirements
+ * @param[in] medical_assistance Whether medical assistance is required
+ * @param[in] gender Gender (0=Other, 1=Male, 2=Female)
+ * @return SQLITE_OK on success, SQLite error code on failure
+ * @note The entry date is automatically set to the current date
+ */
 int resident_db_insert(
     database *db,
     const char *cpf,
@@ -20,7 +53,22 @@ int resident_db_insert(
     int gender
 );
 
-// Will not update CPF
+/**
+ * @brief Updates an existing resident record
+ *
+ * Modifies the fields of an existing resident record identified by CPF.
+ * Empty strings or invalid values for fields will preserve the existing values.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] cpf CPF of the resident to update
+ * @param[in] name_input New name (empty string preserves current)
+ * @param[in] age_input New age (<= 0 preserves current)
+ * @param[in] health_status_input New health status (empty string preserves current)
+ * @param[in] needs_input New needs (empty string preserves current)
+ * @param[in] medical_assistance_input New medical assistance status (-1 preserves current)
+ * @param[in] gender_input New gender (< 0 preserves current)
+ * @return SQLITE_OK on success, SQLite error code on failure
+ */
 int resident_db_update(
     database *db,
     const char *cpf,
@@ -32,13 +80,50 @@ int resident_db_update(
     int gender_input
 );
 
+/**
+ * @brief Deletes a resident record by CPF
+ *
+ * Removes the resident record with the specified CPF from the database.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] cpf CPF of the resident to delete
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if resident doesn't exist, or other SQLite error code
+ */
 int resident_db_delete_by_cpf(database *db, const char *cpf);
 
+/**
+ * @brief Checks if a CPF exists in the database
+ *
+ * Verifies whether a resident with the specified CPF exists in the database.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] cpf CPF to check for existence
+ * @return true if the resident exists, false otherwise
+ */
 bool resident_db_check_cpf_exists(database *db, const char *cpf);
 
-// Populates the struct resident with the valus from the db if it exists, if not, it exits early without populating
+/**
+ * @brief Retrieves a resident record by CPF
+ *
+ * Fetches the complete record for the resident with the specified CPF.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] cpf CPF of the resident to retrieve
+ * @param[out] resident Pointer to structure where the data will be stored
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if resident doesn't exist, or other SQLite error code
+ */
 int resident_db_get_by_cpf(database *db, const char *cpf, struct resident *resident);
 
+/**
+ * @brief Retrieves and displays all resident records
+ *
+ * Fetches all records from the Resident table and displays them in a formatted table.
+ * Primarily intended for debugging and administrative purposes.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @return SQLITE_OK on success, SQLite error code on failure
+ * @note Output is printed directly to stdout in table format
+ */
 int resident_db_get_all(database *db);
 
 #endif // RESIDENT_DB_H

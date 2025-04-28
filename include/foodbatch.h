@@ -14,7 +14,7 @@ struct foodbatch {
     char name[MAX_INPUT];         ///< Name/description of the food batch
     int quantity;                 ///< Quantity of items in the batch
     bool is_perishable;           ///< Whether the batch is perishable
-    char expiration_date[11];     ///< Expiration date (ISO YYYY-MM-DD format)
+    char expiration_date[11];     ///< ISO 8601 formatted date (YYYY-MM-DD + null)
     float daily_consumption_rate; ///< Expected daily consumption rate
 };
 

@@ -1,3 +1,11 @@
+/**
+ * @file ui_resident.h
+ * @brief Resident Registration Screen Management
+ *
+ * Manages all UI elements and state for the resident registration screen,
+ * including form input, database operations, and user feedback.
+ */
+
 #ifndef UI_RESIDENT_H
 #define UI_RESIDENT_H
 
@@ -12,50 +20,83 @@
 #include "ui_elements/textbox.h"
 #include "ui_elements/textboxint.h"
 
-// Flags to manage the popups
+/**
+ * @enum resident_screen_flags
+ * @brief State flags for resident screen operations
+ *
+ * Bitmask flags that track various states and validation results
+ * for the resident registration screen.
+ */
 enum resident_screen_flags {
-    FLAG_RESIDENT_OPERATION_DONE = 1 << 0, // 0001: Submission completed
-    FLAG_CONFIRM_RESIDENT_DELETE = 1 << 1, // 0010: Confirm deletion
-    FLAG_CPF_EXISTS = 1 << 2, // 0100: CPF already exists in database
-    FLAG_CPF_NOT_FOUND = 1 << 3, // 1000: CPF was not found in database
-    FLAG_INPUT_CPF_EMPTY = 1 << 4, // 10000: Input form textbox CPF is empty
-    FLAG_CPF_NOT_VALID = 1 << 5, // 100000: CPF input is not valid
-    FLAG_SHOW_HEALTH = 1 << 6, // 1000000: Show Health popup
-    FLAG_SHOW_NEEDS = 1 << 7, // 10000000: Show Needs popup
+    FLAG_RESIDENT_OPERATION_DONE = 1 << 0, ///< Submission completed successfully
+    FLAG_CONFIRM_RESIDENT_DELETE = 1 << 1, ///< Pending delete confirmation
+    FLAG_CPF_EXISTS = 1 << 2,              ///< CPF already exists in database
+    FLAG_CPF_NOT_FOUND = 1 << 3,           ///< CPF not found in database
+    FLAG_INPUT_CPF_EMPTY = 1 << 4,         ///< CPF input field is empty
+    FLAG_CPF_NOT_VALID = 1 << 5,           ///< CPF input is invalid (not 11 digits)
+    FLAG_SHOW_HEALTH = 1 << 6,             ///< Show full health status popup
+    FLAG_SHOW_NEEDS = 1 << 7               ///< Show full needs description popup
 };
 
-// To manage the state of the register resident screen
+/**
+ * @struct ui_resident
+ * @brief Complete resident registration screen state
+ *
+ * Contains all UI elements and state information needed to manage
+ * the resident registration screen.
+ */
 struct ui_resident {
-    Rectangle menu_title_bounds;
-    struct textbox tb_name;
-    //struct textbox tb_cpf; // cpf makes sense still being a textbox, as it needs to contain zeroes at the start
-    struct textboxint tb_cpf;
+    struct textbox tb_name;                ///< Name input field
+    struct textboxint tb_cpf;              ///< CPF input field (numeric with formatting)
+    struct intbox ib_age;                  ///< Age input field
+    struct textbox tb_health_status;       ///< Health status description
+    struct textbox tb_needs;               ///< Special needs description
+    struct checkbox cb_medical_assistance; ///< Medical assistance toggle
+    struct dropdownbox ddb_gender;         ///< Gender selection dropdown
 
-    struct intbox ib_age;
+    struct button butn_back;         ///< Return to previous screen
+    struct button butn_submit;       ///< Submit form data
+    struct button butn_retrieve;     ///< Retrieve resident data
+    struct button butn_delete;       ///< Delete resident record
+    struct button butn_retrieve_all; ///< Show all residents
 
-    struct textbox tb_health_status;
-    struct textbox tb_needs;
-
-    struct checkbox cb_medical_assistance;
-
-    struct dropdownbox ddb_gender;
-
-    struct button butn_back;
-    struct button butn_submit;
-    struct button butn_retrieve;
-    struct button butn_delete;
-    struct button butn_retrieve_all;
-
-    Rectangle panel_bounds;
-    struct resident resident_retrieved;
-
-    enum resident_screen_flags flag;
+    Rectangle panel_bounds;             ///< Information display panel bounds
+    struct resident resident_retrieved; ///< Currently displayed resident data
+    enum resident_screen_flags flag;    ///< Current screen state flags
 };
 
+/**
+ * @brief Initializes the resident registration screen
+ *
+ * Sets up all UI elements with default positions and values.
+ *
+ * @param ui Pointer to ui_resident struct to initialize
+ */
 void ui_resident_init(struct ui_resident *ui);
 
+/**
+ * @brief Draws and updates the resident registration screen
+ *
+ * Handles rendering and interaction for all screen elements.
+ *
+ * @param ui Pointer to initialized ui_resident struct
+ * @param state Pointer to application state (may be modified)
+ * @param error Pointer to error code (may be modified)
+ * @param resident_db Pointer to resident database connection
+ */
 void ui_resident_draw(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db);
 
+/**
+ * @brief Updates element positions for window resizing
+ *
+ * Adjusts UI element positions based on current window dimensions.
+ * Should be called when the window is resized.
+ *
+ * @param ui Pointer to ui_resident struct to update
+ * 
+ * @note If any ui element is initialized with window_width or window_height
+ *       in their bounds, they must be updated here
+ */
 void ui_resident_updt_pos(struct ui_resident *ui);
 
 #endif // UI_RESIDENT_H
