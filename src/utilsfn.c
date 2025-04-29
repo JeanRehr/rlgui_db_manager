@@ -21,12 +21,11 @@ void wrap_text(const char *input, char *output, const int wrap_width) {
     int text_width = 0;
     int output_index = 0;
 
-    int font_size = GuiGetStyle(DEFAULT, TEXT_SIZE);
-    const int SPACE_WIDTH = MeasureText(" ", font_size);
+    const int SPACE_WIDTH = MeasureText(" ", FONT_SIZE);
 
     char *token = strtok(buffer, " ");
     while (token != NULL) {
-        int word_width = MeasureText(token, font_size);
+        int word_width = MeasureText(token, FONT_SIZE);
 
         if (text_width + word_width + SPACE_WIDTH > wrap_width) {
             output[output_index++] = '\n'; // Insert line break
