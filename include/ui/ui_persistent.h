@@ -11,6 +11,7 @@
 
 #include "app_state.h"
 #include "ui_elements/button.h"
+#include "ui_elements/dropdownbox.h"
 #include "user.h"
 
 /**
@@ -21,10 +22,10 @@
  * of the current application screen state.
  */
 struct ui_persistent {
-    struct button logout_butn;      ///< Session logout button
-    Rectangle style_options_bounds; ///< Style selector combo box bounds
-    Rectangle style_options_label;  ///< Style selector label bounds
-    Rectangle statusbar_bounds;     ///< Status bar display area
+    struct button logout_butn;            ///< Session logout button
+    struct dropdownbox ddb_style_options; ///< Style selector
+    int prev_active_style;                ///< Number to check for any changes in the active option style
+    Rectangle statusbar_bounds;           ///< Status bar display area
 };
 
 /**
@@ -48,7 +49,17 @@ void ui_persistent_init(struct ui_persistent *ui);
  * @param state Pointer to application state (may be modified for logout)
  * @param active_style Pointer to current GUI style index (may be modified)
  */
-void ui_persistent_draw(struct ui_persistent *ui, struct user *current_user, enum app_state *state, int *active_style);
+void ui_persistent_draw(struct ui_persistent *ui, struct user *current_user, enum app_state *state);
+
+/**
+ * @brief Updates persistent ui
+ *
+ * Right now only serves the purpose to update the style
+ *
+ * @param ui Pointer to ui_persistent struct which has the style selector
+ * 
+ */
+void ui_persistent_updt(struct ui_persistent *ui);
 
 /**
  * @brief Updates persistent element positions

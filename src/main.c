@@ -17,26 +17,6 @@
 #include <external/raylib/raygui.h>
 #include <external/sqlite3/sqlite3.h>
 
-// raygui embedded styles
-// Embedded a monospace font in them as well.
-// NOTE: Included in the same order as selector
-#define MAX_GUI_STYLES_AVAILABLE 15 // NOTE: Included light style
-#include "styles/amber.h"    // raygui styleL amber
-#include "styles/ashes.h"    // raygui style: ashes
-#include "styles/bluish.h"   // raygui style: bluish
-#include "styles/candy.h"    // raygui style: candy
-#include "styles/cherry.h"   // raygui style: cherry
-#include "styles/cyber.h"    // raygui style: cyber
-#include "styles/dark.h"     // raygui style: dark
-#include "styles/enefete.h"  // raygui style: enefete
-#include "styles/genesis.h"  // raygui style: genesis
-#include "styles/jungle.h"   // raygui style: jungle
-#include "styles/lavanda.h"  // raygui style: lavanda
-#include "styles/light.h"    // raygui style: default
-#include "styles/rltech.h"   // raygui style: rltech
-#include "styles/sunny.h"    // raygui style: sunny
-#include "styles/terminal.h" // raygui style: terminal
-
 #include <stdio.h>
 
 #include "CONSTANTS.h"
@@ -157,9 +137,6 @@ int main() {
     enum error_code error = NO_ERROR;            ///< Application error state
     enum app_state app_state = STATE_LOGIN_MENU; ///< Current application screen
 
-    int active_style = 8;      ///< Currently active GUI style (default: Genesis)
-    int prev_active_style = 7; ///< Previously active style for change detection
-
     // Main application loop
     while (!WindowShouldClose()) {
         // Update
@@ -174,34 +151,9 @@ int main() {
             ui_persistent_updt_pos(&ui_persistent);
         }
 
-        // Handle GUI style changes
-        if (active_style != prev_active_style) {
-            // Reset to default internal style
-            // NOTE: Required to unload any previously loaded font texture
-            GuiLoadStyleDefault();
+        // Updating the current style selector
+        ui_persistent_updt(&ui_persistent);
 
-            // Load selected style
-            switch (active_style) {
-            case 0: GuiLoadStyleAmber(); break;
-            case 1: GuiLoadStyleAshes(); break;
-            case 2: GuiLoadStyleBluish(); break;
-            case 3: GuiLoadStyleCandy(); break;
-            case 4: GuiLoadStyleCherry(); break;
-            case 5: GuiLoadStyleCyber(); break;
-            case 6: GuiLoadStyleDark(); break;
-            case 7: GuiLoadStyleEnefete(); break;
-            case 8: GuiLoadStyleGenesis(); break;
-            case 9: GuiLoadStyleJungle(); break;
-            case 10: GuiLoadStyleLavanda(); break;
-            case 11: GuiLoadStyleLight(); break;
-            case 12: GuiLoadStyleRLTech(); break;
-            case 13: GuiLoadStyleSunny(); break;
-            case 14: GuiLoadStyleTerminal(); break;
-            default: break;
-            }
-
-            prev_active_style = active_style;
-        }
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -230,7 +182,7 @@ int main() {
         }
 
         // Draw persistent UI elements (visible in all states)
-        ui_persistent_draw(&ui_persistent, &current_user, &app_state, &active_style);
+        ui_persistent_draw(&ui_persistent, &current_user, &app_state);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
