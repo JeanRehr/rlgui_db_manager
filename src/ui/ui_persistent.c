@@ -63,53 +63,22 @@ void ui_persistent_updt(struct ui_persistent *ui) {
 
         // Load selected style
         switch (ui->ddb_style_options.active_option) {
-        case 0:
-            GuiLoadStyleAmber();
-            break;
-        case 1:
-            GuiLoadStyleAshes();
-            break;
-        case 2:
-            GuiLoadStyleBluish();
-            break;
-        case 3:
-            GuiLoadStyleCandy();
-            break;
-        case 4:
-            GuiLoadStyleCherry();
-            break;
-        case 5:
-            GuiLoadStyleCyber();
-            break;
-        case 6:
-            GuiLoadStyleDark();
-            break;
-        case 7:
-            GuiLoadStyleEnefete();
-            break;
-        case 8:
-            GuiLoadStyleGenesis();
-            break;
-        case 9:
-            GuiLoadStyleJungle();
-            break;
-        case 10:
-            GuiLoadStyleLavanda();
-            break;
-        case 11:
-            GuiLoadStyleLight();
-            break;
-        case 12:
-            GuiLoadStyleRLTech();
-            break;
-        case 13:
-            GuiLoadStyleSunny();
-            break;
-        case 14:
-            GuiLoadStyleTerminal();
-            break;
-        default:
-            break;
+        case 0: GuiLoadStyleAmber(); break;
+        case 1: GuiLoadStyleAshes(); break;
+        case 2: GuiLoadStyleBluish(); break;
+        case 3: GuiLoadStyleCandy(); break;
+        case 4: GuiLoadStyleCherry(); break;
+        case 5: GuiLoadStyleCyber(); break;
+        case 6: GuiLoadStyleDark(); break;
+        case 7: GuiLoadStyleEnefete(); break;
+        case 8: GuiLoadStyleGenesis(); break;
+        case 9: GuiLoadStyleJungle(); break;
+        case 10: GuiLoadStyleLavanda(); break;
+        case 11: GuiLoadStyleLight(); break;
+        case 12: GuiLoadStyleRLTech(); break;
+        case 13: GuiLoadStyleSunny(); break;
+        case 14: GuiLoadStyleTerminal(); break;
+        default: break;
         }
 
         ui->prev_active_style = ui->ddb_style_options.active_option;
@@ -120,9 +89,7 @@ void ui_persistent_updt_pos(struct ui_persistent *ui) {
     ui->logout_butn.bounds.x = window_width - 100;
     ui->logout_butn.bounds.y = window_height - 60;
 
-    ui->style_options_bounds.x = window_width - 110;
-
-    ui->style_options_label.x = ui->style_options_bounds.x;
+    ui->ddb_style_options.bounds.x =  window_width - 110;
 
     ui->statusbar_bounds.y = window_height - 20;
     ui->statusbar_bounds.width = window_width;
