@@ -17,6 +17,7 @@
 #include "ui_elements/checkbox.h"
 #include "ui_elements/dropdownbox.h"
 #include "ui_elements/intbox.h"
+#include "ui_elements/scrollpanel.h"
 #include "ui_elements/textbox.h"
 #include "ui_elements/textboxint.h"
 
@@ -62,7 +63,11 @@ struct ui_resident {
 
     Rectangle panel_bounds;             ///< Information display panel bounds
     struct resident resident_retrieved; ///< Currently displayed resident data
-    enum resident_screen_flags flag;    ///< Current screen state flags
+
+    struct scrollpanel table_view; ///< A scrollpanel to view the resident's database
+    char *table_content;           ///< The content of the resident's database (MUST BE FREED IF ALLOCATED)
+
+    enum resident_screen_flags flag; ///< Current screen state flags
 };
 
 /**
