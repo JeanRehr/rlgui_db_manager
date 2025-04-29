@@ -1,7 +1,7 @@
 #include <external/raylib/raygui.h>
 
 #include <stdio.h>
-
+#include <stdlib.h>
 #include <string.h>
 
 #include "db/resident_db.h"
@@ -40,9 +40,10 @@ struct ui_resident_db_action_info {
 // Helper function prototypes
 static void draw_resident_info_panel(struct ui_resident *ui);
 
+static void draw_resident_table_content(Rectangle bounds, char *data);
+
 /**
  * @brief Private function to handle the button actions.
- * Simple actions like only changing state are made directly here.
  * 
  * @param ui Pointer to ui_resident struct to handle button action
  * @param state Pointer to the state of the app
@@ -52,11 +53,22 @@ static void draw_resident_info_panel(struct ui_resident *ui);
 static void
 handle_button_actions(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db);
 
-static void handle_submit_action(struct ui_resident *ui, enum error_code *error, database *resident_db);
+/**
+ * @brief Private function to handle going back to the main menu.
+ * Any freeing of memory should be done here if necessary, set it back to null for further use.
+ * 
+ * @param ui Pointer to ui_resident struct to handle button action
+ * @param state Pointer to the state of the app
+ */
+static void handle_back_button(struct ui_resident *ui, enum app_state *state);
 
-static void handle_retrieve_action(struct ui_resident *ui, database *resident_db);
+static void handle_submit_button(struct ui_resident *ui, enum error_code *error, database *resident_db);
 
-static void handle_delete_action(struct ui_resident *ui, database *resident_db);
+static void handle_retrieve_button(struct ui_resident *ui, database *resident_db);
+
+static void handle_delete_button(struct ui_resident *ui, database *resident_db);
+
+static void handle_retrieve_all_button(struct ui_resident *ui, database *resident_db);
 
 static void show_warning_messages(struct ui_resident *ui, enum error_code *error, database *resident_db);
 
@@ -112,10 +124,21 @@ void ui_resident_init(struct ui_resident *ui) {
         "Retrieve All"
     );
 
+    // Only set the bounds of the panel, draw everything inside based on it on the draw register resident screen function
+    ui->panel_bounds = (Rectangle) { ui->tb_name.bounds.x + ui->tb_name.bounds.width + 10, 10, 300, 250 };
+
     memset(&ui->resident_retrieved, 0, sizeof(struct resident));
 
-    // Only set the bounds of the panel, draw everything inside based on it on the draw register resident screen function
-    ui->panel_bounds = (Rectangle) { window_width / 2 - 150, 10, 300, 250 };
+    ui->table_view = scrollpanel_init(
+        (Rectangle) { ui->panel_bounds.x + ui->panel_bounds.width + 10,
+                      10,
+                      window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20 + 110),
+                      window_height - 100 },
+        "Database view",
+        (Rectangle) { 0, 0, 0, 0 }
+    );
+
+    ui->table_content = NULL;
 
     ui->flag = 0;
 }
@@ -138,6 +161,9 @@ void ui_resident_draw(struct ui_resident *ui, enum app_state *state, enum error_
 
     // Draw info panel
     draw_resident_info_panel(ui);
+
+    // Draw database content
+    scrollpanel_draw(&ui->table_view, draw_resident_table_content, ui->table_content);
 
     // Handle button actions
     handle_button_actions(ui, state, error, resident_db);
@@ -218,9 +244,9 @@ static void draw_resident_info_panel(struct ui_resident *ui) {
     if (IS_FLAG_SET(&ui->flag, FLAG_SHOW_HEALTH)) {
         int dyn_max_input = (int)(MAX_INPUT / 0.9);
         char wrapped_text[dyn_max_input];
-        wrap_text(ui->resident_retrieved.health_status, wrapped_text, 300);
+        wrap_text(ui->resident_retrieved.health_status, wrapped_text, ui->panel_bounds.width);
         GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 300 },
+            (Rectangle) { ui->panel_bounds.x, window_height / 2 - 50, ui->panel_bounds.width, 300 },
             "#191#Full Health Status",
             wrapped_text,
             ""
@@ -230,9 +256,9 @@ static void draw_resident_info_panel(struct ui_resident *ui) {
     if (IS_FLAG_SET(&ui->flag, FLAG_SHOW_NEEDS)) {
         int dyn_max_input = (int)(MAX_INPUT / 0.9);
         char wrapped_text[dyn_max_input];
-        wrap_text(ui->resident_retrieved.needs, wrapped_text, 300);
+        wrap_text(ui->resident_retrieved.needs, wrapped_text, ui->panel_bounds.width);
         GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2, 300, 300 },
+            (Rectangle) { ui->panel_bounds.x, window_height / 2, ui->panel_bounds.width, 300 },
             "#191#Full Needs",
             wrapped_text,
             ""
@@ -240,35 +266,49 @@ static void draw_resident_info_panel(struct ui_resident *ui) {
     }
 }
 
+static void draw_resident_table_content(Rectangle bounds, char *data) {
+    GuiLabel(bounds, data ? data : "No data");
+}
+
 static void
 handle_button_actions(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db) {
     if (button_draw_updt(&ui->butn_back)) {
-        *state = STATE_MAIN_MENU;
+        handle_back_button(ui, state);
         return;
     }
 
     if (button_draw_updt(&ui->butn_submit)) {
-        handle_submit_action(ui, error, resident_db);
+        handle_submit_button(ui, error, resident_db);
         return;
     }
 
     if (button_draw_updt(&ui->butn_retrieve)) {
-        handle_retrieve_action(ui, resident_db);
+        handle_retrieve_button(ui, resident_db);
         return;
     }
 
     if (button_draw_updt(&ui->butn_delete)) {
-        handle_delete_action(ui, resident_db);
+        handle_delete_button(ui, resident_db);
         return;
     }
 
     if (button_draw_updt(&ui->butn_retrieve_all)) {
-        resident_db_get_all(resident_db);
+        handle_retrieve_all_button(ui, resident_db);
         return;
     }
 }
 
-static void handle_submit_action(struct ui_resident *ui, enum error_code *error, database *resident_db) {
+static void handle_back_button(struct ui_resident *ui, enum app_state *state) {
+    if (ui->table_content) {
+        free(ui->table_content);  // Free before going back
+        ui->table_content = NULL; // Prevent double-free
+    }
+
+    *state = STATE_MAIN_MENU;
+    return;
+}
+
+static void handle_submit_button(struct ui_resident *ui, enum error_code *error, database *resident_db) {
     // Clear previous flags
     CLEAR_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY | FLAG_CPF_NOT_VALID | FLAG_CPF_EXISTS);
 
@@ -310,7 +350,7 @@ static void handle_submit_action(struct ui_resident *ui, enum error_code *error,
     *error = NO_ERROR;
 }
 
-static void handle_retrieve_action(struct ui_resident *ui, database *resident_db) {
+static void handle_retrieve_button(struct ui_resident *ui, database *resident_db) {
     CLEAR_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
 
     if (resident_db_get_by_cpf(resident_db, ui->tb_cpf.input, &ui->resident_retrieved) != SQLITE_OK) {
@@ -322,7 +362,7 @@ static void handle_retrieve_action(struct ui_resident *ui, database *resident_db
     SET_FLAG(&ui->flag, FLAG_RESIDENT_OPERATION_DONE);
 }
 
-static void handle_delete_action(struct ui_resident *ui, database *resident_db) {
+static void handle_delete_button(struct ui_resident *ui, database *resident_db) {
     CLEAR_FLAG(
         &ui->flag,
         FLAG_INPUT_CPF_EMPTY | FLAG_CPF_NOT_VALID | FLAG_CPF_NOT_FOUND | FLAG_CONFIRM_RESIDENT_DELETE
@@ -346,6 +386,23 @@ static void handle_delete_action(struct ui_resident *ui, database *resident_db) 
     SET_FLAG(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE);
 }
 
+static void handle_retrieve_all_button(struct ui_resident *ui, database *resident_db) {
+    if (ui->table_content) {
+        free(ui->table_content); // Free old data before getting new data
+    }
+    ui->table_content = resident_db_get_all_format(resident_db);
+
+    // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
+    if (ui->table_content) {
+        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->table_content, FONT_SIZE, 0);
+        ui->table_view.panel_content_bounds.width = text_size.x * 0.9;
+        ui->table_view.panel_content_bounds.height = text_size.y / 0.7;
+    }
+    
+    resident_db_get_all(resident_db); // also prints to stdout
+    return;
+}
+
 static void show_warning_messages(struct ui_resident *ui, enum error_code *error, database *resident_db) {
     const char *message = NULL;
     enum resident_screen_flags flag_to_clear = 0;
@@ -361,7 +418,7 @@ static void show_warning_messages(struct ui_resident *ui, enum error_code *error
         message = "CPF not found.";
         flag_to_clear = FLAG_CPF_NOT_FOUND;
     } else if (IS_FLAG_SET(&ui->flag, FLAG_CPF_EXISTS)) {
-        message = "CPF already exists. Update existing record?";
+        message = "CPF already exists. Update?";
         flag_to_clear = FLAG_CPF_EXISTS;
         action.type = DB_ACTION_UPDATE;
         action.update.cpf = ui->tb_cpf.input;
@@ -372,7 +429,7 @@ static void show_warning_messages(struct ui_resident *ui, enum error_code *error
         action.update.medical_assistance = ui->cb_medical_assistance.checked;
         action.update.gender = ui->ddb_gender.active_option;
     } else if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_RESIDENT_DELETE)) {
-        message = "Are you sure you want to delete resident?";
+        message = "Are you sure you want to\ndelete this resident?";
         flag_to_clear = FLAG_CONFIRM_RESIDENT_DELETE;
         action.type = DB_ACTION_DELETE;
         action.delete.cpf = ui->tb_cpf.input;
@@ -384,7 +441,7 @@ static void show_warning_messages(struct ui_resident *ui, enum error_code *error
     if (message) {
         const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
+            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -455,5 +512,7 @@ void ui_resident_updt_pos(struct ui_resident *ui) {
     ui->butn_retrieve.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_delete.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_retrieve_all.bounds.y = ui->butn_submit.bounds.y;
-    ui->panel_bounds.x = window_width / 2 - 150;
+    ui->table_view.panel_bounds.width =
+        window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20 + /* +100 for styler offset */ 110);
+    ui->table_view.panel_bounds.height = window_height - 100;
 }
