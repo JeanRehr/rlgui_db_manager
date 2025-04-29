@@ -18,20 +18,24 @@
 #include <external/sqlite3/sqlite3.h>
 
 // raygui embedded styles
+// Embedded a monospace font in them as well.
 // NOTE: Included in the same order as selector
-#define MAX_GUI_STYLES_AVAILABLE 13 // NOTE: Included light style
-#include "styles/style_amber.h"    // raygui styleL amber
-#include "styles/style_ashes.h"    // raygui style: ashes
-#include "styles/style_bluish.h"   // raygui style: bluish
-#include "styles/style_candy.h"    // raygui style: candy
-#include "styles/style_cherry.h"   // raygui style: cherry
-#include "styles/style_cyber.h"    // raygui style: cyber
-#include "styles/style_dark.h"     // raygui style: dark
-#include "styles/style_enefete.h"  // raygui style: enefete
-#include "styles/style_jungle.h"   // raygui style: jungle
-#include "styles/style_lavanda.h"  // raygui style: lavanda
-#include "styles/style_sunny.h"    // raygui style: sunny
-#include "styles/style_terminal.h" // raygui style: terminal
+#define MAX_GUI_STYLES_AVAILABLE 15 // NOTE: Included light style
+#include "styles/amber.h"    // raygui styleL amber
+#include "styles/ashes.h"    // raygui style: ashes
+#include "styles/bluish.h"   // raygui style: bluish
+#include "styles/candy.h"    // raygui style: candy
+#include "styles/cherry.h"   // raygui style: cherry
+#include "styles/cyber.h"    // raygui style: cyber
+#include "styles/dark.h"     // raygui style: dark
+#include "styles/enefete.h"  // raygui style: enefete
+#include "styles/genesis.h"  // raygui style: genesis
+#include "styles/jungle.h"   // raygui style: jungle
+#include "styles/lavanda.h"  // raygui style: lavanda
+#include "styles/light.h"    // raygui style: default
+#include "styles/rltech.h"   // raygui style: rltech
+#include "styles/sunny.h"    // raygui style: sunny
+#include "styles/terminal.h" // raygui style: terminal
 
 #include <stdio.h>
 
@@ -60,9 +64,6 @@
 #include "ui_elements/intbox.h"
 #include "ui_elements/textbox.h"
 #include "user.h"
-
-int active_style = 8;      ///< Currently active GUI style (default: dark)
-int prev_active_style = 7; ///< Previously active style for change detection
 
 /**
   * @brief Application entry point
@@ -128,9 +129,8 @@ int main() {
     /**
      * Initializing a non-admin user here just for testing ui permissions
      */
-
-    // Create a test user (non-admin)
     const char *test_user = "test";
+    user_db_delete(&user_db, test_user); // delete first if already created
     user_db_create_user(&user_db, test_user, false, true);
 
     // Initialize UI systems
@@ -157,12 +157,13 @@ int main() {
     enum error_code error = NO_ERROR;            ///< Application error state
     enum app_state app_state = STATE_LOGIN_MENU; ///< Current application screen
 
+    int active_style = 8;      ///< Currently active GUI style (default: Genesis)
+    int prev_active_style = 7; ///< Previously active style for change detection
+
     // Main application loop
     while (!WindowShouldClose()) {
         // Update
         //----------------------------------------------------------------------------------
-        // Ensure consistent font size across all UI elements
-        GuiSetStyle(DEFAULT, TEXT_SIZE, FONT_SIZE);
 
         // Handle window resize events
         if (IsWindowResized()) {
@@ -181,18 +182,21 @@ int main() {
 
             // Load selected style
             switch (active_style) {
-            case 1: GuiLoadStyleJungle(); break;
-            case 2: GuiLoadStyleCandy(); break;
-            case 3: GuiLoadStyleLavanda(); break;
-            case 4: GuiLoadStyleCyber(); break;
-            case 5: GuiLoadStyleTerminal(); break;
-            case 6: GuiLoadStyleAshes(); break;
-            case 7: GuiLoadStyleBluish(); break;
-            case 8: GuiLoadStyleDark(); break;
-            case 9: GuiLoadStyleCherry(); break;
-            case 10: GuiLoadStyleSunny(); break;
-            case 11: GuiLoadStyleEnefete(); break;
-            case 12: GuiLoadStyleAmber(); break;
+            case 0: GuiLoadStyleAmber(); break;
+            case 1: GuiLoadStyleAshes(); break;
+            case 2: GuiLoadStyleBluish(); break;
+            case 3: GuiLoadStyleCandy(); break;
+            case 4: GuiLoadStyleCherry(); break;
+            case 5: GuiLoadStyleCyber(); break;
+            case 6: GuiLoadStyleDark(); break;
+            case 7: GuiLoadStyleEnefete(); break;
+            case 8: GuiLoadStyleGenesis(); break;
+            case 9: GuiLoadStyleJungle(); break;
+            case 10: GuiLoadStyleLavanda(); break;
+            case 11: GuiLoadStyleLight(); break;
+            case 12: GuiLoadStyleRLTech(); break;
+            case 13: GuiLoadStyleSunny(); break;
+            case 14: GuiLoadStyleTerminal(); break;
             default: break;
             }
 
