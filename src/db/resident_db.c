@@ -283,6 +283,129 @@ int resident_db_get_by_cpf(database *db, const char *cpf, struct resident *resid
     return rc;
 }
 
+char *resident_db_get_all_format(database *db) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return NULL;
+    }
+
+    const char *sql = "SELECT * FROM Resident;";
+    sqlite3_stmt *stmt;
+
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return NULL;
+    }
+
+    // Initial buffer
+    size_t buffer_size = 2048;
+    char *result = malloc(buffer_size);
+    if (!result) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+    result[0] = '\0'; // Initialize empty string
+
+    // Append header to the result string
+    const char *header =
+        "+-----------------------------------------------------------------------------------------------------------"
+        "------------------------------------------------------------------------------------------+\n"
+        "| CPF         | Name                                       | Age | HealthStatus                             "
+        "  | Needs                                      | Medical Assistance | Gender | Entry Date |\n"
+        "+-------------+--------------------------------------------+-----+-------------------------------------"
+        "-----"
+        "--+--------------------------------------------+--------------------+--------+------------+\n";
+
+    // Check if buffer is large enough for the header
+    if (strlen(header) + 1 > buffer_size) {
+        buffer_size = strlen(header) + 1;
+        result = realloc(result, buffer_size);
+        if (!result) {
+            fprintf(stderr, "Memory reallocation failed.\n");
+            sqlite3_finalize(stmt);
+            return NULL;
+        }
+    }
+    strcpy(result, header);
+
+    // Process each row
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        const char *cpf = (const char *)sqlite3_column_text(stmt, 0);
+        const char *name = (const char *)sqlite3_column_text(stmt, 1);
+        int age = sqlite3_column_int(stmt, 2);
+        const char *health_status = (const char *)sqlite3_column_text(stmt, 3);
+        const char *needs = (const char *)sqlite3_column_text(stmt, 4);
+        int medical_assistance = sqlite3_column_int(stmt, 5);
+        int gender = sqlite3_column_int(stmt, 6);
+        const char *entry_date = (const char *)sqlite3_column_text(stmt, 7);
+
+        // Format the row
+        char row[1024];
+        snprintf(
+            row,
+            sizeof(row),
+            "| %-11s | %-42s | %-3d | %-42s | %-42s | %-18s | %-6s | %-10s |\n",
+            cpf,
+            name,
+            age,
+            health_status,
+            needs,
+            (medical_assistance == 0 ? "False" : "True"),
+            (gender == 0 ? "Other" : (gender == 1 ? "Male" : "Female")),
+            entry_date
+        );
+
+        // Check if buffer needs to grow
+        size_t required_size = strlen(result) + strlen(row) + 1;
+        if (required_size > buffer_size) {
+            buffer_size = required_size * 2; // Double the buffer to reduce realloc calls
+            char *new_result = realloc(result, buffer_size);
+            printf("REALLOC CALLED!");
+            if (!new_result) {
+                fprintf(stderr, "Memory reallocation failed.\n");
+                free(result);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            result = new_result;
+        }
+
+        // Append the row to the result
+        strcat(result, row);
+
+        // Add separator line
+        const char *separator =
+        "+-------------+--------------------------------------------+-----+-------------------------------------"
+        "-----"
+        "--+--------------------------------------------+--------------------+--------+------------+\n";
+        required_size = strlen(result) + strlen(separator) + 1;
+        if (required_size > buffer_size) {
+            buffer_size = required_size * 2;
+            char *new_result = realloc(result, buffer_size);
+            if (!new_result) {
+                fprintf(stderr, "Memory reallocation failed.\n");
+                free(result);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            result = new_result;
+        }
+        strcat(result, separator);
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute query: %s\n", sqlite3_errmsg(db->db));
+        free(result);
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+
+    sqlite3_finalize(stmt);
+    return result; // Caller must free() this memory!
+}
+
 int resident_db_get_all(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");

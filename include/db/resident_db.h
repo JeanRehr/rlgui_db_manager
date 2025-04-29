@@ -115,6 +115,39 @@ bool resident_db_check_cpf_exists(database *db, const char *cpf);
 int resident_db_get_by_cpf(database *db, const char *cpf, struct resident *resident);
 
 /**
+ * @brief Retrieves all resident records as a formatted string
+ *
+ * Executes a database query and formats all resident records into a human-readable
+ * table structure with borders and aligned columns. The returned string is dynamically
+ * allocated and must be freed by the caller.
+ *
+ * @param db Pointer to initialized database connection
+ * @return char* Formatted table string containing all records, or NULL on failure
+ *
+ * @note Returned string format:
+ * +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ * | CPF         | Name                                       | Age | HealthStatus                               | Needs                                      | Medical Assistance | Gender | Entry Date |
+ * +-------------+--------------------------------------------+-----+--------------------------------------------+--------------------------------------------+--------------------+--------+------------+
+ * | 12345678901 | John Doe                                   | 30  | Healthy                                    | None                                       | False              | Other  | 2000-01-01 |
+ * +-------------+--------------------------------------------+-----+--------------------------------------------+--------------------------------------------+--------------------+--------+------------+
+ * 
+ * @warning The caller is responsible for freeing the returned string with free()
+ * @warning Returns NULL if database is not initialized or on query failure
+ *
+ * Memory Management:
+ * - Allocates initial 4KB buffer
+ * - Automatically grows buffer as needed
+ * - Returns NULL on allocation failures
+ *
+ * Error Handling:
+ * - Checks database connection state
+ * - Validates SQL preparation
+ * - Handles memory allocation failures
+ * - Reports SQL execution errors
+ */
+char *resident_db_get_all_format(database *db);
+
+/**
  * @brief Retrieves and displays all resident records
  *
  * Fetches all records from the Resident table and displays them in a formatted table.
