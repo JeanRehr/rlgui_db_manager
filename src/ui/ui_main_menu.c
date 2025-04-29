@@ -125,7 +125,7 @@ static void show_warning_messages(struct ui_main_menu *ui, enum error_code *erro
         const char *buttons = "OK";
 
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
+            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons

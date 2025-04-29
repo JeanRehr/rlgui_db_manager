@@ -50,11 +50,11 @@ static void draw_foodbatch_info_panel(struct ui_food *ui);
 static void
 handle_button_actions(struct ui_food *ui, enum app_state *state, enum error_code *error, database *foodbatch_db);
 
-static void handle_submit_action(struct ui_food *ui, enum error_code *error, database *foodbatch_db);
+static void handle_submit_button(struct ui_food *ui, enum error_code *error, database *foodbatch_db);
 
-static void handle_retrieve_action(struct ui_food *ui, database *foodbatch_db);
+static void handle_retrieve_button(struct ui_food *ui, database *foodbatch_db);
 
-static void handle_delete_action(struct ui_food *ui, database *foodbatch_db);
+static void handle_delete_button(struct ui_food *ui, database *foodbatch_db);
 
 static void show_warning_messages(struct ui_food *ui, enum error_code *error, database *foodbatch_db);
 
@@ -251,15 +251,15 @@ handle_button_actions(struct ui_food *ui, enum app_state *state, enum error_code
     }
 
     if (button_draw_updt(&ui->butn_submit)) {
-        handle_submit_action(ui, error, foodbatch_db);
+        handle_submit_button(ui, error, foodbatch_db);
     }
 
     if (button_draw_updt(&ui->butn_retrieve)) {
-        handle_retrieve_action(ui, foodbatch_db);
+        handle_retrieve_button(ui, foodbatch_db);
     }
 
     if (button_draw_updt(&ui->butn_delete)) {
-        handle_delete_action(ui, foodbatch_db);
+        handle_delete_button(ui, foodbatch_db);
     }
 
     if (button_draw_updt(&ui->butn_retrieve_all)) {
@@ -267,7 +267,7 @@ handle_button_actions(struct ui_food *ui, enum app_state *state, enum error_code
     }
 }
 
-static void handle_submit_action(struct ui_food *ui, enum error_code *error, database *foodbatch_db) {
+static void handle_submit_button(struct ui_food *ui, enum error_code *error, database *foodbatch_db) {
     // Clear flags
     CLEAR_FLAG(&ui->flag, FLAG_BATCHID_EXISTS | FLAG_INVALID_FOOD_DATE);
 
@@ -322,7 +322,7 @@ static void handle_submit_action(struct ui_food *ui, enum error_code *error, dat
     *error = NO_ERROR;
 }
 
-static void handle_retrieve_action(struct ui_food *ui, database *foodbatch_db) {
+static void handle_retrieve_button(struct ui_food *ui, database *foodbatch_db) {
     CLEAR_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND);
 
     if (foodbatch_db_get_by_batchid(foodbatch_db, ui->ib_batch_id.input, &ui->foodbatch_retrieved) != SQLITE_OK) {
@@ -341,7 +341,7 @@ static void handle_retrieve_action(struct ui_food *ui, database *foodbatch_db) {
     SET_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
 }
 
-static void handle_delete_action(struct ui_food *ui, database *foodbatch_db) {
+static void handle_delete_button(struct ui_food *ui, database *foodbatch_db) {
     CLEAR_FLAG(&ui->flag, FLAG_BATCHID_NOT_FOUND | FLAG_CONFIRM_FOOD_DELETE);
 
     if (!foodbatch_db_check_batchid_exists(foodbatch_db, ui->ib_batch_id.input)) {
@@ -385,7 +385,7 @@ static void show_warning_messages(struct ui_food *ui, enum error_code *error, da
         action.update.date_string = date_string;
         action.update.daily_consumption_rate = ui->fb_daily_consumption_rate.value;
     } else if (IS_FLAG_SET(&ui->flag, FLAG_CONFIRM_FOOD_DELETE)) {
-        message = "Are you sure you want to delete?";
+        message = "Are you sure you want to delete\nthis foodbatch?";
         flag_to_clear = FLAG_CONFIRM_FOOD_DELETE;
         action.type = DB_ACTION_DELETE;
         action.delete.batch_id = ui->ib_batch_id.input;
@@ -398,7 +398,7 @@ static void show_warning_messages(struct ui_food *ui, enum error_code *error, da
         const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
 
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 100 },
+            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
