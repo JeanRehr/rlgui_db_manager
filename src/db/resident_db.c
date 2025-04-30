@@ -1,6 +1,7 @@
 #include "db/resident_db.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -137,7 +138,7 @@ int resident_db_update(
     const char *needs = (needs_input[0] != '\0') ? needs_input : currentResident.needs;
     int medical_assistance =
         (medical_assistance_input > 0) ? medical_assistance_input : currentResident.medical_assistance;
-    int gender = (gender_input >= 0) ? gender_input : currentResident.gender;
+    int gender = (gender_input >= 0) ? gender_input : (int)currentResident.gender;
 
     const char *sql =
         "UPDATE Resident SET Name = ?, Age = ?, HealthStatus = ?, Needs = ?, MedicalAssistance = ?, Gender "
@@ -299,7 +300,7 @@ char *resident_db_get_all_format(database *db) {
     }
 
     // Initial buffer
-    size_t buffer_size = 2048;
+    size_t buffer_size = 4096;
     char *result = malloc(buffer_size);
     if (!result) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -377,9 +378,9 @@ char *resident_db_get_all_format(database *db) {
 
         // Add separator line
         const char *separator =
-        "+-------------+--------------------------------------------+-----+-------------------------------------"
-        "-----"
-        "--+--------------------------------------------+--------------------+--------+------------+\n";
+            "+-------------+--------------------------------------------+-----+-------------------------------------"
+            "-----"
+            "--+--------------------------------------------+--------------------+--------+------------+\n";
         required_size = strlen(result) + strlen(separator) + 1;
         if (required_size > buffer_size) {
             buffer_size = required_size * 2;
