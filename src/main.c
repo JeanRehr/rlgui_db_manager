@@ -113,9 +113,14 @@ int main() {
     user_db_delete(&user_db, test_user); // delete first if already created
     user_db_create_user(&user_db, test_user, false, true);
 
+    // Application state tracking
+    struct user current_user = { 0 };            ///< Currently logged in user
+    enum error_code error = NO_ERROR;            ///< Application error state
+    enum app_state app_state = STATE_LOGIN_MENU; ///< Current application screen
+
     // Initialize UI systems
     struct ui_login ui_login = { 0 }; ///< Login screen interface
-    ui_login_init(&ui_login);
+    ui_login_init(&ui_login, &current_user);
 
     struct ui_main_menu ui_main_menu = { 0 }; ///< Main menu interface
     ui_main_menu_init(&ui_main_menu);
@@ -126,16 +131,11 @@ int main() {
     struct ui_food ui_food = { 0 }; ///< Food management interface
     ui_food_init(&ui_food);
 
-    struct ui_create_user ui_create_user = { 0 };
+    struct ui_create_user ui_create_user = { 0 }; ///< Create new user interface
     ui_create_user_init(&ui_create_user);
 
     struct ui_persistent ui_persistent = { 0 }; ///< Persistent UI elements
     ui_persistent_init(&ui_persistent);
-
-    // Application state tracking
-    struct user current_user = { 0 };            ///< Currently logged in user
-    enum error_code error = NO_ERROR;            ///< Application error state
-    enum app_state app_state = STATE_LOGIN_MENU; ///< Current application screen
 
     // Main application loop
     while (!WindowShouldClose()) {
@@ -145,7 +145,7 @@ int main() {
         // Handle window resize events
         if (IsWindowResized()) {
             update_window_size(GetScreenWidth(), GetScreenHeight());
-            ui_login_updt_pos(&ui_login);
+            ui_login.base.update_positions(&ui_login.base);
             ui_resident_updt_pos(&ui_resident);
             ui_food_updt_pos(&ui_food);
             ui_persistent_updt_pos(&ui_persistent);
@@ -164,7 +164,7 @@ int main() {
         // State machine for screen rendering
         switch (app_state) {
         case STATE_LOGIN_MENU:
-            ui_login_draw(&ui_login, &app_state, &error, &user_db, &current_user);
+            ui_login.base.render(&ui_login.base, &app_state, &error, &user_db);
             break;
         case STATE_MAIN_MENU:
             ui_main_menu_draw(&ui_main_menu, &app_state, &error, &user_db, &current_user);

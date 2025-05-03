@@ -15,6 +15,7 @@
 #include "app_state.h"
 #include "db/db_manager.h"
 #include "error_handling.h"
+#include "ui/ui_base.h"
 #include "ui_elements/button.h"
 #include "ui_elements/textbox.h"
 #include "ui_elements/textboxsecret.h"
@@ -43,6 +44,8 @@ enum login_screen_flags {
  * Manages all interactive elements for the authentication interface.
  */
 struct ui_login {
+    struct ui_base base;               ///< Base ui methods/functionality
+    struct user *current_user;         ///< Pointer to the current user struct
     struct textbox tb_username;        ///< Username input field
     struct textboxsecret tbs_password; ///< Secure password input field
     struct button butn_login;          ///< Authentication submission button
@@ -55,12 +58,14 @@ struct ui_login {
  * Sets up all UI elements with default positions and security states.
  * Everything is deinitialized/set to zero once after the login screen.
  *
- * @param ui Pointer to ui_login struct to initialize
+ * @param ui Pointer to ui_login struct to initialize (knows concrete type)
+ * @param current_user Pointer to the current user struct, as it is on login, it will be zero
+ *                     and filled when the user logs in
  */
-void ui_login_init(struct ui_login *ui);
+void ui_login_init(struct ui_login *ui, struct user *current_user);
 
 /**
- * @brief Draws and manages login screen
+ * @brief Login screen rendering and interaction handling.
  *
  * Handles:
  * - Credential input rendering
@@ -68,19 +73,33 @@ void ui_login_init(struct ui_login *ui);
  * - Secure session initiation
  * - Error feedback
  *
- * @param ui Pointer to initialized ui_login struct
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to ui_login*)
  * @param state Pointer to application state (modified on success)
  * @param error Pointer to error tracking variable
  * @param user_db Pointer to user database connection
  * @param current_user Pointer to current user session struct
+ * 
+ * @warning Should be called through the base interface
  */
-void ui_login_draw(
-    struct ui_login *ui,
+void ui_login_render(
+    struct ui_base *base,
     enum app_state *state,
     enum error_code *error,
-    database *user_db,
-    struct user *current_user
+    database *user_db
 );
+
+/**
+ * @brief Handle button drawing and logic.
+ *
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to ui_login*)
+ * @param state Pointer to application state (modified on success)
+ * @param error Pointer to error tracking variable
+ * @param user_db Pointer to user database connection
+ * 
+ * @warning Should be called through the base interface
+ */
+void ui_login_handle_buttons(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db);
 
 /**
  * @brief Updates login screen positions
@@ -88,11 +107,26 @@ void ui_login_draw(
  * Adjusts UI elements based on current window dimensions.
  * Maintains proper component layout during window resizing.
  *
- * @param ui Pointer to ui_login struct to update
+ * @param base Pointer to base UI (interface) structure (can be safely cast to ui_login*)
  * 
  * @note If any ui element is initialized with window_width or window_height
  *       in their bounds, they must be updated here
+ * 
+ * @warning Should be called through the base interface
+ * 
  */
-void ui_login_updt_pos(struct ui_login *ui);
+void ui_login_updt_pos(struct ui_base *base);
+
+/**
+ * @brief Clear fields of the ui_login
+ *
+ * @param base Pointer to base UI (interface) structure (can be safely cast to ui_login*)
+ * 
+ * @note It is necessary to clear any sensitive data on implementation
+ * 
+ * @warning Should be called through the base interface
+ * 
+ */
+void ui_login_clear_fields(struct ui_base *base);
 
 #endif // UI_LOGIN_H
