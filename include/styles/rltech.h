@@ -11,6 +11,8 @@
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
+
 #define RLTECH_STYLE_PROPS_COUNT  16
 
 // Custom style name: RLTech

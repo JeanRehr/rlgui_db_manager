@@ -11,6 +11,8 @@
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
+
 #define LIGHT_STYLE_PROPS_COUNT  3
 
 // Custom style name: Light

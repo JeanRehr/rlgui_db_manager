@@ -11,6 +11,8 @@
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
+
 #define AMBER_STYLE_PROPS_COUNT  19
 
 // Custom style name: Amber

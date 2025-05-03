@@ -11,6 +11,8 @@
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
+
 #define CYBER_STYLE_PROPS_COUNT  17
 
 // Custom style name: Cyber

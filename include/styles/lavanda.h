@@ -11,6 +11,8 @@
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
+
 #define LAVANDA_STYLE_PROPS_COUNT  17
 
 // Custom style name: Lavanda

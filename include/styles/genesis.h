@@ -11,6 +11,8 @@
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
+
 #define GENESIS_STYLE_PROPS_COUNT  23
 
 // Custom style name: Genesis

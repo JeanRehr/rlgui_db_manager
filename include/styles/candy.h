@@ -11,6 +11,8 @@
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
+
 #define CANDY_STYLE_PROPS_COUNT  17
 
 // Custom style name: Candy

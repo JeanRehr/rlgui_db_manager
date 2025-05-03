@@ -11,6 +11,8 @@
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
+
 #define SUNNY_STYLE_PROPS_COUNT  33
 
 // Custom style name: Sunny
