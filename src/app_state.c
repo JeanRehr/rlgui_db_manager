@@ -1,6 +1,6 @@
 #include "app_state.h"
 
-const char* app_state_to_string(const enum app_state const *state) {
+const char* app_state_to_string(const enum app_state *const state) {
     switch (*state) {
     case STATE_LOGIN_MENU:
         return "Login Menu";

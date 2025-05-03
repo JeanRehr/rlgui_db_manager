@@ -67,8 +67,10 @@ enum app_state {
 /**
  * @brief Returns a string based on the state screen of the app
  *
- * @param state Pointer to the current state of the app
+ * @param state Pointer to the current state of the app both the pointed-to data is const
+ *              (can't modify the enum value through the pointer) and the pointer is const
+ *              (can't change what it points to)
  */
-const char* app_state_to_string(const enum app_state const *state);
+const char *app_state_to_string(const enum app_state *const state);
 
 #endif // APP_STATE_H
