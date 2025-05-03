@@ -65,7 +65,7 @@ int resident_db_insert(
 
     struct tm *curr_time = localtime(&now);
 
-    char date_string[11];
+    char date_string[32]; // Increased buffer to supress warning
     snprintf(
         date_string,
         sizeof(date_string),
