@@ -18,6 +18,13 @@ typedef void (*render_fn)(struct ui_base *base, enum app_state *state, enum erro
 
 typedef void (*handle_buttons_fn)(struct ui_base *base, enum app_state *state, enum error_code *error, database *db);
 
+typedef void (*handle_warning_msg_fn)(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *db
+);
+
 typedef void (*update_positions_fn)(struct ui_base *base);
 
 typedef void (*clear_fields_fn)(struct ui_base *base);
@@ -51,6 +58,21 @@ struct ui_base {
      * 
      */
     handle_buttons_fn handle_buttons;
+
+    /**
+     * @brief Manages button logic handling
+     * 
+     * @param base Pointer to the base (interface) UI, can be safely cast to any other UI
+     * @param state Pointer to the current app_state screen (may be modified)
+     * @param error Pointer to the current error code (may be modified)
+     * @param db Pointer to the database for operations
+     * 
+     * @note Every screen needs to show at least 1 message, but a default is provided if this is not true.
+     *       Some warning messages will do database operations, such as confirming for deletion, update passwd, etc,
+     *       that's the reason for the db pointer
+     * 
+     */
+    handle_warning_msg_fn handle_warning_msg;
 
     /**
      * @brief Updates screen element positions

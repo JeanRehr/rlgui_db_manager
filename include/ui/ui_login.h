@@ -81,16 +81,10 @@ void ui_login_init(struct ui_login *ui, struct user *current_user);
  * 
  * @warning Should be called through the base interface
  */
-void ui_login_render(
-    struct ui_base *base,
-    enum app_state *state,
-    enum error_code *error,
-    database *user_db
-);
+void ui_login_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db);
 
 /**
  * @brief Handle button drawing and logic.
- *
  *
  * @param base Pointer to base UI (implements interface) structure (can be safely cast to ui_login*)
  * @param state Pointer to application state (modified on success)
@@ -100,6 +94,26 @@ void ui_login_render(
  * @warning Should be called through the base interface
  */
 void ui_login_handle_buttons(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db);
+
+/**
+ * @brief Manages warning message display and response handling.
+ * 
+ * Shows appropriate warning messages based on login attempt flags,
+ * handles user responses, and triggers follow-up actions.
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to ui_login*)
+ * @param state Pointer to application state (modified on success)
+ * @param error Pointer to error tracking variable
+ * @param user_db Pointer to user database connection
+ * 
+ * @warning Should be called through the base interface
+ */
+void ui_login_handle_warning_msg(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db
+);
 
 /**
  * @brief Updates login screen positions
