@@ -26,6 +26,7 @@ enum error_code {
     ERROR_INSERT_DB,         ///< Failed to insert database record
     ERROR_UPDATE_DB,         ///< Failed to update database record
     ERROR_DELETE_DB,         ///< Failed to delete database record
+    ERROR_DB_STMT,           ///< Failed to do a SQL statement maybe, check stderr or stdout
 };
 
 #endif // ERROR_HANDLING_H
