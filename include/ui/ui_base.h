@@ -85,6 +85,8 @@ struct ui_base {
      * @note If any ui element is initialized with window_width or window_height
      *       in their bounds, they must be updated here
      * 
+     * @warning Should only be called when a change to the window size is detected
+     * 
      */
     update_positions_fn update_positions;
 

@@ -47,7 +47,6 @@ void ui_persistent_init(struct ui_persistent *ui);
  * @param ui Pointer to initialized ui_persistent struct
  * @param current_user Pointer to current user session data
  * @param state Pointer to application state (may be modified for logout)
- * @param active_style Pointer to current GUI style index (may be modified)
  */
 void ui_persistent_draw(struct ui_persistent *ui, struct user *current_user, enum app_state *state);
 
