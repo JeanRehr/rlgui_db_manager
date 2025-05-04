@@ -29,14 +29,6 @@ struct ui_login_db_action_info {
     };
 };
 
-static void handle_login_button(
-    struct ui_login *ui,
-    enum app_state *state,
-    enum error_code *error,
-    database *user_db,
-    struct user *current_user
-);
-
 /**
  * @internal
  * @brief Processes database actions triggered by warning messages
@@ -60,11 +52,19 @@ static void process_db_action_in_warning(
     struct ui_login_db_action_info *action
 );
 
+static void handle_login_button(
+    struct ui_login *ui,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db,
+    struct user *current_user
+);
+
 // Public functions
 
 void ui_login_init(struct ui_login *ui, struct user *current_user) {
     // Initialize base
-    ui_base_init_defaults(&ui->base);
+    ui_base_init_defaults(&ui->base, "ui_login.c");
     // Override methods
     ui->base.render = ui_login_render;
     ui->base.handle_buttons = ui_login_handle_buttons;
@@ -117,6 +117,7 @@ void ui_login_handle_buttons(struct ui_base *base, enum app_state *state, enum e
     struct ui_login *ui = (struct ui_login *)base;
     if (button_draw_updt(&ui->butn_login) || IsKeyPressed(KEY_ENTER)) {
         handle_login_button(ui, state, error, user_db, ui->current_user);
+        return;
     }
 }
 
