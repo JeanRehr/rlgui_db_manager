@@ -7,7 +7,7 @@ static void ui_default_render(struct ui_base *base, enum app_state *state, enum 
     (void)state;
     (void)error;
     (void)db;
-    printf("RENDER NOT IMPLEMENTED FOR THIS SCREEN\n");
+    fprintf(stderr, "Render not implemented for [%s]\n", base->type_name);
 }
 
 static void
@@ -16,7 +16,7 @@ ui_default_handle_buttons(struct ui_base *base, enum app_state *state, enum erro
     (void)state;
     (void)error;
     (void)db;
-    printf("HANDLE BUTTONS NOT IMPLEMENTED FOR THIS SCREEN\n");
+    fprintf(stderr, "Handle buttons not implemented for [%s]\n", base->type_name);
 }
 
 static void
@@ -25,21 +25,22 @@ ui_default_handle_warning_msg(struct ui_base *base, enum app_state *state, enum 
     (void)state;
     (void)error;
     (void)db;
-    printf("HANDLE WARNING MSGS NOT IMPLEMENTED FOR THIS SCREEN\n");
+    fprintf(stderr, "Handle warning msgs not implemented for [%s]\n", base->type_name);
 }
 
 static void ui_default_update_positions(struct ui_base *base) {
     (void)base;
-    printf("UPDATE POSITIONS NOT IMPLEMENTED FOR THIS SCREEN\n");
+    fprintf(stderr, "Update positions not implemented for [%s]\n", base->type_name);
 }
 
 static void ui_default_clear_fields(struct ui_base *base) {
     (void)base;
-    printf("CLEAR FIELDS NOT IMPLEMENTED FOR THIS SCREEN\n");
+    fprintf(stderr, "Clear fields not implemented for [%s]\n", base->type_name);
 }
 
-void ui_base_init_defaults(struct ui_base *base) {
+void ui_base_init_defaults(struct ui_base *base, const char *type_name) {
     *base = (struct ui_base) {
+        .type_name = type_name,
         .render = ui_default_render,
         .handle_buttons = ui_default_handle_buttons,
         .handle_warning_msg = ui_default_handle_warning_msg,

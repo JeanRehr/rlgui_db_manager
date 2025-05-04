@@ -30,6 +30,8 @@ typedef void (*update_positions_fn)(struct ui_base *base);
 typedef void (*clear_fields_fn)(struct ui_base *base);
 
 struct ui_base {
+    const char* type_name; ///< name of the struct that is using the base interface
+
     /**
      * @brief Draws and handles interactions for the UI screen
      * 
@@ -103,6 +105,6 @@ struct ui_base {
  * @note Does not implement anything useful, just makes it so that anything not implemented in a derived struct
  *       does not lead to a runtime crash
  */
-void ui_base_init_defaults(struct ui_base *base);
+void ui_base_init_defaults(struct ui_base *base, const char *type_name);
 
 #endif // UI_BASE_H
