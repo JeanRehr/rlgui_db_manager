@@ -1,26 +1,15 @@
 #include <external/raylib/raygui.h>
 
-#include "ui/ui_main_menu.h"
+#include "db/user_db.h"
 #include "globals.h"
+#include "ui/ui_main_menu.h"
 #include "utilsfn.h"
 
-/**
- * @brief Private function to handle the button actions.
- * Simple actions like only changing state are made directly here.
- * 
- * @param ui Pointer to ui_main_menu struct to handle button action
- * @param state Pointer to the state of the app
- * @param error Pointer to the error code
- * @param user_db Pointer to the user_db database
- * @param current_user Pointer to the current_user to check if it has permission agains the database
- */
-static void handle_button_actions(
-    struct ui_main_menu *ui,
-    enum app_state *state,
-    enum error_code *error,
-    database *user_db,
-    struct user *current_user
-);
+// Forward declarations
+
+static void handle_manage_resident_button(enum app_state *state);
+
+static void handle_manage_food_button(enum app_state *state);
 
 static void handle_create_user_button(
     struct ui_main_menu *ui,
@@ -30,10 +19,21 @@ static void handle_create_user_button(
     struct user *current_user
 );
 
-static void show_warning_messages(struct ui_main_menu *ui, enum error_code *error);
+// Public functions
 
-void ui_main_menu_init(struct ui_main_menu *ui) {
-    ui->reg_resident_butn = button_init((Rectangle) { 100, 100, 200, 50 }, "Manage Persons");
+void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
+    // Initialize base
+    ui_base_init_defaults(&ui->base, "Main Menu");
+    // Override methods
+    ui->base.render = ui_main_menu_render;
+    ui->base.handle_buttons = ui_main_menu_handle_buttons;
+    ui->base.handle_warning_msg = ui_main_menu_handle_warning_msg;
+
+    // Initialize ui specific fields
+
+    ui->current_user = current_user;
+
+    ui->reg_resident_butn = button_init((Rectangle) { 100, 100, 200, 50 }, "Manage Residents");
 
     ui->reg_food_butn = button_init(
         (Rectangle) { ui->reg_resident_butn.bounds.x, ui->reg_resident_butn.bounds.y + 100, 200, 50 },
@@ -48,71 +48,51 @@ void ui_main_menu_init(struct ui_main_menu *ui) {
     ui->flag = 0;
 }
 
-void ui_main_menu_draw(
-    struct ui_main_menu *ui,
-    enum app_state *state,
-    enum error_code *error,
-    database *user_db,
-    struct user *current_user
-) {
-    // Start draw UI elements
+void ui_main_menu_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db) {
+    struct ui_main_menu *ui = (struct ui_main_menu *)base;
 
-    // Start button actions
-    handle_button_actions(ui, state, error, user_db, current_user);
+    ui->base.handle_buttons(&ui->base, state, error, user_db);
 
-    // Start show warning/error boxes
-    show_warning_messages(ui, error);
+    ui->base.handle_warning_msg(&ui->base, state, error, user_db);
 }
 
-static void handle_button_actions(
-    struct ui_main_menu *ui,
+void ui_main_menu_handle_buttons(
+    struct ui_base *base,
     enum app_state *state,
     enum error_code *error,
-    database *user_db,
-    struct user *current_user
+    database *user_db
 ) {
+    struct ui_main_menu *ui = (struct ui_main_menu *)base;
+
     if (button_draw_updt(&ui->reg_resident_butn)) {
-        *state = STATE_REGISTER_RESIDENT;
+        handle_manage_resident_button(state);
         return;
     }
 
     if (button_draw_updt(&ui->reg_food_butn)) {
-        *state = STATE_REGISTER_FOOD;
+        handle_manage_food_button(state);
         return;
     }
 
     if (button_draw_updt(&ui->create_user_butn)) {
-        handle_create_user_button(ui, state, error, user_db, current_user);
-        /** @todo user db validation
-         * Can do the validation two ways:
-         * - check if current_user.is_admin; or
-         * - check with the database if current username is_admin on the database
-         * 
-         * first option can easily be tempered with cheating tools
-         */
-    }
-}
-
-static void handle_create_user_button(
-    struct ui_main_menu *ui,
-    enum app_state *state,
-    enum error_code *error,
-    database *user_db,
-    struct user *current_user
-) {
-    // Clear any previous flag
-    CLEAR_FLAG(&ui->flag, FLAG_MAIN_MENU_WARN_NOT_ADMIN);
-
-    bool is_admin = user_db_check_admin_status(user_db, current_user->username);
-    if (!is_admin) {
-        SET_FLAG(&ui->flag, FLAG_MAIN_MENU_WARN_NOT_ADMIN);
+        handle_create_user_button(ui, state, error, user_db, ui->current_user);
         return;
     }
-
-    *state = STATE_CREATE_USER;
 }
 
-static void show_warning_messages(struct ui_main_menu *ui, enum error_code *error) {
+void ui_main_menu_handle_warning_msg(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db
+) {
+    // Explicitly mark as unused
+    (void)state;
+    (void)error;
+    (void)user_db;
+
+    struct ui_main_menu *ui = (struct ui_main_menu *)base;
+
     const char *message = NULL;
     enum main_menu_screen_flags flag_to_clear = 0;
 
@@ -137,4 +117,33 @@ static void show_warning_messages(struct ui_main_menu *ui, enum error_code *erro
     }
 }
 
-void ui_main_menu_updt_pos(struct ui_main_menu *ui) {}
+// Private (static) functions
+
+static void handle_manage_resident_button(enum app_state *state) {
+    *state = STATE_REGISTER_RESIDENT;
+}
+
+static void handle_manage_food_button(enum app_state *state) {
+    *state = STATE_REGISTER_FOOD;
+}
+
+static void handle_create_user_button(
+    struct ui_main_menu *ui,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db,
+    struct user *current_user
+) {
+    (void)error; // Explicitly mark as unused
+
+    // Clear any previous flag
+    CLEAR_FLAG(&ui->flag, FLAG_MAIN_MENU_WARN_NOT_ADMIN);
+
+    bool is_admin = user_db_check_admin_status(user_db, current_user->username);
+    if (!is_admin) {
+        SET_FLAG(&ui->flag, FLAG_MAIN_MENU_WARN_NOT_ADMIN);
+        return;
+    }
+
+    *state = STATE_CREATE_USER;
+}

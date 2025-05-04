@@ -123,7 +123,7 @@ int main() {
     ui_login_init(&ui_login, &current_user);
 
     struct ui_main_menu ui_main_menu = { 0 }; ///< Main menu interface
-    ui_main_menu_init(&ui_main_menu);
+    ui_main_menu_init(&ui_main_menu, &current_user);
 
     struct ui_resident ui_resident = { 0 }; ///< Resident management interface
     ui_resident_init(&ui_resident);
@@ -167,7 +167,7 @@ int main() {
             ui_login.base.render(&ui_login.base, &app_state, &error, &user_db);
             break;
         case STATE_MAIN_MENU:
-            ui_main_menu_draw(&ui_main_menu, &app_state, &error, &user_db, &current_user);
+            ui_main_menu.base.render(&ui_main_menu.base, &app_state, &error, &user_db);
             break;
         case STATE_REGISTER_RESIDENT:
             ui_resident_draw(&ui_resident, &app_state, &error, &resident_db);
