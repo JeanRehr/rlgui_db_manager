@@ -29,6 +29,8 @@ typedef void (*update_positions_fn)(struct ui_base *base);
 
 typedef void (*clear_fields_fn)(struct ui_base *base);
 
+typedef void (*cleanup_fn)(struct ui_base *base);
+
 struct ui_base {
     const char* type_name; ///< name of the struct that is using the base interface
 
@@ -97,6 +99,14 @@ struct ui_base {
      * 
      */
     clear_fields_fn clear_fields;
+
+    /**
+     * @brief Freeing of any necessary memory that the derived struct needs
+     * 
+     * @param base Pointer to the base (interface) UI, can be safely cast to any other UI
+     * 
+     */
+    cleanup_fn cleanup;
 };
 
 /**

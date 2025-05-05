@@ -38,6 +38,11 @@ static void ui_default_clear_fields(struct ui_base *base) {
     fprintf(stderr, "Clear fields not implemented for [%s]\n", base->type_name);
 }
 
+static void ui_default_cleanup(struct ui_base *base) {
+    (void)base;
+    fprintf(stderr, "Cleanup not implemented for [%s]\n", base->type_name);
+}
+
 void ui_base_init_defaults(struct ui_base *base, const char *type_name) {
     *base = (struct ui_base) {
         .type_name = type_name,
@@ -46,5 +51,6 @@ void ui_base_init_defaults(struct ui_base *base, const char *type_name) {
         .handle_warning_msg = ui_default_handle_warning_msg,
         .update_positions = ui_default_update_positions,
         .clear_fields = ui_default_clear_fields,
+        .cleanup = ui_default_cleanup,
     };
 }
