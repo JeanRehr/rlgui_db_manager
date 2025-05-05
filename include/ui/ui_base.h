@@ -1,8 +1,14 @@
 /**
  * @file ui_base.h
- * @brief Base UI Screen Structure
+ * @brief Base UI interface for all screens (polymorphic behavior)
+ * 
+ * Provides function pointers for common UI operations:
+ * - Rendering and interaction
+ * - Dynamic positioning
+ * - Resource cleanup
+ * 
+ * @note All derived screens (screens that either embed or has a pointer to ui_base) must implement these callbacks.
  */
-
 #ifndef UI_BASE_H
 #define UI_BASE_H
 
@@ -13,11 +19,25 @@
 // Forward declaration
 struct ui_base;
 
-// Function pointer typedefs
+/**
+ * @brief Function pointer for rendering and handling UI interactions.
+ * @param base  Base UI struct (castable to derived screens)
+ * @param state Application state (may be modified)
+ * @param error Error tracking (may be modified)
+ * @param db    Database connection for UI operations
+ */
 typedef void (*render_fn)(struct ui_base *base, enum app_state *state, enum error_code *error, database *db);
 
+/**
+ * @brief Function pointer for button state management.
+ * @note Combines drawing and interaction handling (immediate-mode GUI pattern).
+ */
 typedef void (*handle_buttons_fn)(struct ui_base *base, enum app_state *state, enum error_code *error, database *db);
 
+/**
+ * @brief Function pointer for warning/confirmation dialogs.
+ * @note May trigger database operations (e.g., deletions, updates).
+ */
 typedef void (*handle_warning_msg_fn)(
     struct ui_base *base,
     enum app_state *state,
@@ -25,97 +45,49 @@ typedef void (*handle_warning_msg_fn)(
     database *db
 );
 
+/**
+ * @brief Function pointer for updating UI element positions.
+ * @warning Call only on window resize events.
+ */
 typedef void (*update_positions_fn)(struct ui_base *base);
 
+/**
+ * @brief Function pointer for resetting input fields.
+ */
 typedef void (*clear_fields_fn)(struct ui_base *base);
 
+/**
+ * @brief Function pointer for freeing screen-specific resources.
+ * @details Must deallocate any memory owned by derived screens (e.g., buffers, dynamic UI elements).
+ */
 typedef void (*cleanup_fn)(struct ui_base *base);
 
+/**
+ * @brief Base UI structure for polymorphic screen behavior.
+ * 
+ * All derived screens must:
+ * 1. Embed this struct as their first member.
+ * 2. Implement the function pointers in their init function.
+ * 
+ */
 struct ui_base {
-    const char* type_name; ///< name of the struct that is using the base interface
+    const char *type_name; ///< Name of the derived screen type (for debugging)
 
-    /**
-     * @brief Draws and handles interactions for the UI screen
-     * 
-     * @param base Pointer to the base (interface) UI, can be safely cast to any other UI
-     * @param state Pointer to the current app_state screen (may be modified)
-     * @param error Pointer to the current error code (may be modified)
-     * @param db Pointer to the database for operations
-     * 
-     * @note Follows raygui's immediate-mode pattern where drawing 
-     *       and interaction handling are combined in one operation
-     * 
-     */
-    render_fn render;
-
-    /**
-     * @brief Manages button logic handling
-     * 
-     * @param base Pointer to the base (interface) UI, can be safely cast to any other UI
-     * @param state Pointer to the current app_state screen (may be modified)
-     * @param error Pointer to the current error code (may be modified)
-     * @param db Pointer to the database for operations
-     * 
-     * @note Follows raygui's immediate-mode pattern where drawing and interaction handling
-     *       are combined in one operation, so this will also draw buttons, every screen
-     *       will have either a back button or login button (ui login screen)
-     * 
-     */
-    handle_buttons_fn handle_buttons;
-
-    /**
-     * @brief Manages button logic handling
-     * 
-     * @param base Pointer to the base (interface) UI, can be safely cast to any other UI
-     * @param state Pointer to the current app_state screen (may be modified)
-     * @param error Pointer to the current error code (may be modified)
-     * @param db Pointer to the database for operations
-     * 
-     * @note Every screen needs to show at least 1 message, but a default is provided if this is not true.
-     *       Some warning messages will do database operations, such as confirming for deletion, update passwd, etc,
-     *       that's the reason for the db pointer
-     * 
-     */
-    handle_warning_msg_fn handle_warning_msg;
-
-    /**
-     * @brief Updates screen element positions
-     * Adjusts UI elements based on current window dimensions.
-     * 
-     * @param base Pointer to the base (interface) UI, can be safely cast to any other UI
-     * 
-     * @note If any ui element is initialized with window_width or window_height
-     *       in their bounds, they must be updated here
-     * 
-     * @warning Should only be called when a change to the window size is detected
-     * 
-     */
-    update_positions_fn update_positions;
-
-    /**
-     * @brief Clear any necessary fields in a screen
-     * 
-     * @param base Pointer to the base (interface) UI, can be safely cast to any other UI
-     * 
-     */
-    clear_fields_fn clear_fields;
-
-    /**
-     * @brief Freeing of any necessary memory that the derived struct needs
-     * 
-     * @param base Pointer to the base (interface) UI, can be safely cast to any other UI
-     * 
-     */
-    cleanup_fn cleanup;
+    render_fn render;                         ///< Combined render/interaction handler
+    handle_buttons_fn handle_buttons;         ///< Button state manager
+    handle_warning_msg_fn handle_warning_msg; ///< Dialog handler
+    update_positions_fn update_positions;     ///< Layout updater (window resize)
+    clear_fields_fn clear_fields;             ///< Input field reset
+    cleanup_fn cleanup;                       ///< Resource deallocator
 };
 
 /**
- * @brief Base constructor for default behavior
+ * @brief Initializes a ui_base struct with default no-op implementations.
  * 
- * @param base Pointer to the base struct
+ * @param base       Uninitialized base struct
+ * @param type_name  Identifier for the derived screen (e.g. ui_login)
  * 
- * @note Does not implement anything useful, just makes it so that anything not implemented in a derived struct
- *       does not lead to a runtime crash
+ * @warning Derived screens MUST override these defaults with their own implementations.
  */
 void ui_base_init_defaults(struct ui_base *base, const char *type_name);
 
