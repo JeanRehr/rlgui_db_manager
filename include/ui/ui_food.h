@@ -15,6 +15,8 @@
 #include "db/db_manager.h"
 #include "error_handling.h"
 #include "foodbatch.h"
+#include "ui_base.h"
+#include "ui_elements/scrollpanel.h"
 #include "ui_elements/button.h"
 #include "ui_elements/checkbox.h"
 #include "ui_elements/floatbox.h"
@@ -43,6 +45,8 @@ enum food_screen_flags {
  * food inventory records.
  */
 struct ui_food {
+    struct ui_base base; ///< Base ui methods/functionality
+
     struct intbox ib_batch_id;        ///< Unique batch identifier input
     struct textbox tb_name;           ///< Food name description
     struct intbox ib_quantity;        ///< Current stock quantity
@@ -63,40 +67,20 @@ struct ui_food {
 
     Rectangle panel_bounds;               ///< Information display panel
     struct foodbatch foodbatch_retrieved; ///< Currently displayed record
-    enum food_screen_flags flag;          ///< Current operation flags
+
+    struct scrollpanel table_view; ///< A scrollpanel to view the resident's database
+    char *table_content;           ///< The content of the resident's database (MUST BE FREED IF ALLOCATED)
+
+    enum food_screen_flags flag; ///< Current operation flags
 };
 
 /**
  * @brief Initializes food management screen
  *
- * Sets up all UI elements with default positions and values.
+ * Sets up base interface overrides and all UI elements with default positions and values.
  *
  * @param ui Pointer to ui_food struct to initialize
  */
 void ui_food_init(struct ui_food *ui);
-
-/**
- * @brief Draws and manages food management screen
- *
- * Handles rendering and interaction for all screen elements.
- *
- * @param ui Pointer to initialized ui_food struct
- * @param state Pointer to application state (may be modified)
- * @param error Pointer to error tracking variable
- * @param foodbatch_db Pointer to food batch database connection
- */
-void ui_food_draw(struct ui_food *ui, enum app_state *state, enum error_code *error, database *foodbatch_db);
-
-/**
- * @brief Updates screen element positions
- *
- * Adjusts UI elements based on current window dimensions.
- *
- * @param ui Pointer to ui_food struct to update
- *
- * @note If any ui element is initialized with window_width or window_height
- *       in their bounds, they must be updated here
- */
-void ui_food_updt_pos(struct ui_food *ui);
 
 #endif // UI_FOOD_H

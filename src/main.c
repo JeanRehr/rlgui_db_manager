@@ -148,7 +148,7 @@ int main() {
             update_window_size(GetScreenWidth(), GetScreenHeight());
             ui_login.base.update_positions(&ui_login.base);
             ui_resident.base.update_positions(&ui_resident.base);
-            ui_food_updt_pos(&ui_food);
+            ui_food.base.update_positions(&ui_food.base);
             ui_persistent_updt_pos(&ui_persistent);
         }
 
@@ -174,7 +174,7 @@ int main() {
             ui_resident.base.render(&ui_resident.base, &app_state, &error, &resident_db);
             break;
         case STATE_REGISTER_FOOD:
-            ui_food_draw(&ui_food, &app_state, &error, &foodbatch_db);
+            ui_food.base.render(&ui_food, &app_state, &error, &foodbatch_db);
             break;
         case STATE_CREATE_USER:
             ui_create_user_draw(&ui_create_user, &app_state, &error, &user_db);
