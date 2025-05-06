@@ -1,6 +1,7 @@
 #include "db/foodbatch_db.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 int foodbatch_db_create_table(database *db) {
@@ -259,6 +260,269 @@ bool foodbatch_db_check_batchid_exists(database *db, int batch_id) {
 
     sqlite3_finalize(stmt);
     return exists;
+}
+
+int foodbatch_db_get_count(database *db) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return -1;
+    }
+
+    const char *sql = "SELECT COUNT(*) FROM FoodBatch;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return -1;
+    }
+
+    int count = 0;
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return count;
+}
+
+int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return -1;
+    }
+
+    if (!buffer || buffer_size == 0) {
+        fprintf(stderr, "Invalid buffer provided.\n");
+        return -1;
+    }
+
+    const char *sql = "SELECT * FROM FoodBatch;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return -1;
+    }
+
+    // Initialize buffer with empty string
+    buffer[0] = '\0';
+    size_t written = 0;
+
+    // Format header
+    const char *header =
+        "+---------------------------------------------------------------------------------------------------+\n"
+        "| BatchId | Name                             | Quantity | Perishable | Expiration date | Daily Rate |\n"
+        "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+
+    // Write header if there's space
+    size_t header_len = strlen(header);
+    if (written + header_len < buffer_size) {
+        strcpy(buffer + written, header);
+        written += header_len;
+    } else {
+        // Truncate but ensure null termination
+        if (buffer_size > 0) {
+            strncpy(buffer, header, buffer_size - 1);
+            buffer[buffer_size - 1] = '\0';
+        }
+        sqlite3_finalize(stmt);
+        fprintf(stderr, "Header truncated\n");
+        return -1;
+    }
+
+    // Process each row
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        int batch_id = sqlite3_column_int(stmt, 0);
+        const char *name = (const char *)sqlite3_column_text(stmt, 1);
+        int quantity = sqlite3_column_int(stmt, 2);
+        int is_perishable = sqlite3_column_int(stmt, 3);
+        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 4);
+        float daily_consumption_rate = (float)sqlite3_column_double(stmt, 5);
+
+        // Format the row
+        char row[1024];
+        snprintf(
+            row,
+            sizeof(row),
+            "| %7d | %-32s | %-8d | %-10s | %-15s | %-10.2f |\n",
+            batch_id,
+            name,
+            quantity,
+            (is_perishable == 0 ? "False" : "True"),
+            expiration_date,
+            daily_consumption_rate
+        );
+
+        size_t row_len = strlen(row);
+        if (written + row_len < buffer_size) {
+            strcpy(buffer + written, row);
+            written += row_len;
+        } else {
+            // Truncate but ensure null termination
+            if (buffer_size > 0) {
+                strncpy(buffer, row, buffer_size - 1);
+                buffer[buffer_size - 1] = '\0';
+            }
+            sqlite3_finalize(stmt);
+            fprintf(stderr, "Row truncated\n");
+            return -1;
+        }
+
+        // Add separator line
+        const char *separator = "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+
+        size_t separator_len = strlen(separator);
+        if (written + separator_len < buffer_size) {
+            strcpy(buffer + written, separator);
+            written += separator_len;
+        } else {
+            // Truncate but ensure null termination
+            if (buffer_size > 0) {
+                strncpy(buffer, separator, buffer_size - 1);
+                buffer[buffer_size - 1] = '\0';
+            }
+            sqlite3_finalize(stmt);
+            fprintf(stderr, "Separator truncated\n");
+            return -1;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute query: %s\n", sqlite3_errmsg(db->db));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    return written;
+}
+
+char *foodbatch_db_get_all_format_old(database *db) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return NULL;
+    }
+
+    const char *sql = "SELECT * FROM FoodBatch;";
+    sqlite3_stmt *stmt;
+
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return NULL;
+    }
+
+    // Header will always needs 307 bytes and each row + separator will need at max 455 with the current table and format
+
+    // Initial buffer
+    size_t buffer_size = 1024;
+    char *result = malloc(buffer_size);
+    if (!result) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+    result[0] = '\0';                     // Initialize empty string
+    size_t total_allocated = buffer_size; // Track total bytes allocated
+
+    // Append header to the result string
+    const char *header =
+        "+---------------------------------------------------------------------------------------------------+\n"
+        "| BatchId | Name                             | Quantity | Perishable | Expiration date | Daily Rate |\n"
+        "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+
+    // Check if buffer is large enough for the header
+    if (strlen(header) + 1 > buffer_size) {
+        buffer_size = strlen(header) + 1;
+        result = realloc(result, buffer_size);
+        printf("REALLOC CALLED DURING HEADER!\n");
+        if (!result) {
+            fprintf(stderr, "Memory reallocation failed.\n");
+            sqlite3_finalize(stmt);
+            return NULL;
+        }
+        total_allocated += (buffer_size - total_allocated); // Update total allocated
+    }
+    strcpy(result, header);
+
+    // Process each row
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        int batch_id = sqlite3_column_int(stmt, 0);
+        const char *name = (const char *)sqlite3_column_text(stmt, 1);
+        int quantity = sqlite3_column_int(stmt, 2);
+        int is_perishable = sqlite3_column_int(stmt, 3);
+        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 4);
+        float daily_consumption_rate = (float)sqlite3_column_double(stmt, 5);
+
+        // Format the row
+        char row[1024];
+        snprintf(
+            row,
+            sizeof(row),
+            "| %7d | %-32s | %-8d | %-10s | %-15s | %-10.2f |\n",
+            batch_id,
+            name,
+            quantity,
+            (is_perishable == 0 ? "False" : "True"),
+            expiration_date,
+            daily_consumption_rate
+        );
+
+        // Check if buffer needs to grow
+        size_t required_size = strlen(result) + strlen(row) + 1;
+        if (required_size > buffer_size) {
+            size_t old_size = buffer_size;
+            buffer_size = required_size * 2; // Double the buffer to reduce realloc calls
+            char *new_result = realloc(result, buffer_size);
+            printf("REALLOC CALLED DURING ROW FORMATTING!\n");
+            if (!new_result) {
+                fprintf(stderr, "Memory reallocation failed.\n");
+                free(result);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            result = new_result;
+            total_allocated += (buffer_size - old_size); // Update total allocated
+        }
+
+        // Append the row to the result
+        strcat(result, row);
+
+        // Add separator line
+        const char *separator =
+            "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+
+        required_size = strlen(result) + strlen(separator) + 1;
+        if (required_size > buffer_size) {
+            size_t old_size = buffer_size;
+            buffer_size = required_size * 2;
+            char *new_result = realloc(result, buffer_size);
+            printf("REALLOC CALLED DURING SEPARATOR!\n");
+            if (!new_result) {
+                fprintf(stderr, "Memory reallocation failed.\n");
+                free(result);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            result = new_result;
+            total_allocated += (buffer_size - old_size); // Update total allocated
+        }
+        strcat(result, separator);
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute query: %s\n", sqlite3_errmsg(db->db));
+        free(result);
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+
+    sqlite3_finalize(stmt);
+    printf("Total bytes allocated: %llu\n", total_allocated);
+    return result; // Caller must free() this memory!
 }
 
 int foodbatch_db_get_all(database *db) {
