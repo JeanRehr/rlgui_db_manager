@@ -10,6 +10,7 @@
  *
  * @note Uses Raylib+Raygui for graphics and GUI
  * @note Uses SQLite3 for database operations
+ * @note Uses OpenSSL for crypto
  */
 
 #include <external/raylib/raylib.h>
@@ -146,7 +147,7 @@ int main() {
         if (IsWindowResized()) {
             update_window_size(GetScreenWidth(), GetScreenHeight());
             ui_login.base.update_positions(&ui_login.base);
-            ui_resident_updt_pos(&ui_resident);
+            ui_resident.base.update_positions(&ui_resident.base);
             ui_food_updt_pos(&ui_food);
             ui_persistent_updt_pos(&ui_persistent);
         }
@@ -170,7 +171,7 @@ int main() {
             ui_main_menu.base.render(&ui_main_menu.base, &app_state, &error, &user_db);
             break;
         case STATE_REGISTER_RESIDENT:
-            ui_resident_draw(&ui_resident, &app_state, &error, &resident_db);
+            ui_resident.base.render(&ui_resident.base, &app_state, &error, &resident_db);
             break;
         case STATE_REGISTER_FOOD:
             ui_food_draw(&ui_food, &app_state, &error, &foodbatch_db);

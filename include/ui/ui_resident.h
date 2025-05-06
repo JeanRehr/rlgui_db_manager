@@ -13,6 +13,7 @@
 #include "db/db_manager.h"
 #include "error_handling.h"
 #include "resident.h"
+#include "ui/ui_base.h"
 #include "ui_elements/button.h"
 #include "ui_elements/checkbox.h"
 #include "ui_elements/dropdownbox.h"
@@ -47,6 +48,8 @@ enum resident_screen_flags {
  * the resident registration screen.
  */
 struct ui_resident {
+    struct ui_base base; ///< Base ui methods/functionalitys
+
     struct textbox tb_name;                ///< Name input field
     struct textboxint tb_cpf;              ///< CPF input field (numeric with formatting)
     struct intbox ib_age;                  ///< Age input field
@@ -73,35 +76,10 @@ struct ui_resident {
 /**
  * @brief Initializes the resident registration screen
  *
- * Sets up all UI elements with default positions and values.
+ * Sets up base interface overrides and all UI elements with default positions and values.
  *
  * @param ui Pointer to ui_resident struct to initialize
  */
 void ui_resident_init(struct ui_resident *ui);
-
-/**
- * @brief Draws and updates the resident registration screen
- *
- * Handles rendering and interaction for all screen elements.
- *
- * @param ui Pointer to initialized ui_resident struct
- * @param state Pointer to application state (may be modified)
- * @param error Pointer to error code (may be modified)
- * @param resident_db Pointer to resident database connection
- */
-void ui_resident_draw(struct ui_resident *ui, enum app_state *state, enum error_code *error, database *resident_db);
-
-/**
- * @brief Updates element positions for window resizing
- *
- * Adjusts UI element positions based on current window dimensions.
- * Should be called when the window is resized.
- *
- * @param ui Pointer to ui_resident struct to update
- * 
- * @note If any ui element is initialized with window_width or window_height
- *       in their bounds, they must be updated here
- */
-void ui_resident_updt_pos(struct ui_resident *ui);
 
 #endif // UI_RESIDENT_H
