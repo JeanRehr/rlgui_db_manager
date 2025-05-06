@@ -115,6 +115,14 @@ bool resident_db_check_cpf_exists(database *db, const char *cpf);
 int resident_db_get_by_cpf(database *db, const char *cpf, struct resident *resident);
 
 /**
+ * @brief Gets the count of registered residents in the database
+ * 
+ * @param db Pointer to initialized database structure
+ * @return Total number of residents on success, -1 on failure
+ */
+int resident_db_get_count(database *db);
+
+/**
  * @brief Retrieves all resident records as a formatted string
  *
  * Executes a database query and formats all resident records into a human-readable

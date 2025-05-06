@@ -284,7 +284,32 @@ int resident_db_get_by_cpf(database *db, const char *cpf, struct resident *resid
     return rc;
 }
 
-char *resident_db_get_all_format(database *db) {
+int resident_db_get_count(database *db) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return -1;
+    }
+
+    const char *sql = "SELECT COUNT(*) FROM Resident;";
+    
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return -1;
+    }
+
+    int count = 0;
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return count;
+}
+
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return NULL;
