@@ -11,6 +11,8 @@
 
 #include "db_manager.h"
 #include "resident.h"
+
+#include <stddef.h>
 #include <stdbool.h>
 
 /**
@@ -123,6 +125,41 @@ int resident_db_get_by_cpf(database *db, const char *cpf, struct resident *resid
 int resident_db_get_count(database *db);
 
 /**
+ * @brief Writes all resident records as a formatted string into provided buffer
+ *
+ * Executes a database query and formats all resident records into a human-readable
+ * table structure with borders and aligned columns.
+ *
+ * @param db Pointer to initialized database connection
+ * @param buffer Pointer to buffer where formatted string will be written
+ * @param buffer_size Size of the provided buffer
+ * @return int Number of bytes written (excluding null terminator), or -1 on failure
+ *
+ * @note Header will always needs 601 bytes and each row + separator (Considering max input is 256)
+ *       will need at max 1040 with the current table and format
+ *       String format:
+ * +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ * | CPF         | Name                                       | Age | HealthStatus                               | Needs                                      | Medical Assistance | Gender | Entry Date |
+ * +-------------+--------------------------------------------+-----+--------------------------------------------+--------------------------------------------+--------------------+--------+------------+
+ * | 12345678901 | John Doe                                   | 30  | Healthy                                    | None                                       | False              | Other  | 2000-01-01 |
+ * +-------------+--------------------------------------------+-----+--------------------------------------------+--------------------------------------------+--------------------+--------+------------+
+ *
+ * @warning Returns -1 if database is not initialized, on query failure, or if buffer is too small
+ * @warning Buffer will be null-terminated if there's space, even on truncation
+ *
+ * Memory Management:
+ * - Caller provides buffer and manages its memory
+ * - Function never allocates memory
+ *
+ * Error Handling:
+ * - Checks database connection state
+ * - Validates SQL preparation
+ * - Reports SQL execution errors
+ * - Handles buffer overflow
+ */
+int resident_db_get_all_format(database *db, char *buffer, size_t buffer_size);
+
+/**
  * @brief Retrieves all resident records as a formatted string
  *
  * Executes a database query and formats all resident records into a human-readable
@@ -153,7 +190,7 @@ int resident_db_get_count(database *db);
  * - Handles memory allocation failures
  * - Reports SQL execution errors
  */
-char *resident_db_get_all_format(database *db);
+char *resident_db_get_all_format_old(database *db);
 
 /**
  * @brief Retrieves and displays all resident records

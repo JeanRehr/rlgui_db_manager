@@ -310,7 +310,127 @@ int resident_db_get_count(database *db) {
     return count;
 }
 
-char *resident_db_get_all_format(database *db) {
+int resident_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return -1;
+    }
+
+    if (!buffer || buffer_size == 0) {
+        fprintf(stderr, "Invalid buffer provided.\n");
+        return -1;
+    }
+
+    const char *sql = "SELECT * FROM Resident;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return -1;
+    }
+
+    // Initialize buffer with empty string
+    buffer[0] = '\0';
+    size_t written = 0;
+
+    // Format header
+    const char *header =
+        "+-----------------------------------------------------------------------------------------------------------"
+        "------------------------------------------------------------------------------------------+\n"
+        "| CPF         | Name                                       | Age | HealthStatus                             "
+        "  | Needs                                      | Medical Assistance | Gender | Entry Date |\n"
+        "+-------------+--------------------------------------------+-----+-------------------------------------"
+        "-----"
+        "--+--------------------------------------------+--------------------+--------+------------+\n";
+
+    // Write header if there's space
+    size_t header_len = strlen(header);
+    if (written + header_len < buffer_size) {
+        strcpy(buffer + written, header);
+        written += header_len;
+    } else {
+        // Truncate but ensure null termination
+        if (buffer_size > 0) {
+            strncpy(buffer, header, buffer_size - 1);
+            buffer[buffer_size - 1] = '\0';
+        }
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // Process each row
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        const char *cpf = (const char *)sqlite3_column_text(stmt, 0);
+        const char *name = (const char *)sqlite3_column_text(stmt, 1);
+        int age = sqlite3_column_int(stmt, 2);
+        const char *health_status = (const char *)sqlite3_column_text(stmt, 3);
+        const char *needs = (const char *)sqlite3_column_text(stmt, 4);
+        int medical_assistance = sqlite3_column_int(stmt, 5);
+        int gender = sqlite3_column_int(stmt, 6);
+        const char *entry_date = (const char *)sqlite3_column_text(stmt, 7);
+
+        // Format the row
+        char row[2048];
+        snprintf(
+            row,
+            sizeof(row),
+            "| %-11s | %-42s | %-3d | %-42s | %-42s | %-18s | %-6s | %-10s |\n",
+            cpf,
+            name,
+            age,
+            health_status,
+            needs,
+            (medical_assistance == 0 ? "False" : "True"),
+            (gender == 0 ? "Other" : (gender == 1 ? "Male" : "Female")),
+            entry_date
+        );
+
+        size_t row_len = strlen(row);
+        if (written + row_len < buffer_size) {
+            strcpy(buffer + written, row);
+            written += row_len;
+        } else {
+            // Truncate but ensure null termination
+            if (buffer_size > 0) {
+                strncpy(buffer, row, buffer_size - 1);
+                buffer[buffer_size - 1] = '\0';
+            }
+            sqlite3_finalize(stmt);
+            return -1;
+        }
+
+        // Add separator line
+        const char *separator =
+            "+-------------+--------------------------------------------+-----+-------------------------------------"
+            "-----"
+            "--+--------------------------------------------+--------------------+--------+------------+\n";
+
+        size_t separator_len = strlen(separator);
+        if (written + separator_len < buffer_size) {
+            strcpy(buffer + written, separator);
+            written += separator_len;
+        } else {
+            // Truncate but ensure null termination
+            if (buffer_size > 0) {
+                strncpy(buffer, separator, buffer_size - 1);
+                buffer[buffer_size - 1] = '\0';
+            }
+            sqlite3_finalize(stmt);
+            return -1;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute query: %s\n", sqlite3_errmsg(db->db));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    return written;
+}
+
+char *resident_db_get_all_format_old(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return NULL;
