@@ -174,7 +174,7 @@ int main() {
             ui_resident.base.render(&ui_resident.base, &app_state, &error, &resident_db);
             break;
         case STATE_REGISTER_FOOD:
-            ui_food.base.render(&ui_food, &app_state, &error, &foodbatch_db);
+            ui_food.base.render(&ui_food.base, &app_state, &error, &foodbatch_db);
             break;
         case STATE_CREATE_USER:
             ui_create_user_draw(&ui_create_user, &app_state, &error, &user_db);
