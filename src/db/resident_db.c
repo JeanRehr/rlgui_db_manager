@@ -493,7 +493,7 @@ char *resident_db_get_all_format_old(database *db) {
         const char *entry_date = (const char *)sqlite3_column_text(stmt, 7);
 
         // Format the row
-        char row[1024];
+        char row[2048];
         snprintf(
             row,
             sizeof(row),
