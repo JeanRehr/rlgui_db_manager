@@ -291,7 +291,7 @@ int resident_db_get_count(database *db) {
     }
 
     const char *sql = "SELECT COUNT(*) FROM Resident;";
-    
+
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
@@ -310,6 +310,7 @@ int resident_db_get_count(database *db) {
     return count;
 }
 
+char *resident_db_get_all_format(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return NULL;
@@ -324,35 +325,39 @@ int resident_db_get_count(database *db) {
         return NULL;
     }
 
+    // Header will always needs 601 bytes and each row + separator will need at max 1040 with the current table and format
+
     // Initial buffer
-    size_t buffer_size = 4096;
+    size_t buffer_size = 1024;
     char *result = malloc(buffer_size);
     if (!result) {
         fprintf(stderr, "Memory allocation failed.\n");
         sqlite3_finalize(stmt);
         return NULL;
     }
-    result[0] = '\0'; // Initialize empty string
+    result[0] = '\0';                     // Initialize empty string
+    size_t total_allocated = buffer_size; // Track total bytes allocated
 
     // Append header to the result string
     const char *header =
-        "+-----------------------------------------------------------------------------------------------------------"
-        "------------------------------------------------------------------------------------------+\n"
-        "| CPF         | Name                                       | Age | HealthStatus                             "
-        "  | Needs                                      | Medical Assistance | Gender | Entry Date |\n"
-        "+-------------+--------------------------------------------+-----+-------------------------------------"
-        "-----"
+        "+-------------------------------------------------------------------------------------------------------------"
+        "----------------------------------------------------------------------------------------+\n"
+        "| CPF         | Name                                       | Age | HealthStatus                               "
+        "| Needs                                      | Medical Assistance | Gender | Entry Date |"
+        "\n+-------------+--------------------------------------------+-----+------------------------------------------"
         "--+--------------------------------------------+--------------------+--------+------------+\n";
 
     // Check if buffer is large enough for the header
     if (strlen(header) + 1 > buffer_size) {
         buffer_size = strlen(header) + 1;
         result = realloc(result, buffer_size);
+        printf("REALLOC CALLED DURING HEADER!\n");
         if (!result) {
             fprintf(stderr, "Memory reallocation failed.\n");
             sqlite3_finalize(stmt);
             return NULL;
         }
+        total_allocated += (buffer_size - total_allocated); // Update total allocated
     }
     strcpy(result, header);
 
@@ -386,9 +391,10 @@ int resident_db_get_count(database *db) {
         // Check if buffer needs to grow
         size_t required_size = strlen(result) + strlen(row) + 1;
         if (required_size > buffer_size) {
+            size_t old_size = buffer_size;
             buffer_size = required_size * 2; // Double the buffer to reduce realloc calls
             char *new_result = realloc(result, buffer_size);
-            printf("REALLOC CALLED!");
+            printf("REALLOC CALLED DURING ROW FORMATTING!\n");
             if (!new_result) {
                 fprintf(stderr, "Memory reallocation failed.\n");
                 free(result);
@@ -396,6 +402,7 @@ int resident_db_get_count(database *db) {
                 return NULL;
             }
             result = new_result;
+            total_allocated += (buffer_size - old_size); // Update total allocated
         }
 
         // Append the row to the result
@@ -404,12 +411,13 @@ int resident_db_get_count(database *db) {
         // Add separator line
         const char *separator =
             "+-------------+--------------------------------------------+-----+-------------------------------------"
-            "-----"
-            "--+--------------------------------------------+--------------------+--------+------------+\n";
+            "-------+--------------------------------------------+--------------------+--------+------------+\n";
         required_size = strlen(result) + strlen(separator) + 1;
         if (required_size > buffer_size) {
+            size_t old_size = buffer_size;
             buffer_size = required_size * 2;
             char *new_result = realloc(result, buffer_size);
+            printf("REALLOC CALLED DURING SEPARATOR!\n");
             if (!new_result) {
                 fprintf(stderr, "Memory reallocation failed.\n");
                 free(result);
@@ -417,6 +425,7 @@ int resident_db_get_count(database *db) {
                 return NULL;
             }
             result = new_result;
+            total_allocated += (buffer_size - old_size); // Update total allocated
         }
         strcat(result, separator);
     }
@@ -429,6 +438,7 @@ int resident_db_get_count(database *db) {
     }
 
     sqlite3_finalize(stmt);
+    printf("Total bytes allocated: %u\n", total_allocated);
     return result; // Caller must free() this memory!
 }
 
