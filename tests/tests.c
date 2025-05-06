@@ -16,6 +16,8 @@
 #include "db/foodbatch_db.h"
 #include "db/resident_db.h"
 #include "db/user_db.h"
+#include "utils_hash.h"
+#include "utilsfn.h"
 
 // Global context structure
 struct test_cleanup_ctx {
@@ -1664,6 +1666,346 @@ void test_user_db_get_all() {
 
 // TEST DB USER END
 
+// UTILS_HASH TESTS
+
+#include "user.h"
+#include "utils_hash.h"
+
+// Helper function to count non-null bytes in a string
+int count_non_null_bytes(const char *str, size_t len) {
+    int count = 0;
+    for (size_t i = 0; i < len; i++) {
+        if (str[i] != '\0')
+            count++;
+    }
+    return count;
+}
+
+// Test cases
+void test_generate_salt() {
+    printf("Testing generate_salt...\n");
+
+    // Test normal operation
+    printf("Testing normal salt generation...\n");
+    char salt[SALT_LEN + 1];
+    generate_salt(salt, SALT_LEN);
+
+    // Verify length and null termination
+    assert(strlen(salt) == SALT_LEN);
+    assert(salt[SALT_LEN] == '\0');
+
+    // Verify all bytes are populated (though we can't verify randomness)
+    assert(count_non_null_bytes(salt, SALT_LEN) == SALT_LEN);
+    printf("Salt generation successful. Salt: %s\n", salt);
+
+    // Test with different length
+    printf("Testing with different length...\n");
+    char short_salt[16 + 1];
+    generate_salt(short_salt, 16);
+    assert(strlen(short_salt) == 16);
+    assert(short_salt[16] == '\0');
+    printf("Variable length salt generation successful.\n");
+
+    printf("generate_salt test passed successfully.\n");
+}
+
+void test_hash_password() {
+    printf("Testing hash_password...\n");
+
+    // Test with known values
+    printf("Testing with known password and salt...\n");
+    const char *password = "testpassword";
+    const char *salt = "testsalt";
+    char hash[PASSWORD_HASH_LEN + 1];
+
+    hash_password(password, salt, hash);
+
+    // Verify output format
+    assert(strlen(hash) == PASSWORD_HASH_LEN);
+    assert(hash[PASSWORD_HASH_LEN] == '\0');
+
+    // Verify it's a valid hex string
+    for (int i = 0; i < PASSWORD_HASH_LEN; i++) {
+        assert(isxdigit(hash[i]));
+    }
+    printf("Hash generated successfully: %s\n", hash);
+
+    // Test that different passwords produce different hashes
+    printf("Testing hash uniqueness for different passwords...\n");
+    char hash2[PASSWORD_HASH_LEN + 1];
+    hash_password("different", salt, hash2);
+    assert(strcmp(hash, hash2) != 0);
+    printf("Different passwords produce different hashes.\n");
+
+    // Test that different salts produce different hashes
+    printf("Testing hash uniqueness for different salts...\n");
+    hash_password(password, "differentsalt", hash2);
+    assert(strcmp(hash, hash2) != 0);
+    printf("Different salts produce different hashes.\n");
+
+    // Test with empty password (should still work)
+    printf("Testing with empty password...\n");
+    hash_password("", salt, hash);
+    assert(strlen(hash) == PASSWORD_HASH_LEN);
+    printf("Empty password handled correctly.\n");
+
+    // Test with empty salt (should still work)
+    printf("Testing with empty salt...\n");
+    hash_password(password, "", hash);
+    assert(strlen(hash) == PASSWORD_HASH_LEN);
+    printf("Empty salt handled correctly.\n");
+
+    printf("hash_password test passed successfully.\n");
+}
+
+void test_hash_consistency() {
+    printf("Testing hash consistency...\n");
+
+    // Test that same input produces same output
+    printf("Testing deterministic output...\n");
+    const char *password = "consistent";
+    const char *salt = "consistentsalt";
+    char hash1[PASSWORD_HASH_LEN + 1];
+    char hash2[PASSWORD_HASH_LEN + 1];
+
+    hash_password(password, salt, hash1);
+    hash_password(password, salt, hash2);
+
+    assert(strcmp(hash1, hash2) == 0);
+    printf("Same input produces same output.\n");
+
+    printf("hash_consistency test passed successfully.\n");
+}
+
+void test_hash_collision_resistance() {
+    printf("Testing hash collision resistance...\n");
+
+    // Use more distinct test cases
+    const char *passwords[] = { "password1", "password2", "password3",  "password4",
+                                "Password1", "P@ssword1", "pass word1", "passw0rd1" };
+
+    const char *salts[] = { "salt1", "salt2", "salt3", "salt4", "Salt1", "S@lt1", " salt1", "sal t1" };
+
+    char hashes[sizeof(passwords) / sizeof(passwords[0]) * sizeof(salts) / sizeof(salts[0])][PASSWORD_HASH_LEN + 1];
+    int hash_count = 0;
+
+    // Generate all combinations
+    for (size_t i = 0; i < sizeof(passwords) / sizeof(passwords[0]); i++) {
+        for (size_t j = 0; j < sizeof(salts) / sizeof(salts[0]); j++) {
+            // Skip cases where password+salt combination would be identical
+            if (strlen(passwords[i]) > 0 && passwords[i][strlen(passwords[i]) - 1] == ' ' && strlen(salts[j]) > 0
+                && salts[j][0] == ' ')
+            {
+                continue;
+            }
+            if (strlen(salts[j]) > 0 && salts[j][strlen(salts[j]) - 1] == ' ' && strlen(passwords[i]) > 0
+                && passwords[i][0] == ' ')
+            {
+                continue;
+            }
+
+            hash_password(passwords[i], salts[j], hashes[hash_count++]);
+        }
+    }
+
+    // Check for duplicates
+    int duplicates = 0;
+    for (int i = 0; i < hash_count; i++) {
+        for (int j = i + 1; j < hash_count; j++) {
+            if (strcmp(hashes[i], hashes[j]) == 0) {
+                duplicates++;
+                printf("Collision found between:\n");
+                printf("  Password: '%s', Salt: '%s'\n", passwords[i], salts[i]);
+                printf("  Password: '%s', Salt: '%s'\n", passwords[j], salts[j]);
+                printf("  Hash: %s\n", hashes[i]);
+            }
+        }
+    }
+
+    assert(duplicates == 0);
+    printf("No collisions found in %d hash combinations.\n", hash_count);
+
+    printf("hash_collision_resistance test passed successfully.\n");
+}
+
+void test_edge_cases() {
+    printf("Testing edge cases...\n");
+
+    char hash[PASSWORD_HASH_LEN + 1];
+    char salt[SALT_LEN + 1];
+
+    // Test very long password
+    printf("Testing long password...\n");
+    char long_password[1024];
+    memset(long_password, 'a', sizeof(long_password) - 1);
+    long_password[sizeof(long_password) - 1] = '\0';
+
+    generate_salt(salt, SALT_LEN);
+    hash_password(long_password, salt, hash);
+    assert(strlen(hash) == PASSWORD_HASH_LEN);
+    printf("Long password handled correctly.\n");
+
+    // Test non-ASCII characters
+    printf("Testing non-ASCII characters...\n");
+    hash_password("p@sswörd", salt, hash);
+    assert(strlen(hash) == PASSWORD_HASH_LEN);
+    printf("Non-ASCII characters handled correctly.\n");
+
+    printf("edge_cases test passed successfully.\n");
+}
+
+// UTILS_HASH TESTS END
+
+// UTILSFN TESTS
+
+void test_flag_macros() {
+    printf("Testing flag macros...\n");
+
+    unsigned int flags = 0;
+
+    // Test SET_FLAG
+    printf("Testing SET_FLAG...\n");
+    SET_FLAG(&flags, 0x01);
+    assert(flags == 0x01);
+    SET_FLAG(&flags, 0x02);
+    assert(flags == 0x03);
+    printf("SET_FLAG works correctly.\n");
+
+    // Test CLEAR_FLAG
+    printf("Testing CLEAR_FLAG...\n");
+    CLEAR_FLAG(&flags, 0x01);
+    assert(flags == 0x02);
+    printf("CLEAR_FLAG works correctly.\n");
+
+    // Test IS_FLAG_SET
+    printf("Testing IS_FLAG_SET...\n");
+    assert(IS_FLAG_SET(&flags, 0x02));
+    assert(!IS_FLAG_SET(&flags, 0x01));
+    printf("IS_FLAG_SET works correctly.\n");
+
+    printf("Flag macros test passed successfully.\n");
+}
+
+void test_is_int_between_min_max() {
+    printf("Testing is_int_between_min_max...\n");
+
+    // Test valid lengths
+    printf("Testing valid lengths...\n");
+    assert(is_int_between_min_max("123", 1, 3));
+    assert(is_int_between_min_max("12345", 5, 10));
+    printf("Valid lengths pass correctly.\n");
+
+    // Test invalid lengths
+    printf("Testing invalid lengths...\n");
+    assert(!is_int_between_min_max("123", 4, 6));
+    assert(!is_int_between_min_max("123456", 1, 5));
+    printf("Invalid lengths fail correctly.\n");
+
+    // Test edge cases
+    printf("Testing edge cases...\n");
+    assert(is_int_between_min_max("", 0, 0));
+    assert(!is_int_between_min_max("", 1, 5));
+    printf("Edge cases handled correctly.\n");
+
+    printf("is_int_between_min_max test passed successfully.\n");
+}
+
+void test_wrap_text() {
+    printf("Testing wrap_text...\n");
+
+    char output[512];
+
+    // Test short text that doesn't need wrapping
+    printf("Testing short text...\n");
+    wrap_text("Hello world", output, 200); // 200px width
+    assert(strcmp(output, "Hello world") == 0);
+    printf("Short text not wrapped correctly.\n");
+
+    // Test with very small width
+    printf("Testing with very small width...\n");
+    wrap_text("Hello", output, 20);       // 20px width (~2 chars)
+    assert(strcmp(output, "Hello") == 0); // Single word shouldn't be split
+    printf("Single word handled correctly.\n");
+
+    // Test empty input
+    printf("Testing empty input...\n");
+    output[0] = '\0';
+    wrap_text("", output, 100);
+    assert(strcmp(output, "") == 0);
+    printf("Empty input handled correctly.\n");
+
+    printf("wrap_text test passed successfully.\n");
+}
+
+void test_filter_integer_input() {
+    printf("Testing filter_integer_input...\n");
+
+    char input[MAX_INPUT];
+
+    // Test with mixed characters
+    printf("Testing with mixed characters...\n");
+    strcpy(input, "a1b2c3d4e5");
+    filter_integer_input(input, MAX_INPUT);
+    assert(strcmp(input, "12345") == 0);
+    printf("Non-digit characters filtered correctly.\n");
+
+    // Test with max length
+    printf("Testing with max length...\n");
+    strcpy(input, "12345678901234567890");
+    filter_integer_input(input, 10);
+    assert(strlen(input) == 10);
+    printf("Length limited correctly.\n");
+
+    // Test with all non-digits
+    printf("Testing with all non-digits...\n");
+    strcpy(input, "abcde");
+    filter_integer_input(input, MAX_INPUT);
+    assert(strcmp(input, "") == 0);
+    printf("All non-digits filtered correctly.\n");
+
+    // Test empty input
+    printf("Testing empty input...\n");
+    strcpy(input, "");
+    filter_integer_input(input, MAX_INPUT);
+    assert(strcmp(input, "") == 0);
+    printf("Empty input handled correctly.\n");
+
+    printf("filter_integer_input test passed successfully.\n");
+}
+
+void test_validate_date() {
+    printf("Testing validate_date...\n");
+
+    // Test valid dates
+    printf("Testing valid dates...\n");
+    assert(validate_date(2023, 1, 31)); // January
+    assert(validate_date(2023, 4, 30)); // April
+    assert(validate_date(2020, 2, 29)); // Leap year
+    assert(validate_date(2023, 2, 28)); // Non-leap year
+    printf("Valid dates pass correctly.\n");
+
+    // Test invalid dates
+    printf("Testing invalid dates...\n");
+    assert(!validate_date(2023, 1, 32)); // Day too high
+    assert(!validate_date(2023, 4, 31)); // April 31st
+    assert(!validate_date(2023, 2, 29)); // Feb 29th non-leap
+    assert(!validate_date(2023, 13, 1)); // Invalid month
+    assert(!validate_date(0, 1, 1));     // Invalid year
+    printf("Invalid dates fail correctly.\n");
+
+    // Test edge cases
+    printf("Testing edge cases...\n");
+    assert(validate_date(9999, 12, 31)); // Max reasonable date
+    assert(validate_date(1, 1, 1));      // Min reasonable date
+    assert(!validate_date(2023, 0, 1));  // Month 0
+    assert(!validate_date(2023, 1, 0));  // Day 0
+    printf("Edge cases handled correctly.\n");
+
+    printf("validate_date test passed successfully.\n");
+}
+
+// UTILSFN TESTS END
+
 int main() {
     test_resident_db_insert();
     test_resident_db_retrieve();
@@ -1697,6 +2039,18 @@ int main() {
     test_user_db_default_admin_changes();
     test_user_db_check_admin();
     test_user_db_get_all();
+
+    test_generate_salt();
+    test_hash_password();
+    test_hash_consistency();
+    test_hash_collision_resistance();
+    test_edge_cases();
+
+    test_flag_macros();
+    test_is_int_between_min_max();
+    test_wrap_text();
+    test_filter_integer_input();
+    test_validate_date();
 
     return 0;
 }
