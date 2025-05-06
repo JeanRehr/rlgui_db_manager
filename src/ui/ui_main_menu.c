@@ -1,3 +1,8 @@
+/**
+ * @file ui_main_menu.c
+ * @brief Main menu screen implementation
+ */
+
 #include <external/raylib/raygui.h>
 
 #include "db/user_db.h"
@@ -5,7 +10,23 @@
 #include "ui/ui_main_menu.h"
 #include "utilsfn.h"
 
-// Forward declarations
+/* Forward declarations */
+
+static void ui_main_menu_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db);
+
+static void ui_main_menu_handle_buttons(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db
+);
+
+static void ui_main_menu_handle_warning_msg(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db
+);
 
 static void handle_manage_resident_button(enum app_state *state);
 
@@ -19,7 +40,7 @@ static void handle_create_user_button(
     struct user *current_user
 );
 
-// Public functions
+/* ======================= PUBLIC FUNCTIONS ======================= */
 
 void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
     // Initialize base
@@ -48,7 +69,34 @@ void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
     ui->flag = 0;
 }
 
-void ui_main_menu_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db) {
+/* ======================= BASE INTERFACE OVERRIDES ======================= */
+
+/**
+ * @name UI Base Overrides
+ * @brief Implementation of ui_base function pointers
+ * @{
+ */
+
+/**
+ * @brief Main menu screen rendering and interaction handling.
+ * 
+ * @implements ui_base.render
+ *
+ * Handles rendering and interaction for all menu elements.
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to any other ui*)
+ * @param state Pointer to application state (modified on navigation)
+ * @param error Pointer to error code
+ * @param user_db Pointer to the user database for querying if the current user is really admin
+ * 
+ * @warning Should be called through the base interface
+ */
+static void ui_main_menu_render(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db
+) {
     struct ui_main_menu *ui = (struct ui_main_menu *)base;
 
     ui->base.handle_buttons(&ui->base, state, error, user_db);
@@ -56,7 +104,19 @@ void ui_main_menu_render(struct ui_base *base, enum app_state *state, enum error
     ui->base.handle_warning_msg(&ui->base, state, error, user_db);
 }
 
-void ui_main_menu_handle_buttons(
+/**
+ * @brief Handle button drawing and logic.
+ * 
+ * @implements ui_base.handle_buttons
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to any ui*)
+ * @param state Pointer to application state (modified on success)
+ * @param error Pointer to error tracking variable
+ * @param user_db Pointer to user database connection
+ * 
+ * @warning Should be called through the base interface
+ */
+static void ui_main_menu_handle_buttons(
     struct ui_base *base,
     enum app_state *state,
     enum error_code *error,
@@ -80,7 +140,22 @@ void ui_main_menu_handle_buttons(
     }
 }
 
-void ui_main_menu_handle_warning_msg(
+/**
+ * @brief Manages warning message display and response handling.
+ * 
+ * @implements ui_base.handle_warning_msg
+ * 
+ * Shows appropriate warning messages based on current user admin status,
+ * handles user responses, and triggers follow-up actions.
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to any ui*)
+ * @param state Pointer to application state (modified on success)
+ * @param error Pointer to error tracking variable
+ * @param user_db Pointer to user database connection
+ * 
+ * @warning Should be called through the base interface
+ */
+static void ui_main_menu_handle_warning_msg(
     struct ui_base *base,
     enum app_state *state,
     enum error_code *error,
@@ -116,8 +191,9 @@ void ui_main_menu_handle_warning_msg(
         }
     }
 }
+/** @} */
 
-// Private (static) functions
+/* ======================= INTERNAL HELPERS ======================= */
 
 static void handle_manage_resident_button(enum app_state *state) {
     *state = STATE_REGISTER_RESIDENT;

@@ -1,3 +1,8 @@
+/**
+ * @file ui_login.c
+ * @brief Ui login screen implementation
+ */
+
 #include <external/raylib/raygui.h>
 
 #include <stdio.h>
@@ -9,7 +14,27 @@
 #include "globals.h"
 #include "utilsfn.h"
 
-// Forward declarations
+/* Forward declarations */
+
+static void ui_login_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db);
+
+static void ui_login_handle_buttons(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db
+);
+
+static void ui_login_handle_warning_msg(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db
+);
+
+static void ui_login_updt_pos(struct ui_base *base);
+
+static void ui_login_clear_fields(struct ui_base *base);
 
 // Tagged union for when a warning message needs to perform a database operation
 // Type of the operation
@@ -29,20 +54,6 @@ struct ui_login_db_action_info {
     };
 };
 
-/**
- * @internal
- * @brief Processes database actions triggered by warning messages
- * 
- * Handles password updates and other DB operations that may be requested
- * through warning message dialogs.
- * 
- * @param ui Login UI context
- * @param state Application state to modify
- * @param error Error code to set if operation fails
- * @param user_db Database connection
- * @param current_user User session to update
- * @param action Database action to perform with parameters
- */
 static void process_db_action_in_warning(
     struct ui_login *ui,
     enum app_state *state,
@@ -60,7 +71,7 @@ static void handle_login_button(
     struct user *current_user
 );
 
-// Public functions
+/* ======================= PUBLIC FUNCTIONS ======================= */
 
 void ui_login_init(struct ui_login *ui, struct user *current_user) {
     // Initialize base
@@ -95,7 +106,34 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
     ui->flag = 0;
 }
 
-void ui_login_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db) {
+/* ======================= BASE INTERFACE OVERRIDES ======================= */
+
+/**
+ * @name UI Base Overrides
+ * @brief Implementation of ui_base function pointers
+ * @{
+ */
+
+/**
+ * @brief Login screen rendering and interaction handling.
+ *
+ * @implements ui_base.render
+ *
+ * Handles:
+ * - Credential input rendering
+ * - Authentication workflow
+ * - Secure session initiation
+ * - Error feedback
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to ui_login*)
+ * @param state Pointer to application state (modified on success)
+ * @param error Pointer to error tracking variable
+ * @param user_db Pointer to user database connection
+ * @param current_user Pointer to current user session struct
+ * 
+ * @warning Should be called through the base interface
+ */
+static void ui_login_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db) {
     struct ui_login *ui = (struct ui_login *)base;
 
     // Draw UI elements
@@ -113,7 +151,24 @@ void ui_login_render(struct ui_base *base, enum app_state *state, enum error_cod
     }
 }
 
-void ui_login_handle_buttons(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db) {
+/**
+ * @brief Handle button drawing and logic.
+ * 
+ * @implements ui_base.handle_button
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to ui_login*)
+ * @param state Pointer to application state (modified on success)
+ * @param error Pointer to error tracking variable
+ * @param user_db Pointer to user database connection
+ * 
+ * @warning Should be called through the base interface
+ */
+static void ui_login_handle_buttons(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db
+) {
     struct ui_login *ui = (struct ui_login *)base;
     if (button_draw_updt(&ui->butn_login) || IsKeyPressed(KEY_ENTER)) {
         handle_login_button(ui, state, error, user_db, ui->current_user);
@@ -121,7 +176,22 @@ void ui_login_handle_buttons(struct ui_base *base, enum app_state *state, enum e
     }
 }
 
-void ui_login_handle_warning_msg(
+/**
+ * @brief Manages warning message display and response handling.
+ * 
+ * @implements ui_base.handle_warning_msg
+ * 
+ * Shows appropriate warning messages based on login attempt flags,
+ * handles user responses, and triggers follow-up actions.
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to ui_login*)
+ * @param state Pointer to application state (modified on success)
+ * @param error Pointer to error tracking variable
+ * @param user_db Pointer to user database connection
+ * 
+ * @warning Should be called through the base interface
+ */
+static void ui_login_handle_warning_msg(
     struct ui_base *base,
     enum app_state *state,
     enum error_code *error,
@@ -181,7 +251,23 @@ void ui_login_handle_warning_msg(
     }
 }
 
-void ui_login_updt_pos(struct ui_base *base) {
+/**
+ * @brief Updates login screen positions
+ * 
+ * @implements ui_base.update_positions
+ *
+ * Adjusts UI elements based on current window dimensions.
+ * Maintains proper component layout during window resizing.
+ *
+ * @param base Pointer to base UI (interface) structure (can be safely cast to ui_login*)
+ * 
+ * @note If any ui element is initialized with window_width or window_height
+ *       in their bounds, they must be updated here
+ * 
+ * @warning Should be called through the base interface
+ * 
+ */
+static void ui_login_updt_pos(struct ui_base *base) {
     struct ui_login *ui = (struct ui_login *)base;
 
     ui->tb_username.bounds.x = window_width / 2 - 150;
@@ -194,14 +280,96 @@ void ui_login_updt_pos(struct ui_base *base) {
     ui->butn_login.bounds.y = ui->tbs_password.bounds.y + (ui->tbs_password.bounds.height * 2);
 }
 
-void ui_login_clear_fields(struct ui_base *base) {
+/**
+ * @brief Clear fields of the ui_login
+ * 
+ * @implements ui_base.clear_fields
+ *
+ * @param base Pointer to base UI (interface) structure (can be safely cast to ui_login*)
+ * 
+ * @note It is necessary to clear any sensitive data on implementation
+ * 
+ * @warning Should be called through the base interface
+ * 
+ */
+static void ui_login_clear_fields(struct ui_base *base) {
     struct ui_login *ui = (struct ui_login *)base;
     ui->tb_username.input[0] = '\0';
     memset(ui->tbs_password.input, 0, sizeof(ui->tbs_password.input)); // More secure
 }
+/** @} */
 
-// Private (static) functions
+/* ======================= INTERNAL HELPERS ======================= */
 
+/**
+ * @internal
+ * @brief Processes database actions triggered by warning messages
+ * 
+ * Handles password updates and other DB operations that may be requested
+ * through warning message dialogs.
+ * 
+ * @param ui Login UI context
+ * @param state Application state to modify
+ * @param error Error code to set if operation fails
+ * @param user_db Database connection
+ * @param current_user User session to update
+ * @param action Database action to perform with parameters
+ * 
+ */
+static void process_db_action_in_warning(
+    struct ui_login *ui,
+    enum app_state *state,
+    enum error_code *error,
+    database *user_db,
+    struct user *current_user,
+    struct ui_login_db_action_info *action
+) {
+    switch (action->type) {
+    case DB_ACTION_UPDT_PASS:
+        if (user_db_update_password(user_db, action->updt_pass.username, action->updt_pass.new_password) != SQLITE_OK) {
+            *error = ERROR_UPDATE_DB;
+            break;
+        }
+        user_db_get_by_username(user_db, ui->tb_username.input, current_user);
+        *state = STATE_MAIN_MENU;
+        SET_FLAG(&ui->flag, FLAG_LOGIN_DONE);
+        break;
+
+    case DB_ACTION_NONE:
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Handles the login button press and authentication flow.
+ * @details Validates input fields, checks user credentials, and manages state transitions.
+ * 
+ * @param[in]  ui           Login screen UI context
+ * @param[out] state        Application state (modified on successful login)
+ * @param[out] error        Error code (set on database failures)
+ * @param[in]  user_db      Database connection for user authentication
+ * @param[out] current_user Populated with user data on successful login
+ * 
+ * @warning This function modifies multiple state variables:
+ *          - Sets ui->flag for validation/authentication status
+ *          - Modifies state on successful login
+ *          - Sets error on database failures
+ * 
+ * @note The function handles these cases:
+ *       1. Empty username/password
+ *       2. Non-existent user
+ *       3. Wrong password
+ *       4. Password reset requirement
+ *       5. Successful authentication
+ * 
+ * @sideeffects
+ * - May modify ui->flag with status flags
+ * - May change application state to STATE_MAIN_MENU
+ * - May populate current_user data
+ * - May set error codes for database operations
+ * 
+ */
 static void handle_login_button(
     struct ui_login *ui,
     enum app_state *state,
@@ -255,31 +423,6 @@ static void handle_login_button(
     case AUTH_FAILURE:
     default:
         SET_FLAG(&ui->flag, FLAG_WRONG_PASSWD);
-        break;
-    }
-}
-
-static void process_db_action_in_warning(
-    struct ui_login *ui,
-    enum app_state *state,
-    enum error_code *error,
-    database *user_db,
-    struct user *current_user,
-    struct ui_login_db_action_info *action
-) {
-    switch (action->type) {
-    case DB_ACTION_UPDT_PASS:
-        if (user_db_update_password(user_db, action->updt_pass.username, action->updt_pass.new_password) != SQLITE_OK) {
-            *error = ERROR_UPDATE_DB;
-            break;
-        }
-        user_db_get_by_username(user_db, ui->tb_username.input, current_user);
-        *state = STATE_MAIN_MENU;
-        SET_FLAG(&ui->flag, FLAG_LOGIN_DONE);
-        break;
-
-    case DB_ACTION_NONE:
-    default:
         break;
     }
 }
