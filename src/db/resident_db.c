@@ -558,7 +558,7 @@ char *resident_db_get_all_format_old(database *db) {
     }
 
     sqlite3_finalize(stmt);
-    printf("Total bytes allocated: %u\n", total_allocated);
+    printf("Total bytes allocated: %llu\n", total_allocated);
     return result; // Caller must free() this memory!
 }
 
