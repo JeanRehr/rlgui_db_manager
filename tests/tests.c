@@ -431,6 +431,179 @@ void test_resident_db_delete_by_cpf() {
     printf("Resident database delete test passed successfully.\n");
 }
 
+void test_resident_db_get_count() {
+    const char *test_resident_filename = "test_resident_db.db";
+    database test_resident_db;
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+
+    setup_cleanup(test_resident_filename, &test_resident_db);
+
+    // Test empty database
+    printf("Testing count on empty database...\n");
+    int count = resident_db_get_count(&test_resident_db);
+    assert(count == 0);
+    printf("Empty database count correct (0).\n");
+
+    // Add one resident
+    printf("Adding one resident...\n");
+    int rc = resident_db_insert(&test_resident_db, "12345678901", "John Doe", 30, "Healthy", "None", false, 0);
+    assert(rc == SQLITE_OK);
+
+    // Verify count is now 1
+    printf("Verifying count after insertion...\n");
+    count = resident_db_get_count(&test_resident_db);
+    assert(count == 1);
+    printf("Count correct after insertion (1).\n");
+
+    // Add multiple residents
+    printf("Adding multiple residents...\n");
+    resident_db_insert(&test_resident_db, "23456789012", "Jane Smith", 45, "Chronic condition", "Medication", true, 1);
+    resident_db_insert(&test_resident_db, "34567890123", "Alex Johnson", 28, "Healthy", "None", false, 2);
+
+    // Verify count is now 3
+    printf("Verifying count after multiple insertions...\n");
+    count = resident_db_get_count(&test_resident_db);
+    assert(count == 3);
+    printf("Count correct after multiple insertions (3).\n");
+
+    // Delete one and verify count
+    printf("Deleting one resident...\n");
+    resident_db_delete_by_cpf(&test_resident_db, "23456789012");
+    count = resident_db_get_count(&test_resident_db);
+    assert(count == 2);
+    printf("Count correct after deletion (2).\n");
+
+    teardown_cleanup();
+
+    printf("resident_db_get_count test passed successfully.\n");
+}
+
+void test_resident_db_get_all_format() {
+    const char *test_resident_filename = "test_resident_db.db";
+    database test_resident_db;
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+
+    setup_cleanup(test_resident_filename, &test_resident_db);
+
+    // Test empty database
+    printf("Testing format on empty database...\n");
+    char buffer[8192]; // Large buffer for testing
+    int written = resident_db_get_all_format(&test_resident_db, buffer, sizeof(buffer));
+    assert(written > 0);
+    printf("Empty database format output:\n%s\n", buffer);
+
+    // Add test data
+    printf("Adding test residents...\n");
+    resident_db_insert(&test_resident_db, "12345678901", "John Doe", 30, "Healthy", "None", false, 0);
+    resident_db_insert(&test_resident_db, "23456789012", "Jane Smith", 45, "Chronic condition", "Medication", true, 1);
+    resident_db_insert(&test_resident_db, "34567890123", "Alex Johnson", 28, "Healthy", "None", false, 2);
+
+    // Test with sufficient buffer
+    printf("Testing format with sufficient buffer...\n");
+    written = resident_db_get_all_format(&test_resident_db, buffer, sizeof(buffer));
+    int exact_bytes = written;
+    assert(written > 0);
+    printf("Formatted output with sufficient buffer:\n%s\n", buffer);
+
+    // Verify the format contains expected elements
+    assert(strstr(buffer, "CPF") != NULL);
+    assert(strstr(buffer, "Name") != NULL);
+    assert(strstr(buffer, "Age") != NULL);
+    assert(strstr(buffer, "HealthStatus") != NULL);
+    assert(strstr(buffer, "Needs") != NULL);
+    assert(strstr(buffer, "Medical Assistance") != NULL);
+    assert(strstr(buffer, "Gender") != NULL);
+    assert(strstr(buffer, "Entry Date") != NULL);
+    assert(strstr(buffer, "John Doe") != NULL);
+    assert(strstr(buffer, "Jane Smith") != NULL);
+    assert(strstr(buffer, "Alex Johnson") != NULL);
+    printf("Format contains all expected elements.\n");
+
+    // Test with small buffer (should truncate)
+    printf("Testing format with small buffer...\n");
+    char small_buffer[100];
+    written = resident_db_get_all_format(&test_resident_db, small_buffer, sizeof(small_buffer));
+    assert(written == -1);
+    printf("Format correctly detected buffer overflow (returned -1).\n");
+    printf(
+        "Truncated output (first %llu bytes):\n%.*s\n",
+        sizeof(small_buffer),
+        (int)sizeof(small_buffer),
+        small_buffer
+    );
+
+    // Test with exact buffer size
+    printf("Testing format with exact buffer size...\n");
+    written = exact_bytes;
+    written = resident_db_get_all_format(&test_resident_db, buffer, written + 1);
+    assert(written > 0);
+    printf("Format with exact buffer size successful.\n");
+
+    teardown_cleanup();
+
+    printf("resident_db_get_all_format test passed successfully.\n");
+}
+
+void test_resident_db_get_all_format_old() {
+    const char *test_resident_filename = "test_resident_db.db";
+    database test_resident_db;
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+
+    setup_cleanup(test_resident_filename, &test_resident_db);
+
+    // Test empty database
+    printf("Testing format on empty database...\n");
+    char *result = resident_db_get_all_format_old(&test_resident_db);
+    assert(result != NULL);
+    printf("Empty database format output:\n%s\n", result);
+    free(result);
+
+    // Add test data
+    printf("Adding test residents...\n");
+    resident_db_insert(&test_resident_db, "12345678901", "John Doe", 30, "Healthy", "None", false, 0);
+    resident_db_insert(&test_resident_db, "23456789012", "Jane Smith", 45, "Chronic condition", "Medication", true, 1);
+    resident_db_insert(&test_resident_db, "34567890123", "Alex Johnson", 28, "Healthy", "None", false, 2);
+    resident_db_insert(&test_resident_db, "45678901234", "Maria Garcia", 60, "Diabetes", "Insulin", true, 2);
+    resident_db_insert(
+        &test_resident_db,
+        "56789012345",
+        "Robert Brown",
+        35,
+        "Hypertension",
+        "Blood pressure meds",
+        true,
+        1
+    );
+
+    // Test with multiple records
+    printf("Testing format with multiple records...\n");
+    result = resident_db_get_all_format_old(&test_resident_db);
+    assert(result != NULL);
+    printf("Formatted output with multiple records:\n%s\n", result);
+
+    // Verify the format contains expected elements
+    assert(strstr(result, "CPF") != NULL);
+    assert(strstr(result, "Name") != NULL);
+    assert(strstr(result, "Age") != NULL);
+    assert(strstr(result, "HealthStatus") != NULL);
+    assert(strstr(result, "Needs") != NULL);
+    assert(strstr(result, "Medical Assistance") != NULL);
+    assert(strstr(result, "Gender") != NULL);
+    assert(strstr(result, "Entry Date") != NULL);
+    assert(strstr(result, "John Doe") != NULL);
+    assert(strstr(result, "Jane Smith") != NULL);
+    assert(strstr(result, "Alex Johnson") != NULL);
+    assert(strstr(result, "Maria Garcia") != NULL);
+    assert(strstr(result, "Robert Brown") != NULL);
+    printf("Format contains all expected elements.\n");
+
+    free(result);
+
+    teardown_cleanup();
+
+    printf("resident_db_get_all_format_old test passed successfully.\n");
+}
+
 void test_resident_db_get_all() {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
@@ -821,6 +994,165 @@ void test_foodbatch_db_get_all() {
     teardown_cleanup();
 
     printf("foodbatch_db_get_all test passed successfully.\n");
+}
+
+void test_foodbatch_db_get_count() {
+    const char *test_foodbatch_filename = "test_foodbatch_db.db";
+    database test_foodbatch_db;
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+
+    setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
+
+    // Test empty database
+    printf("Testing count on empty database...\n");
+    int count = foodbatch_db_get_count(&test_foodbatch_db);
+    assert(count == 0);
+    printf("Empty database count correct (0).\n");
+
+    // Add one food batch
+    printf("Adding one food batch...\n");
+    int rc = foodbatch_db_insert(&test_foodbatch_db, 1, "Milk", 10, true, "2023-12-31", 2.0);
+    assert(rc == SQLITE_OK);
+
+    // Verify count is now 1
+    printf("Verifying count after insertion...\n");
+    count = foodbatch_db_get_count(&test_foodbatch_db);
+    assert(count == 1);
+    printf("Count correct after insertion (1).\n");
+
+    // Add multiple batches
+    printf("Adding multiple food batches...\n");
+    foodbatch_db_insert(&test_foodbatch_db, 2, "Bread", 5, true, "2023-11-30", 1.0);
+    foodbatch_db_insert(&test_foodbatch_db, 3, "Rice", 20, false, "2024-12-31", 0.5);
+
+    // Verify count is now 3
+    printf("Verifying count after multiple insertions...\n");
+    count = foodbatch_db_get_count(&test_foodbatch_db);
+    assert(count == 3);
+    printf("Count correct after multiple insertions (3).\n");
+
+    // Delete one and verify count
+    printf("Deleting one food batch...\n");
+    foodbatch_db_delete_by_id(&test_foodbatch_db, 2);
+    count = foodbatch_db_get_count(&test_foodbatch_db);
+    assert(count == 2);
+    printf("Count correct after deletion (2).\n");
+
+    teardown_cleanup();
+
+    printf("foodbatch_db_get_count test passed successfully.\n");
+}
+
+void test_foodbatch_db_get_all_format() {
+    const char *test_foodbatch_filename = "test_foodbatch_db.db";
+    database test_foodbatch_db;
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+
+    setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
+
+    // Test empty database
+    printf("Testing format on empty database...\n");
+    char buffer[4096];
+    int written = foodbatch_db_get_all_format(&test_foodbatch_db, buffer, sizeof(buffer));
+    assert(written > 0);
+    printf("Empty database format output:\n%s\n", buffer);
+
+    // Add test data
+    printf("Adding test food batches...\n");
+    foodbatch_db_insert(&test_foodbatch_db, 1, "Milk", 10, true, "2023-12-31", 2.0);
+    foodbatch_db_insert(&test_foodbatch_db, 2, "Bread", 5, true, "2023-11-30", 1.0);
+    foodbatch_db_insert(&test_foodbatch_db, 3, "Rice", 20, false, "2024-12-31", 0.5);
+
+    // Test with sufficient buffer
+    printf("Testing format with sufficient buffer...\n");
+    written = foodbatch_db_get_all_format(&test_foodbatch_db, buffer, sizeof(buffer));
+    int exact_bytes = written;
+    printf("Formatted output with sufficient buffer:\n%s\n", buffer);
+
+    // Verify the format contains expected elements
+    assert(strstr(buffer, "BatchId") != NULL);
+    assert(strstr(buffer, "Name") != NULL);
+    assert(strstr(buffer, "Quantity") != NULL);
+    assert(strstr(buffer, "Perishable") != NULL);
+    assert(strstr(buffer, "Expiration date") != NULL);
+    assert(strstr(buffer, "Daily Rate") != NULL);
+    assert(strstr(buffer, "Milk") != NULL);
+    assert(strstr(buffer, "Bread") != NULL);
+    assert(strstr(buffer, "Rice") != NULL);
+    printf("Format contains all expected elements.\n");
+
+    // Test with small buffer (should truncate)
+    printf("Testing format with small buffer...\n");
+    char small_buffer[100];
+    written = foodbatch_db_get_all_format(&test_foodbatch_db, small_buffer, sizeof(small_buffer));
+    assert(written == -1);
+    printf("Format correctly detected buffer overflow (returned -1).\n");
+    printf(
+        "Truncated output (first %llu bytes):\n%.*s\n",
+        sizeof(small_buffer),
+        (int)sizeof(small_buffer),
+        small_buffer
+    );
+
+    // Test with exact buffer size
+    printf("Testing format with exact buffer size...\n");
+    written = exact_bytes;
+    written = foodbatch_db_get_all_format(&test_foodbatch_db, buffer, written + 1);
+    assert(written > 0);
+    printf("Format with exact buffer size successful.\n");
+
+    teardown_cleanup();
+
+    printf("foodbatch_db_get_all_format test passed successfully.\n");
+}
+
+void test_foodbatch_db_get_all_format_old() {
+    const char *test_foodbatch_filename = "test_foodbatch_db.db";
+    database test_foodbatch_db;
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+
+    setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
+
+    // Test empty database
+    printf("Testing format on empty database...\n");
+    char *result = foodbatch_db_get_all_format_old(&test_foodbatch_db);
+    assert(result != NULL);
+    printf("Empty database format output:\n%s\n", result);
+    free(result);
+
+    // Add test data
+    printf("Adding test food batches...\n");
+    foodbatch_db_insert(&test_foodbatch_db, 1, "Milk", 10, true, "2023-12-31", 2.0);
+    foodbatch_db_insert(&test_foodbatch_db, 2, "Bread", 5, true, "2023-11-30", 1.0);
+    foodbatch_db_insert(&test_foodbatch_db, 3, "Rice", 20, false, "2024-12-31", 0.5);
+    foodbatch_db_insert(&test_foodbatch_db, 4, "Pasta", 15, false, "2025-01-31", 0.3);
+    foodbatch_db_insert(&test_foodbatch_db, 5, "Cheese", 8, true, "2023-10-15", 0.8);
+
+    // Test with multiple records
+    printf("Testing format with multiple records...\n");
+    result = foodbatch_db_get_all_format_old(&test_foodbatch_db);
+    assert(result != NULL);
+    printf("Formatted output with multiple records:\n%s\n", result);
+
+    // Verify the format contains expected elements
+    assert(strstr(result, "BatchId") != NULL);
+    assert(strstr(result, "Name") != NULL);
+    assert(strstr(result, "Quantity") != NULL);
+    assert(strstr(result, "Perishable") != NULL);
+    assert(strstr(result, "Expiration date") != NULL);
+    assert(strstr(result, "Daily Rate") != NULL);
+    assert(strstr(result, "Milk") != NULL);
+    assert(strstr(result, "Bread") != NULL);
+    assert(strstr(result, "Rice") != NULL);
+    assert(strstr(result, "Pasta") != NULL);
+    assert(strstr(result, "Cheese") != NULL);
+    printf("Format contains all expected elements.\n");
+
+    free(result);
+
+    teardown_cleanup();
+
+    printf("foodbatch_db_get_all_format_old test passed successfully.\n");
 }
 
 // TEST DB FOODBATCH END
@@ -1338,6 +1670,9 @@ int main() {
     test_resident_db_update();
     test_resident_db_check_cpf_exists();
     test_resident_db_delete_by_cpf();
+    test_resident_db_get_count();
+    test_resident_db_get_all_format();
+    test_resident_db_get_all_format_old();
     test_resident_db_get_all();
 
     test_foodbatch_db_insert();
@@ -1345,6 +1680,9 @@ int main() {
     test_foodbatch_db_update();
     test_foodbatch_db_check_batchid_exists();
     test_foodbatch_db_delete_by_id();
+    test_foodbatch_db_get_count();
+    test_foodbatch_db_get_all_format();
+    test_foodbatch_db_get_all_format_old();
     test_foodbatch_db_get_all();
 
     test_user_db_create_table();
