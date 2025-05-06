@@ -48,7 +48,7 @@ enum resident_screen_flags {
  * the resident registration screen.
  */
 struct ui_resident {
-    struct ui_base base; ///< Base ui methods/functionalitys
+    struct ui_base base; ///< Base ui methods/functionality
 
     struct textbox tb_name;                ///< Name input field
     struct textboxint tb_cpf;              ///< CPF input field (numeric with formatting)
