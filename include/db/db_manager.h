@@ -59,6 +59,16 @@ int db_init_with_tbl(database *db, const char *filename, int (*create_table)(dat
 bool db_is_init(database *db);
 
 /**
+ * @brief Gets the row count of the first table found in the database.
+ * 
+ * @param db Pointer to initialized database structure.
+ * @return Row count (>= 0) on success, -1 on error.
+ * 
+ * @warning Only counts rows in the first table (arbitrary if multiple exist).
+ */
+int db_get_first_table_row_count(database *db);
+
+/**
  * @brief Closes the database connection and resets the handle.
  *
  * Safely deinitializes the database. If `db->db` is NULL, this is a no-op.
