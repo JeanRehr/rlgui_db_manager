@@ -25,6 +25,10 @@ struct ui_base;
  * @param state Application state (may be modified)
  * @param error Error tracking (may be modified)
  * @param db    Database connection for UI operations
+ * 
+ * @warning Immediate-mode rendering handles drawing and input one frame at a time
+ * 
+ * @note Handling of buttons and message warnings should be done here
  */
 typedef void (*render_fn)(struct ui_base *base, enum app_state *state, enum error_code *error, database *db);
 
@@ -63,7 +67,8 @@ typedef void (*clear_fields_fn)(struct ui_base *base);
 typedef void (*cleanup_fn)(struct ui_base *base);
 
 /**
- * @brief Base UI structure for polymorphic screen behavior.
+ * @interface ui_base
+ * @brief Polymorphic interface for all UI screens.
  * 
  * All derived screens must:
  * 1. Embed this struct as their first member.

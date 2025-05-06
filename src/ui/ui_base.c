@@ -1,3 +1,8 @@
+/**
+ * @file ui_base.c
+ * @brief Ui base interface implementation (just stubs)
+ */
+
 #include "ui/ui_base.h"
 
 #include <stdio.h>
