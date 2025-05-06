@@ -276,6 +276,8 @@ static void ui_resident_handle_buttons(
         handle_retrieve_all_button(ui, resident_db);
         return;
     }
+
+    return;
 }
 
 /**
@@ -283,7 +285,7 @@ static void ui_resident_handle_buttons(
  * 
  * @implements ui_base.handle_warning_msg
  * 
- * Shows appropriate warning messages based on login attempt flags,
+ * Shows appropriate warning messages (e.g., deletions),
  * handles user responses, and triggers follow-up actions.
  *
  * @param base Pointer to base UI structure (can be safely cast to any ui*)
@@ -291,7 +293,7 @@ static void ui_resident_handle_buttons(
  * @param error Pointer to error tracking variable
  * @param resident_db Pointer to resident database connection
  * 
- * @warning Should be called through the base interface
+ * @warning Should be called through the base interface, may trigger database operations
  * 
  */
 static void ui_resident_handle_warning_msg(
