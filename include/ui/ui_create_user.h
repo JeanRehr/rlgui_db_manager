@@ -15,7 +15,10 @@
 #include "app_state.h"
 #include "db/db_manager.h"
 #include "error_handling.h"
+#include "ui/ui_base.h"
 #include "ui_elements/button.h"
+#include "ui_elements/checkbox.h"
+#include "ui_elements/textbox.h"
 #include "user.h"
 
 /**
@@ -25,7 +28,8 @@
  * Tracks various states and validation results for user creation management.
  */
 enum create_user_screen_flags {
-    FLAG_CREATE_USER_OPERATION_DONE = 1 << 0, // 0001: Operation done
+    FLAG_CREATE_USER_OPERATION_DONE = 1 << 0, ///< Operation done
+    FLAG_CREATE_USER_USERNAME_EMPTY = 1 << 0, ///< Username is empty during user creation
 };
 
 /**
@@ -36,7 +40,15 @@ enum create_user_screen_flags {
  * creation of users.
  */
 struct ui_create_user {
-    struct button butn_back; ///< Navigation back button
+    struct ui_base base; ///< Base ui methods/functionality
+
+    struct textbox tb_username; ///< Textbox for the username of the new user
+
+    struct checkbox cb_is_admin; ///< Checkbox for the is_admin attribute
+
+    struct button butn_create_user;    ///< Button for the creation of a user
+    struct button butn_reset_password; ///< Button for an admin to reset a user's password
+    struct button butn_back;           ///< Navigation back button
 };
 
 /**
@@ -47,34 +59,5 @@ struct ui_create_user {
  * @param ui Pointer to ui_create_user struct to initialize
  */
 void ui_create_user_init(struct ui_create_user *ui);
-
-/**
- * @brief Draws and manages food management screen
- *
- * Handles rendering and interaction for all screen elements.
- *
- * @param ui Pointer to initialized ui_create_user struct
- * @param state Pointer to application state (may be modified)
- * @param error Pointer to error tracking variable
- * @param user_db Pointer to user database connection
- */
-void ui_create_user_draw(
-    struct ui_create_user *ui,
-    enum app_state *state,
-    enum error_code *error,
-    database *user_db
-);
-
-/**
- * @brief Updates screen element positions
- *
- * Adjusts UI elements based on current window dimensions.
- *
- * @param ui Pointer to ui_create_user struct to update
- *
- * @note If any ui element is initialized with window_width or window_height
- *       in their bounds, they must be updated here
- */
-void ui_create_user_updt_pos(struct ui_create_user *ui);
 
 #endif // UI_CREATE_USER_H
