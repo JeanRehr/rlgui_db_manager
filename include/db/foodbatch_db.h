@@ -113,10 +113,10 @@ int foodbatch_db_get_by_batchid(database *db, int batch_id, struct foodbatch *fo
 bool foodbatch_db_check_batchid_exists(database *db, int batch_id);
 
 /**
- * @brief Gets the count of registered residents in the database
+ * @brief Gets the count of registered foodbatch in the database
  * 
  * @param db Pointer to initialized database structure
- * @return Total number of residents on success, -1 on failure
+ * @return Total number of foodbatch on success, -1 on failure
  */
 int foodbatch_db_get_count(database *db);
 
