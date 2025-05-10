@@ -169,7 +169,7 @@ int main() {
             ui_food.base.render(&ui_food.base, &app_state, &error, &foodbatch_db);
             break;
         case STATE_CREATE_USER:
-            ui_create_user_draw(&ui_create_user, &app_state, &error, &user_db);
+            ui_create_user.base.render(&ui_create_user.base, &app_state, &error, &user_db);
         default:
             break;
         }
