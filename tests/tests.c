@@ -1,6 +1,12 @@
-// Including raylib + raygui with #define RAYGUI_IMPLEMENTATION
-// As makefile link all src/ files expect main.c for the tests directory
-// It won't see the RAYGUI_IMPLEMENTATION and will complain
+/**
+ * @file tests.c
+ * @brief Unit testing for everything that can be unit tested
+ */
+
+/** Including raylib + raygui with #define RAYGUI_IMPLEMENTATION
+ * As makefile link all src/ files expect main.c for the tests directory
+ * It won't see the RAYGUI_IMPLEMENTATION and will complain
+ */
 #include <external/raylib/raylib.h>
 #define RAYGUI_IMPLEMENTATION
 #include <external/raylib/raygui.h>

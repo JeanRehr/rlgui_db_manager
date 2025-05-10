@@ -1,3 +1,7 @@
+/**
+ * @file app_state.c
+ * @brief App State function implementations
+ */
 #include "app_state.h"
 
 const char* app_state_to_string(const enum app_state *const state) {

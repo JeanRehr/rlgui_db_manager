@@ -2,6 +2,7 @@
  * @file ui_resident.c
  * @brief Resident screen implementation
  */
+#include "ui/ui_resident.h"
 
 #include <external/raylib/raygui.h>
 
@@ -11,7 +12,6 @@
 
 #include "db/resident_db.h"
 #include "globals.h"
-#include "ui/ui_resident.h"
 #include "utilsfn.h"
 
 /* Forward declarations */

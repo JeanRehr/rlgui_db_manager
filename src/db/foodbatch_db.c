@@ -1,3 +1,7 @@
+/**
+ * @file foodbatch.c
+ * @brief Food batch database operations implementation
+ */
 #include "db/foodbatch_db.h"
 
 #include <stdio.h>

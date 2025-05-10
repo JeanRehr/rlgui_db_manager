@@ -1,7 +1,12 @@
+/**
+ * @file Scrollpanel.c
+ * @brief Scrollpanel implementation
+ */
+#include "ui_elements/scrollpanel.h"
+
 #include <external/raylib/raygui.h>
 
 #include "CONSTANTS.h"
-#include "ui_elements/scrollpanel.h"
 
 struct scrollpanel scrollpanel_init(Rectangle panel_bounds, const char *title, Rectangle panel_content_bounds) {
     struct scrollpanel sp = { 0 };

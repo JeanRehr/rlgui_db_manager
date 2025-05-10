@@ -1,6 +1,11 @@
+/**
+ * @file textboxint.c
+ * @brief Textboxint implementation
+ */
+#include "ui_elements/textboxint.h"
+
 #include <external/raylib/raygui.h>
 
-#include "ui_elements/textboxint.h"
 #include "utilsfn.h"
 
 struct textboxint textboxint_init(Rectangle bounds, const char *title) {

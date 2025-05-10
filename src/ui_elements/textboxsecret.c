@@ -1,8 +1,12 @@
+/**
+ * @file textboxsecret.c
+ * @brief Textboxsecret implementation
+ */
+#include "ui_elements/textboxsecret.h"
+
 #include <external/raylib/raygui.h>
 
 #include <string.h>
-
-#include "ui_elements/textboxsecret.h"
 
 struct textboxsecret textboxsecret_init(Rectangle bounds, const char *title) {
     struct textboxsecret tbs = { 0 }; // Initialize struct with zeroed memory

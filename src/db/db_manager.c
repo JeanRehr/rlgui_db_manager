@@ -1,3 +1,7 @@
+/**
+ * @file db_manager.c
+ * @brief Database manager implementation
+ */
 #include "db/db_manager.h"
 
 #include <stddef.h>
@@ -38,6 +42,7 @@ bool db_is_init(database *db) {
     return true;
 }
 
+/*
 int db_get_first_table_row_count(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -104,6 +109,7 @@ cleanup:
 
     return count;
 }
+*/
 
 void db_deinit(database *db) {
     if (db->db) {

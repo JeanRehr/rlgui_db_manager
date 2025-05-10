@@ -1,3 +1,7 @@
+/**
+ * @file utilsfn.c
+ * @brief General utilities functions implementations
+ */
 #include <external/raylib/raygui.h>
 
 #include <ctype.h>

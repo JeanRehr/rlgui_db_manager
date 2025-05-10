@@ -1,3 +1,7 @@
+/**
+ * @file resident_db.c
+ * @brief Resident database operations implementation
+ */
 #include "db/resident_db.h"
 
 #include <stdio.h>

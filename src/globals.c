@@ -1,3 +1,7 @@
+/**
+ * @file globals.c
+ * @brief Globals function implementation and variale values
+ */
 #include "globals.h"
 
 int window_width = 1600;

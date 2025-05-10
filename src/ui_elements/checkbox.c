@@ -1,10 +1,15 @@
+/**
+ * @file checkbox.c
+ * @brief Checkbox implementation
+ */
+#include "ui_elements/checkbox.h"
+
 #include <external/raylib/raygui.h>
 
 #include <stdbool.h>
 #include <stddef.h>
 
 #include "CONSTANTS.h"
-#include "ui_elements/checkbox.h"
 
 struct checkbox checkbox_init(Rectangle bounds, const char *title) {
     struct checkbox cb = { 0 };

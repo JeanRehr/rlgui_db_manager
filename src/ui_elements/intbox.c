@@ -1,9 +1,14 @@
+/**
+ * @file intbox.c
+ * @brief Intbox implementation
+ */
+#include "ui_elements/intbox.h"
+
 #include <external/raylib/raygui.h>
 
 #include <stddef.h>
 
 #include "CONSTANTS.h"
-#include "ui_elements/intbox.h"
 
 struct intbox intbox_init(Rectangle bounds, const char *title, const int min_val, const int max_val) {
     struct intbox ib = { 0 };

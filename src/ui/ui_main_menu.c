@@ -2,12 +2,12 @@
  * @file ui_main_menu.c
  * @brief Main menu screen implementation
  */
+#include "ui/ui_main_menu.h"
 
 #include <external/raylib/raygui.h>
 
 #include "db/user_db.h"
 #include "globals.h"
-#include "ui/ui_main_menu.h"
 #include "utilsfn.h"
 
 /* Forward declarations */

@@ -1,9 +1,14 @@
+/**
+ * @file textbox.c
+ * @brief Textbox implementation
+ */
+#include "ui_elements/textbox.h"
+
 #include <external/raylib/raygui.h>
+
 #include <string.h>
 
 #include "CONSTANTS.h"
-#include "ui_elements/textbox.h"
-
 struct textbox textbox_init(Rectangle bounds, const char *title) {
     struct textbox textbox = { 0 }; // Initialize struct with zeroed memory
     // input already initialized to 0 with above

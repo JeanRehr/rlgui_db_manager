@@ -1,3 +1,7 @@
+/**
+ * @file button.c
+ * @brief Button element implementation
+ */
 #include <external/raylib/raygui.h>
 
 #include <stdbool.h>

@@ -1,3 +1,9 @@
+/**
+ * @file ui_food.c
+ * @brief Ui food screen implementation
+ */
+#include "ui/ui_food.h"
+
 #include <external/raylib/raygui.h>
 
 #include <limits.h>
@@ -7,7 +13,6 @@
 
 #include "db/foodbatch_db.h"
 #include "globals.h"
-#include "ui/ui_food.h"
 #include "utilsfn.h"
 
 /* Forward declarations */
@@ -214,6 +219,7 @@ void ui_food_init(struct ui_food *ui) {
  * @param db      Food database connection
  * 
  * @warning Immediate-mode rendering (draws and handles input in one pass)
+ * 
  */
 static void ui_food_render(
     struct ui_base *base,
@@ -297,6 +303,7 @@ static void ui_food_render(
  * @param food_db Pointer to food database connection
  * 
  * @warning Should be called through the base interface
+ * 
  */
 static void ui_food_handle_buttons(
     struct ui_base *base,
@@ -348,6 +355,7 @@ static void ui_food_handle_buttons(
  * @param food_db Pointer to food database connection
  * 
  * @warning May trigger database operations on confirmation
+ * 
  */
 static void ui_food_handle_warning_msg(
     struct ui_base *base,
@@ -485,7 +493,6 @@ static void ui_food_cleanup(struct ui_base *base) {
         ui->table_content = NULL; // Prevent double-free
     }
 }
-
 /** @} */
 
 /* ======================= INTERNAL HELPERS ======================= */
@@ -632,8 +639,6 @@ static void handle_retrieve_all_button(struct ui_food *ui, database *foodbatch_d
         fprintf(stderr, "Failed to get total count.\n");
         return;
     }
-
-    printf("%d\n", total_foodbatch);
 
     // 512 for header + 512 for each row as documented on foodbatch_db_get_all_format
     size_t buffer_size = 512 + 512 * total_foodbatch;

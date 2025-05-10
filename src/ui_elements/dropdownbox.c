@@ -1,7 +1,12 @@
+/**
+ * @file dropdownbox.c
+ * @brief Dropdownbox implementation
+ */
+#include "ui_elements/dropdownbox.h"
+
 #include <external/raylib/raygui.h>
 
 #include "CONSTANTS.h"
-#include "ui_elements/dropdownbox.h"
 
 struct dropdownbox dropdownbox_init(Rectangle bounds, const char *options, const char *title) {
     struct dropdownbox ddb = { 0 };

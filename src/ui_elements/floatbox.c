@@ -1,9 +1,13 @@
+/**
+ * @file floatbox.c
+ * @brief Floatbox implementation
+ */
+#include "ui_elements/floatbox.h"
+
 #include <external/raylib/raygui.h>
 
 #include <stdbool.h>
 #include <stddef.h>
-
-#include "ui_elements/floatbox.h"
 
 struct floatbox floatbox_init(Rectangle bounds, const char *title) {
     struct floatbox fb = { 0 };

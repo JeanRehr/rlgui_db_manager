@@ -1,3 +1,9 @@
+/**
+ * @file ui_presistent.c
+ * @brief Persisnt ui implementation
+ */
+#include "ui/ui_persistent.h"
+
 #include <external/raylib/raygui.h>
 
 #include <string.h>
@@ -23,7 +29,6 @@
 #include "styles/terminal.h"        // raygui style: terminal
 
 #include "globals.h"
-#include "ui/ui_persistent.h"
 
 void ui_persistent_init(struct ui_persistent *ui) {
     ui->logout_butn = button_init((Rectangle) { window_width - 100, window_height - 60, 0, 30 }, "Log Out");

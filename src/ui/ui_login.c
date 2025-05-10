@@ -2,13 +2,12 @@
  * @file ui_login.c
  * @brief Ui login screen implementation
  */
+#include "ui/ui_login.h"
 
 #include <external/raylib/raygui.h>
 
 #include <stdio.h>
 #include <string.h>
-
-#include "ui/ui_login.h"
 
 #include "db/user_db.h"
 #include "globals.h"
@@ -132,6 +131,7 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
  * @param current_user Pointer to current user session struct
  * 
  * @warning Should be called through the base interface
+ * 
  */
 static void ui_login_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db) {
     struct ui_login *ui = (struct ui_login *)base;
@@ -162,6 +162,7 @@ static void ui_login_render(struct ui_base *base, enum app_state *state, enum er
  * @param user_db Pointer to user database connection
  * 
  * @warning Should be called through the base interface
+ * 
  */
 static void ui_login_handle_buttons(
     struct ui_base *base,
@@ -190,6 +191,7 @@ static void ui_login_handle_buttons(
  * @param user_db Pointer to user database connection
  * 
  * @warning Should be called through the base interface
+ * 
  */
 static void ui_login_handle_warning_msg(
     struct ui_base *base,
