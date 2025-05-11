@@ -4,7 +4,6 @@
  */
 #include "ui_elements/floatbox.h"
 
-#include <stdbool.h>
 #include <stddef.h>
 
 #include <external/raylib/raygui.h>

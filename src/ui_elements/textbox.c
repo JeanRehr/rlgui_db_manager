@@ -6,8 +6,6 @@
 
 #include <external/raylib/raygui.h>
 
-#include <stdbool.h>
-
 #include "CONSTANTS.h"
 
 struct textbox textbox_init(Rectangle bounds, const char *title) {
