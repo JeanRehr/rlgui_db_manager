@@ -4,10 +4,10 @@
  */
 #include "globals.h"
 
-int window_width = 1600;
-int window_height = 800;
+float window_width = 1600;
+float window_height = 800;
 
-void update_window_size(int new_width, int new_height) {
+void update_window_size(float new_width, float new_height) {
     window_width = new_width;
     window_height = new_height;
 }

@@ -23,7 +23,7 @@
   * @warning Should only be modified through update_window_size()
   * @ingroup window_management
   */
-extern int window_width;
+extern float window_width;
 
 /**
   * @var window_height
@@ -31,7 +31,7 @@ extern int window_width;
   * @warning Should only be modified through update_window_size()
   * @ingroup window_management
   */
-extern int window_height;
+extern float window_height;
 
 /**
   * @brief Updates the global window dimensions
@@ -47,6 +47,6 @@ extern int window_height;
   * @note Emits window resize events to subscribed modules
   * @warning Fails silently if invalid dimensions provided
   */
-void update_window_size(int new_width, int new_height);
+void update_window_size(float new_width, float new_height);
 
 #endif // GLOBALS_H
