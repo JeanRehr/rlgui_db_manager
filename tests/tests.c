@@ -1697,8 +1697,8 @@ void test_generate_salt() {
     generate_salt(salt, SALT_LEN);
 
     // Verify length and null termination
-    assert(strlen(salt) == SALT_LEN);
-    assert(salt[SALT_LEN] == '\0');
+    assert(count_non_null_bytes(salt, SALT_LEN) == SALT_LEN);
+    assert(salt[SALT_LEN ] == '\0');
 
     // Verify all bytes are populated (though we can't verify randomness)
     assert(count_non_null_bytes(salt, SALT_LEN) == SALT_LEN);
@@ -1706,10 +1706,11 @@ void test_generate_salt() {
 
     // Test with different length
     printf("Testing with different length...\n");
-    char short_salt[16 + 1];
-    generate_salt(short_salt, 16);
-    assert(strlen(short_salt) == 16);
-    assert(short_salt[16] == '\0');
+    int short_len = 16;
+    char short_salt[short_len + 1];
+    generate_salt(short_salt, short_len);
+    assert(count_non_null_bytes(short_salt, short_len) == short_len);
+    assert(short_salt[short_len] == '\0');
     printf("Variable length salt generation successful.\n");
 
     printf("generate_salt test passed successfully.\n");
