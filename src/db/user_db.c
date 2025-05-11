@@ -535,8 +535,8 @@ int user_db_get_all(database *db) {
         time_t created_at = sqlite3_column_int64(stmt, 2);
         time_t last_login = sqlite3_column_int64(stmt, 3);
 
-        char created_at_str[20];
-        char last_login_str[20];
+        char created_at_str[32];
+        char last_login_str[32];
         strftime(created_at_str, sizeof(created_at_str), "%Y-%m-%d %H:%M", localtime(&created_at));
         if (last_login > 0) {
             strftime(last_login_str, sizeof(last_login_str), "%Y-%m-%d %H:%M", localtime(&last_login));
