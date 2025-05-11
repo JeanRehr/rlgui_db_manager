@@ -9,11 +9,11 @@
 #ifndef RESIDENT_DB_H
 #define RESIDENT_DB_H
 
-#include "db_manager.h"
-#include "resident.h"
-
 #include <stddef.h>
 #include <stdbool.h>
+
+#include "db_manager.h"
+#include "resident.h"
 
 /**
  * @brief Creates the Resident table in the database

@@ -9,9 +9,9 @@
 #ifndef INTBOX_H
 #define INTBOX_H
 
-#include <external/raylib/raylib.h>
-
 #include <stdbool.h>
+
+#include <external/raylib/raylib.h>
 
 /**
  * @struct intbox

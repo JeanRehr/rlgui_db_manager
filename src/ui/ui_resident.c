@@ -4,11 +4,11 @@
  */
 #include "ui/ui_resident.h"
 
-#include <external/raylib/raygui.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <external/raylib/raygui.h>
 
 #include "db/resident_db.h"
 #include "globals.h"

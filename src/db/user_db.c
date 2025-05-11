@@ -4,8 +4,6 @@
  */
 #include "db/user_db.h"
 
- #include <external/sqlite3/sqlite3.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <time.h>

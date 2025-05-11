@@ -4,12 +4,12 @@
  */
 #include "ui/ui_food.h"
 
-#include <external/raylib/raygui.h>
-
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <external/raylib/raygui.h>
 
 #include "db/foodbatch_db.h"
 #include "globals.h"

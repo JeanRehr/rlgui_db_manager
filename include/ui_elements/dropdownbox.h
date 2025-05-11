@@ -12,8 +12,9 @@
 #ifndef DROPDOWNBOX_H
 #define DROPDOWNBOX_H
 
-#include <external/raylib/raylib.h>
 #include <stdbool.h>
+
+#include <external/raylib/raylib.h>
 
 /**
  * @struct dropdownbox

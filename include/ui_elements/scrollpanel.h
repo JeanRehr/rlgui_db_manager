@@ -13,9 +13,9 @@
 #ifndef SCROLLPANEL_H
 #define SCROLLPANEL_H
 
-#include <external/raylib/raylib.h>
-
 #include <stdbool.h>
+
+#include <external/raylib/raylib.h>
 
 /**
  * @struct scrollpanel

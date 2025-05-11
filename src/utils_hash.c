@@ -2,19 +2,20 @@
  * @file utils_hash.c
  * @brief Utils hashing functions implementations
  */
+#include "utils_hash.h"
+
 #ifdef _WIN32
     // Isolated to this file to not have name mangling of functions
     // Not actually using anything windows specific
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
 #endif
-#include <external/openssl/rand.h>
-#include <external/openssl/sha.h>
 
 #include <stdio.h>
 #include <string.h>
 
-#include "utils_hash.h"
+#include <external/openssl/rand.h>
+#include <external/openssl/sha.h>
 
 void generate_salt(char *salt, size_t len) {
     if (RAND_bytes((unsigned char *)salt, len) != 1) {

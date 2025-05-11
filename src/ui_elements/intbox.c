@@ -7,6 +7,7 @@
 #include <external/raylib/raygui.h>
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "CONSTANTS.h"
 

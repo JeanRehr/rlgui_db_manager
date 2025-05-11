@@ -2,7 +2,7 @@
  * @file utilsfn.c
  * @brief General utilities functions implementations
  */
-#include <external/raylib/raygui.h>
+#include "utilsfn.h"
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -10,8 +10,9 @@
 #include <string.h>
 #include <time.h>
 
+#include <external/raylib/raygui.h>
+
 #include "CONSTANTS.h"
-#include "utilsfn.h"
 
 bool is_int_between_min_max(const char *input, const int min_len, const int max_len) {
     int length = strlen(input);

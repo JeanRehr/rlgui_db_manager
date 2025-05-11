@@ -4,9 +4,9 @@
  */
 #include "ui/ui_persistent.h"
 
-#include <external/raylib/raygui.h>
-
 #include <string.h>
+
+#include <external/raylib/raygui.h>
 
 // raygui embedded styles
 // Embedded a monospace font in them as well.

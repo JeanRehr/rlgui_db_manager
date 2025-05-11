@@ -9,9 +9,9 @@
 #ifndef CHECKBOX_H
 #define CHECKBOX_H
 
-#include <external/raylib/raylib.h>
-
 #include <stdbool.h>
+
+#include <external/raylib/raylib.h>
 
 /**
  * @struct checkbox

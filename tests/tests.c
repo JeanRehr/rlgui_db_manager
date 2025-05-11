@@ -3,20 +3,19 @@
  * @brief Unit testing for everything that can be unit tested
  */
 
-/** Including raylib + raygui with #define RAYGUI_IMPLEMENTATION
+#include <assert.h>
+#include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+/**
+ * Including raylib + raygui with #define RAYGUI_IMPLEMENTATION
  * As makefile link all src/ files expect main.c for the tests directory
  * It won't see the RAYGUI_IMPLEMENTATION and will complain
  */
 #include <external/raylib/raylib.h>
 #define RAYGUI_IMPLEMENTATION
 #include <external/raylib/raygui.h>
-
-#include <external/sqlite3/sqlite3.h>
-
-#include <assert.h>
-#include <signal.h>
-#include <stdbool.h>
-#include <stdio.h>
 
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
@@ -1698,7 +1697,7 @@ void test_generate_salt(void) {
 
     // Verify length and null termination
     assert(count_non_null_bytes(salt, SALT_LEN) == SALT_LEN);
-    assert(salt[SALT_LEN ] == '\0');
+    assert(salt[SALT_LEN] == '\0');
 
     // Verify all bytes are populated (though we can't verify randomness)
     assert(count_non_null_bytes(salt, SALT_LEN) == SALT_LEN);

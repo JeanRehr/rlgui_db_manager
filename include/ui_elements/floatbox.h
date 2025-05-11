@@ -11,9 +11,9 @@
 #ifndef FLOATBOX_H
 #define FLOATBOX_H
 
-#include <external/raylib/raylib.h>
-
 #include <stdbool.h>
+
+#include <external/raylib/raylib.h>
 
 #include "CONSTANTS.h"
 

@@ -4,10 +4,10 @@
  */
 #include "ui/ui_login.h"
 
-#include <external/raylib/raygui.h>
-
 #include <stdio.h>
 #include <string.h>
+
+#include <external/raylib/raygui.h>
 
 #include "db/user_db.h"
 #include "globals.h"

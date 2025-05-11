@@ -2,12 +2,11 @@
  * @file button.c
  * @brief Button element implementation
  */
+#include "ui_elements/button.h"
+
 #include <external/raylib/raygui.h>
 
-#include <stdbool.h>
-
 #include "CONSTANTS.h"
-#include "ui_elements/button.h"
 
 struct button button_init(Rectangle bounds, const char *title) {
     struct button button = { 0 };

@@ -10,11 +10,11 @@
 #ifndef FOOBATCH_DB_H
 #define FOOBATCH_DB_H
 
-#include "db_manager.h"
-#include "foodbatch.h" // Requires struct foodbatch definition
-
 #include <stdbool.h>
 #include <stddef.h>
+
+#include "db_manager.h"
+#include "foodbatch.h" // Requires struct foodbatch definition
 
 /**
  * @brief Creates the FoodBatch table in the database

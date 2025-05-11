@@ -4,10 +4,10 @@
  */
 #include "ui_elements/checkbox.h"
 
-#include <external/raylib/raygui.h>
-
 #include <stdbool.h>
 #include <stddef.h>
+
+#include <external/raylib/raygui.h>
 
 #include "CONSTANTS.h"
 

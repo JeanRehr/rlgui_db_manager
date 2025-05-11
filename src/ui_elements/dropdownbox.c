@@ -6,6 +6,8 @@
 
 #include <external/raylib/raygui.h>
 
+#include <stdbool.h>
+
 #include "CONSTANTS.h"
 
 struct dropdownbox dropdownbox_init(Rectangle bounds, const char *options, const char *title) {
