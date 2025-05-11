@@ -10,7 +10,6 @@
 #define RESIDENT_DB_H
 
 #include <stddef.h>
-#include <stdbool.h>
 
 #include "db_manager.h"
 #include "resident.h"

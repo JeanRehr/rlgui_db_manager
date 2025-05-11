@@ -9,8 +9,6 @@
 #ifndef USER_DB_H
 #define USER_DB_H
 
-#include <stdbool.h>
-
 #include "db/db_manager.h"
 #include "user.h"
 

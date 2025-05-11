@@ -10,7 +10,6 @@
 #ifndef FOOBATCH_DB_H
 #define FOOBATCH_DB_H
 
-#include <stdbool.h>
 #include <stddef.h>
 
 #include "db_manager.h"

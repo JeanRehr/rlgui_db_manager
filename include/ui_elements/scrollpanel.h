@@ -13,8 +13,6 @@
 #ifndef SCROLLPANEL_H
 #define SCROLLPANEL_H
 
-#include <stdbool.h>
-
 #include <external/raylib/raylib.h>
 
 /**

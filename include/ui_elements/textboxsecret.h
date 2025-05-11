@@ -13,6 +13,8 @@
 
 #include <external/raylib/raylib.h>
 
+#include <stdbool.h>
+
 #include "CONSTANTS.h"
 
 /**
