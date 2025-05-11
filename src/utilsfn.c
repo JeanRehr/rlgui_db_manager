@@ -33,7 +33,7 @@ void wrap_text(const char *input, char *output, const int wrap_width) {
 
         if (text_width + word_width + SPACE_WIDTH > wrap_width) {
             output[output_index++] = '\n'; // Insert line break
-            text_width = 0; // Reset line width
+            text_width = 0;                // Reset line width
         }
 
         strcpy(&output[output_index], token);

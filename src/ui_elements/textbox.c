@@ -6,9 +6,8 @@
 
 #include <external/raylib/raygui.h>
 
-#include <string.h>
-
 #include "CONSTANTS.h"
+
 struct textbox textbox_init(Rectangle bounds, const char *title) {
     struct textbox textbox = { 0 }; // Initialize struct with zeroed memory
     // input already initialized to 0 with above

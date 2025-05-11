@@ -6,8 +6,6 @@
 
 #include <external/raylib/raygui.h>
 
-#include "CONSTANTS.h"
-
 struct scrollpanel scrollpanel_init(Rectangle panel_bounds, const char *title, Rectangle panel_content_bounds) {
     struct scrollpanel sp = { 0 };
     sp.panel_bounds = panel_bounds;

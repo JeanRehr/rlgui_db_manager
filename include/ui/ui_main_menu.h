@@ -19,20 +19,17 @@ enum main_menu_screen_flags {
     FLAG_MAIN_MENU_WARN_NOT_ADMIN = 1 << 0, ///< Flag for warning current user is not admin
 };
 
+#include "ui/ui_base.h"
+#include "ui_elements/button.h"
+#include "user.h"
+
+
 /**
  * @struct ui_main_menu
  * @brief Main menu screen UI components
  *
  * Contains all interactive elements for the main menu navigation.
  */
-#include "app_state.h"
-#include "db/db_manager.h"
-#include "error_handling.h"
-#include "ui/ui_base.h"
-#include "ui_elements/button.h"
-#include "user.h"
-
-// To manage the state of the main menu screen
 struct ui_main_menu {
     struct ui_base base; ///< Base ui methods/functionality
 

@@ -5,7 +5,6 @@
 #include <external/raylib/raygui.h>
 
 #include <stdbool.h>
-#include <string.h>
 
 #include "CONSTANTS.h"
 #include "ui_elements/button.h"

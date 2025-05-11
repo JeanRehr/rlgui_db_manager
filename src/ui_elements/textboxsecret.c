@@ -6,8 +6,6 @@
 
 #include <external/raylib/raygui.h>
 
-#include <string.h>
-
 struct textboxsecret textboxsecret_init(Rectangle bounds, const char *title) {
     struct textboxsecret tbs = { 0 }; // Initialize struct with zeroed memory
     // inputs already initialized to 0 with above

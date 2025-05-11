@@ -203,7 +203,8 @@ static void ui_login_handle_warning_msg(
 
     const char *message = NULL;
     enum login_screen_flags flag_to_clear = 0;
-    struct ui_login_db_action_info action = { DB_ACTION_NONE };
+    struct ui_login_db_action_info action = { 0 };
+    action.type = DB_ACTION_NONE;
 
     if (IS_FLAG_SET(&ui->flag, FLAG_USERNAME_EMPTY)) {
         message = "Username must not be empty.";

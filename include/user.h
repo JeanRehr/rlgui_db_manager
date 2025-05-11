@@ -2,6 +2,7 @@
 #define USER_H
 
 #include <time.h>
+#include <stdbool.h>
 
 #include "CONSTANTS.h"
 

@@ -308,7 +308,8 @@ static void ui_resident_handle_warning_msg(
 
     const char *message = NULL;
     enum resident_screen_flags flag_to_clear = 0;
-    struct ui_resident_db_action_info action = { DB_ACTION_NONE };
+    struct ui_resident_db_action_info action = { 0 };
+    action.type = DB_ACTION_NONE;
 
     if (IS_FLAG_SET(&ui->flag, FLAG_INPUT_CPF_EMPTY)) {
         message = "CPF must not be empty.";

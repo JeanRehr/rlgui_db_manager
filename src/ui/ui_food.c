@@ -369,7 +369,8 @@ static void ui_food_handle_warning_msg(
 
     const char *message = NULL;
     enum food_screen_flags flag_to_clear = 0;
-    struct ui_food_db_action_info action = { DB_ACTION_NONE };
+    struct ui_food_db_action_info action = { 0 };
+    action.type = DB_ACTION_NONE;
 
     // Warnings
     if (IS_FLAG_SET(&ui->flag, FLAG_BATCHID_NOT_FOUND)) {

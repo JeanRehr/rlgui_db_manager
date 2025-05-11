@@ -12,14 +12,10 @@
 #ifndef UI_CREATE_USER_H
 #define UI_CREATE_USER_H
 
-#include "app_state.h"
-#include "db/db_manager.h"
-#include "error_handling.h"
 #include "ui/ui_base.h"
 #include "ui_elements/button.h"
 #include "ui_elements/checkbox.h"
 #include "ui_elements/textbox.h"
-#include "user.h"
 
 /**
  * @enum create_user_screen_flags

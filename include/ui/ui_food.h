@@ -11,9 +11,6 @@
 #ifndef UI_FOOD_H
 #define UI_FOOD_H
 
-#include "app_state.h"
-#include "db/db_manager.h"
-#include "error_handling.h"
 #include "foodbatch.h"
 #include "ui_base.h"
 #include "ui_elements/scrollpanel.h"

@@ -12,9 +12,6 @@
 #ifndef UI_LOGIN_H
 #define UI_LOGIN_H
 
-#include "app_state.h"
-#include "db/db_manager.h"
-#include "error_handling.h"
 #include "ui/ui_base.h"
 #include "ui_elements/button.h"
 #include "ui_elements/textbox.h"
