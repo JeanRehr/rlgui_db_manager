@@ -58,7 +58,7 @@ void setup_cleanup(const char *filename, database *db) {
 }
 
 // Teardown function
-void teardown_cleanup() {
+void teardown_cleanup(void) {
     // Normal cleanup
     if (cleanup_ctx.db_handle) {
         db_deinit(cleanup_ctx.db_handle);
@@ -77,7 +77,7 @@ void teardown_cleanup() {
 
 // TEST DB RESIDENT START
 
-void test_resident_db_insert() {
+void test_resident_db_insert(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
     db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
@@ -147,7 +147,7 @@ void test_resident_db_insert() {
     printf("Resident database insertion test passed successfully.\n");
 }
 
-void test_resident_db_retrieve() {
+void test_resident_db_retrieve(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
     db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
@@ -215,7 +215,7 @@ void test_resident_db_retrieve() {
     printf("Resident database retrieval test passed.\n");
 }
 
-void test_resident_db_update() {
+void test_resident_db_update(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
     db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
@@ -306,7 +306,7 @@ void test_resident_db_update() {
     printf("Resident database update test passed successfully.\n");
 }
 
-void test_resident_db_check_cpf_exists() {
+void test_resident_db_check_cpf_exists(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
     db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
@@ -373,7 +373,7 @@ void test_resident_db_check_cpf_exists() {
     printf("Resident database check cpf exists test passed successfully.\n");
 }
 
-void test_resident_db_delete_by_cpf() {
+void test_resident_db_delete_by_cpf(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
     db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
@@ -439,7 +439,7 @@ void test_resident_db_delete_by_cpf() {
     printf("Resident database delete test passed successfully.\n");
 }
 
-void test_resident_db_get_count() {
+void test_resident_db_get_count(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
     db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
@@ -486,7 +486,7 @@ void test_resident_db_get_count() {
     printf("resident_db_get_count test passed successfully.\n");
 }
 
-void test_resident_db_get_all_format() {
+void test_resident_db_get_all_format(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
     db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
@@ -552,7 +552,7 @@ void test_resident_db_get_all_format() {
     printf("resident_db_get_all_format test passed successfully.\n");
 }
 
-void test_resident_db_get_all_format_old() {
+void test_resident_db_get_all_format_old(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
     db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
@@ -612,7 +612,7 @@ void test_resident_db_get_all_format_old() {
     printf("resident_db_get_all_format_old test passed successfully.\n");
 }
 
-void test_resident_db_get_all() {
+void test_resident_db_get_all(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
     db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
@@ -643,7 +643,7 @@ void test_resident_db_get_all() {
 
 // TEST DB FOODBATCH START
 
-void test_foodbatch_db_insert() {
+void test_foodbatch_db_insert(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
@@ -706,7 +706,7 @@ void test_foodbatch_db_insert() {
     printf("Food batch database insertion test passed successfully.\n");
 }
 
-void test_foodbatch_db_retrieve() {
+void test_foodbatch_db_retrieve(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
@@ -767,7 +767,7 @@ void test_foodbatch_db_retrieve() {
     printf("Food batch database retrieval test passed.\n");
 }
 
-void test_foodbatch_db_update() {
+void test_foodbatch_db_update(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
@@ -851,7 +851,7 @@ void test_foodbatch_db_update() {
     printf("Food batch database update test passed successfully.\n");
 }
 
-void test_foodbatch_db_check_batchid_exists() {
+void test_foodbatch_db_check_batchid_exists(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
@@ -910,7 +910,7 @@ void test_foodbatch_db_check_batchid_exists() {
     printf("Food batch database check batch ID exists test passed successfully.\n");
 }
 
-void test_foodbatch_db_delete_by_id() {
+void test_foodbatch_db_delete_by_id(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
@@ -977,7 +977,7 @@ void test_foodbatch_db_delete_by_id() {
     printf("Food batch database delete test passed successfully.\n");
 }
 
-void test_foodbatch_db_get_all() {
+void test_foodbatch_db_get_all(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
@@ -1004,7 +1004,7 @@ void test_foodbatch_db_get_all() {
     printf("foodbatch_db_get_all test passed successfully.\n");
 }
 
-void test_foodbatch_db_get_count() {
+void test_foodbatch_db_get_count(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
@@ -1051,7 +1051,7 @@ void test_foodbatch_db_get_count() {
     printf("foodbatch_db_get_count test passed successfully.\n");
 }
 
-void test_foodbatch_db_get_all_format() {
+void test_foodbatch_db_get_all_format(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
@@ -1114,7 +1114,7 @@ void test_foodbatch_db_get_all_format() {
     printf("foodbatch_db_get_all_format test passed successfully.\n");
 }
 
-void test_foodbatch_db_get_all_format_old() {
+void test_foodbatch_db_get_all_format_old(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
@@ -1167,7 +1167,7 @@ void test_foodbatch_db_get_all_format_old() {
 
 // TEST DB USER START
 
-void test_user_db_create_table() {
+void test_user_db_create_table(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1191,7 +1191,7 @@ void test_user_db_create_table() {
     printf("user_db_create_table test passed successfully.\n");
 }
 
-void test_user_db_create_user() {
+void test_user_db_create_user(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1223,7 +1223,7 @@ void test_user_db_create_user() {
     printf("user_db_create_user test passed successfully.\n");
 }
 
-void test_user_db_authenticate() {
+void test_user_db_authenticate(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1275,7 +1275,7 @@ void test_user_db_authenticate() {
     printf("user_db_authenticate test passed successfully.\n");
 }
 
-void test_user_db_delete() {
+void test_user_db_delete(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1316,7 +1316,7 @@ void test_user_db_delete() {
     printf("user_db_delete test passed successfully.\n");
 }
 
-void test_user_db_update_password() {
+void test_user_db_update_password(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1372,7 +1372,7 @@ void test_user_db_update_password() {
     printf("user_db_update_password test passed successfully.\n");
 }
 
-void test_user_db_update_admin_status() {
+void test_user_db_update_admin_status(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1427,7 +1427,7 @@ void test_user_db_update_admin_status() {
     printf("user_db_update_admin_status test passed successfully.\n");
 }
 
-void test_user_db_check_exists() {
+void test_user_db_check_exists(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1459,7 +1459,7 @@ void test_user_db_check_exists() {
     printf("user_db_check_exists test passed successfully.\n");
 }
 
-void test_user_db_get_by_username() {
+void test_user_db_get_by_username(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1506,7 +1506,7 @@ void test_user_db_get_by_username() {
     printf("user_db_get_by_username test passed successfully.\n");
 }
 
-void test_user_db_change_username() {
+void test_user_db_change_username(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1576,7 +1576,7 @@ void test_user_db_change_username() {
     printf("user_db_change_username test passed successfully.\n");
 }
 
-void test_user_db_default_admin_changes() {
+void test_user_db_default_admin_changes(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1609,7 +1609,7 @@ void test_user_db_default_admin_changes() {
     printf("user_db_update_admin_status test passed successfully.\n");
 }
 
-void test_user_db_check_admin() {
+void test_user_db_check_admin(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1639,7 +1639,7 @@ void test_user_db_check_admin() {
     teardown_cleanup();
 }
 
-void test_user_db_get_all() {
+void test_user_db_get_all(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
@@ -1688,7 +1688,7 @@ int count_non_null_bytes(const char *str, size_t len) {
 }
 
 // Test cases
-void test_generate_salt() {
+void test_generate_salt(void) {
     printf("Testing generate_salt...\n");
 
     // Test normal operation
@@ -1716,7 +1716,7 @@ void test_generate_salt() {
     printf("generate_salt test passed successfully.\n");
 }
 
-void test_hash_password() {
+void test_hash_password(void) {
     printf("Testing hash_password...\n");
 
     // Test with known values
@@ -1765,7 +1765,7 @@ void test_hash_password() {
     printf("hash_password test passed successfully.\n");
 }
 
-void test_hash_consistency() {
+void test_hash_consistency(void) {
     printf("Testing hash consistency...\n");
 
     // Test that same input produces same output
@@ -1784,7 +1784,7 @@ void test_hash_consistency() {
     printf("hash_consistency test passed successfully.\n");
 }
 
-void test_hash_collision_resistance() {
+void test_hash_collision_resistance(void) {
     printf("Testing hash collision resistance...\n");
 
     // Use more distinct test cases
@@ -1835,7 +1835,7 @@ void test_hash_collision_resistance() {
     printf("hash_collision_resistance test passed successfully.\n");
 }
 
-void test_edge_cases() {
+void test_edge_cases(void) {
     printf("Testing edge cases...\n");
 
     char hash[PASSWORD_HASH_LEN + 1];
@@ -1865,7 +1865,7 @@ void test_edge_cases() {
 
 // UTILSFN TESTS
 
-void test_flag_macros() {
+void test_flag_macros(void) {
     printf("Testing flag macros...\n");
 
     unsigned int flags = 0;
@@ -1893,7 +1893,7 @@ void test_flag_macros() {
     printf("Flag macros test passed successfully.\n");
 }
 
-void test_is_int_between_min_max() {
+void test_is_int_between_min_max(void) {
     printf("Testing is_int_between_min_max...\n");
 
     // Test valid lengths
@@ -1917,7 +1917,7 @@ void test_is_int_between_min_max() {
     printf("is_int_between_min_max test passed successfully.\n");
 }
 
-void test_wrap_text() {
+void test_wrap_text(void) {
     printf("Testing wrap_text...\n");
 
     char output[512];
@@ -1944,7 +1944,7 @@ void test_wrap_text() {
     printf("wrap_text test passed successfully.\n");
 }
 
-void test_filter_integer_input() {
+void test_filter_integer_input(void) {
     printf("Testing filter_integer_input...\n");
 
     char input[MAX_INPUT];
@@ -1980,7 +1980,7 @@ void test_filter_integer_input() {
     printf("filter_integer_input test passed successfully.\n");
 }
 
-void test_validate_date() {
+void test_validate_date(void) {
     printf("Testing validate_date...\n");
 
     // Test valid dates
@@ -2013,7 +2013,7 @@ void test_validate_date() {
 
 // UTILSFN TESTS END
 
-int main() {
+int main(void) {
     test_resident_db_insert();
     test_resident_db_retrieve();
     test_resident_db_update();

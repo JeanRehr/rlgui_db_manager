@@ -21,15 +21,13 @@
 #include <stdio.h>
 
 #include "CONSTANTS.h"
-#include "globals.h"
-#include "utilsfn.h"
-
 #include "app_state.h"
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
 #include "db/resident_db.h"
 #include "db/user_db.h"
 #include "error_handling.h"
+#include "globals.h"
 #include "ui/ui_create_user.h"
 #include "ui/ui_food.h"
 #include "ui/ui_login.h"
@@ -56,7 +54,7 @@
   * @note Uses goto for centralized error cleanup
   * @warning All database connections must be properly closed before exit
   */
-int main() {
+int main(void) {
     // Initialization
     //--------------------------------------------------------------------------------------
     int return_code = EXIT_SUCCESS;
