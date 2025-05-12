@@ -35,6 +35,14 @@ static void ui_login_updt_pos(struct ui_base *base);
 
 static void ui_login_clear_fields(struct ui_base *base);
 
+static const struct ui_vtable ui_login_vt = {
+    .render = ui_login_render,
+    .handle_buttons = ui_login_handle_buttons,
+    .handle_warning_msg = ui_login_handle_warning_msg,
+    .update_positions = ui_login_updt_pos,
+    .clear_fields = ui_login_clear_fields
+};
+
 // Tagged union for when a warning message needs to perform a database operation
 // Type of the operation
 enum ui_login_db_action_type {
@@ -76,11 +84,7 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
     // Initialize base
     ui_base_init_defaults(&ui->base, "ui_login.c");
     // Override methods
-    ui->base.render = ui_login_render;
-    ui->base.handle_buttons = ui_login_handle_buttons;
-    ui->base.handle_warning_msg = ui_login_handle_warning_msg;
-    ui->base.update_positions = ui_login_updt_pos;
-    ui->base.clear_fields = ui_login_clear_fields;
+    ui->base.vt = &ui_login_vt;
 
     // Initialize screen specific fields
     ui->current_user = current_user;
@@ -116,7 +120,7 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
 /**
  * @brief Login screen rendering and interaction handling.
  *
- * @implements ui_base.render
+ * @implements ui_base.vt->render
  *
  * Handles:
  * - Credential input rendering
@@ -141,12 +145,12 @@ static void ui_login_render(struct ui_base *base, enum app_state *state, enum er
     textboxsecret_draw(&ui->tbs_password);
 
     // Handle and draw buttons
-    ui->base.handle_buttons(&ui->base, state, error, user_db);
+    ui->base.vt->handle_buttons(&ui->base, state, error, user_db);
 
-    ui->base.handle_warning_msg(&ui->base, state, error, user_db);
+    ui->base.vt->handle_warning_msg(&ui->base, state, error, user_db);
 
     if (IS_FLAG_SET(&ui->flag, FLAG_LOGIN_DONE)) {
-        ui->base.clear_fields(&ui->base);
+        ui->base.vt->clear_fields(&ui->base);
         CLEAR_FLAG(&ui->flag, FLAG_LOGIN_DONE);
     }
 }
@@ -154,7 +158,7 @@ static void ui_login_render(struct ui_base *base, enum app_state *state, enum er
 /**
  * @brief Handle button drawing and logic.
  * 
- * @implements ui_base.handle_button
+ * @implements ui_base.vt->handle_button
  *
  * @param base Pointer to base UI (implements interface) structure (can be safely cast to ui_login*)
  * @param state Pointer to application state (modified on success)
@@ -180,7 +184,7 @@ static void ui_login_handle_buttons(
 /**
  * @brief Manages warning message display and response handling.
  * 
- * @implements ui_base.handle_warning_msg
+ * @implements ui_base.vt->handle_warning_msg
  * 
  * Shows appropriate warning messages based on login attempt flags,
  * handles user responses, and triggers follow-up actions.
@@ -252,12 +256,14 @@ static void ui_login_handle_warning_msg(
             CLEAR_FLAG(&ui->flag, flag_to_clear); // Clear the flag
         }
     }
+
+    ui_login_updt_pos(&ui->base);
 }
 
 /**
  * @brief Updates login screen positions
  * 
- * @implements ui_base.update_positions
+ * @implements ui_base.vt->update_positions
  *
  * Adjusts UI elements based on current window dimensions.
  * Maintains proper component layout during window resizing.
@@ -286,7 +292,7 @@ static void ui_login_updt_pos(struct ui_base *base) {
 /**
  * @brief Clear fields of the ui_login
  * 
- * @implements ui_base.clear_fields
+ * @implements ui_base.vt->clear_fields
  *
  * @param base Pointer to base UI (interface) structure (can be safely cast to ui_login*)
  * 
@@ -353,24 +359,26 @@ static void process_db_action_in_warning(
  * @param[out] error        Error code (set on database failures)
  * @param[in]  user_db      Database connection for user authentication
  * @param[out] current_user Populated with user data on successful login
- * 
- * @warning This function modifies multiple state variables:
- *          - Sets ui->flag for validation/authentication status
- *          - Modifies state on successful login
- *          - Sets error on database failures
- * 
+ *
  * @note The function handles these cases:
  *       1. Empty username/password
  *       2. Non-existent user
  *       3. Wrong password
  *       4. Password reset requirement
  *       5. Successful authentication
+ *
+ * @warning
+ * This function modifies multiple state variables:
  * 
- * @sideeffects
+ * - Sets ui->flag for validation/authentication status
+ * 
+ * - Sets error on database failures
+ * 
  * - May modify ui->flag with status flags
+ * 
  * - May change application state to STATE_MAIN_MENU
+ * 
  * - May populate current_user data
- * - May set error codes for database operations
  * 
  */
 static void handle_login_button(

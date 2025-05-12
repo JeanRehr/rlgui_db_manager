@@ -67,23 +67,80 @@ typedef void (*clear_fields_fn)(struct ui_base *base);
 typedef void (*cleanup_fn)(struct ui_base *base);
 
 /**
- * @interface ui_base
- * @brief Polymorphic interface for all UI screens.
- * 
- * All derived screens must:
- * 1. Embed this struct as their first member.
- * 2. Implement the function pointers in their init function.
- * 
+ * @struct ui_vtable
+ * @brief Virtual function table defining UI screen behavior.
+ *
+ * This structure contains function pointers that define the behavior of UI screens.
+ * Each UI screen type has a single shared vtable instance containing implementations
+ * specific to that screen type. This enables polymorphic behavior while maintaining
+ * type safety and memory efficiency.
  */
-struct ui_base {
-    const char *type_name; ///< Name of the derived screen type (for debugging)
-
+/**
+ * I have tested a vtable approach, but this doesn't really add anything useful
+ * aside from shared memory for instances of the same type
+ * vtable enforces everything is implemented, but C doesn't warn you if something isn't implemented
+ * and it silently sets the function pointer not implemented to null
+ * the vtable overrides everything set in the ui_base_init_defaults,
+ * as it assigns everything in the function pointer vtable at the same time
+ * so using direct function pointers in ui_base provides more usefulness and safety
+ * (only because the compiler doesn't warn for unimplemented functions)
+struct ui_vtable {
     render_fn render;                         ///< Combined render/interaction handler
     handle_buttons_fn handle_buttons;         ///< Button state manager
     handle_warning_msg_fn handle_warning_msg; ///< Dialog handler
     update_positions_fn update_positions;     ///< Layout updater (window resize)
     clear_fields_fn clear_fields;             ///< Input field reset
     cleanup_fn cleanup;                       ///< Resource deallocator
+    (*bla)(struct ui_base *base); // testing adding a function to see if any warning happens
+};
+*/
+
+/**
+ * @struct ui_base
+ * @brief Base structure for polymorphic UI screen implementation.
+ *
+ * Provides the foundation for UI screen polymorphism through a virtual table.
+ * All UI screen structures must:
+ * 
+ * 1. Embed this struct as their first member
+ * 
+ * 2. Initialize the function pointers with their own implementation
+ *
+ * @note Use ui_base_init_defaults() to set up a screen with default no-op implementations.
+ * 
+ * To add a new behavior:
+ * 
+ * 1. Add the field to struct ui_base
+ * 
+ * 2. Implement a default version in ui_base.c
+ * 
+ * 3. Add it to ui_base_init_defaults()
+ * 
+ * 4. Only implement and override in screens that need this new behavior
+ * 
+ * Example:
+ * @code{.c}
+ * struct ui_login {
+ *     struct ui_base base;  // Must be first member
+ *     // Login-specific fields...
+ * };
+ *
+ * // In ui_login_init():
+ * ui_base_init_defaults(&ui->base, "UI Login")
+ * ui->base.render = ui_login_render;
+ * ...
+ * @endcode
+ * 
+ */
+struct ui_base {
+    render_fn render;                         ///< Combined render/interaction handler
+    handle_buttons_fn handle_buttons;         ///< Button state manager
+    handle_warning_msg_fn handle_warning_msg; ///< Dialog handler
+    update_positions_fn update_positions;     ///< Layout updater (window resize)
+    clear_fields_fn clear_fields;             ///< Input field reset
+    cleanup_fn cleanup;                       ///< Resource deallocator
+
+    const char *type_name; ///< Name of the derived screen type (for debugging)
 };
 
 /**
