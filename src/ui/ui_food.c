@@ -213,10 +213,10 @@ void ui_food_init(struct ui_food *ui) {
  * 
  * @implements ui_base.render
  * 
- * @param base    Must cast to ui_food*
- * @param state   Modified on screen transition
- * @param error   Set on database failures
- * @param db      Food database connection
+ * @param base Must cast to ui_food*
+ * @param state Modified on screen transition
+ * @param error Set on database failures
+ * @param foodbatch_db Food database connection
  * 
  * @warning Immediate-mode rendering (draws and handles input in one pass)
  * 
@@ -264,6 +264,13 @@ static void ui_food_render(
         ui->ib_year.input = 1;
         ui->ib_month.input = 1;
         ui->ib_day.input = 1;
+    } else if (ui->cb_is_perishable.checked == true
+               && (ui->ib_year.input == 1 && ui->ib_month.input == 1 && ui->ib_day.input == 1))
+    {
+        // This is to set values to 0 when the check goes from false to true
+        ui->ib_year.input = 0;
+        ui->ib_month.input = 0;
+        ui->ib_day.input = 0;
     }
 
     floatbox_draw(&ui->fb_daily_consumption_rate);
@@ -287,9 +294,6 @@ static void ui_food_render(
         ui->base.clear_fields(&ui->base);
         CLEAR_FLAG(&ui->flag, FLAG_FOOD_OPERATION_DONE);
     }
-
-    // Warnings
-    // End show warning/error boxes
 }
 
 /**
@@ -300,7 +304,7 @@ static void ui_food_render(
  * @param base Pointer to base UI structure (can be safely cast to ui_food*)
  * @param state Pointer to application state (modified on button actions)
  * @param error Pointer to error tracking variable
- * @param food_db Pointer to food database connection
+ * @param foodbatch_db Pointer to food database connection
  * 
  * @warning Should be called through the base interface
  * 
@@ -352,7 +356,7 @@ static void ui_food_handle_buttons(
  * @param base Pointer to base UI structure (can be safely cast to ui_food*)
  * @param state Pointer to application state
  * @param error Pointer to error tracking variable
- * @param food_db Pointer to food database connection
+ * @param foodbatch_db Pointer to food database connection
  * 
  * @warning May trigger database operations on confirmation
  * 
@@ -449,7 +453,9 @@ static void ui_food_update_positions(struct ui_base *base) {
     ui->butn_retrieve.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_delete.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_retrieve_all.bounds.y = ui->butn_submit.bounds.y;
-    ui->panel_bounds.x = window_width / 2 - 150;
+    ui->table_view.panel_bounds.width =
+        window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20 + /* +100 for styler offset */ 110);
+    ui->table_view.panel_bounds.height = window_height - 100;
 }
 
 /**

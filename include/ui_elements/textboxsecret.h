@@ -39,7 +39,7 @@ struct textboxsecret {
  * @return Fully initialized textboxsecret instance
  *
  * @note The input buffer is automatically zero-initialized
- * @warning Title pointer is stored directly (must remain valid)
+ * @warning Title pointer is stored directly (must remain valid for the lifetime of the textboxsecret))
  */
 struct textboxsecret textboxsecret_init(Rectangle bounds, const char *title);
 

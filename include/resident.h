@@ -1,3 +1,7 @@
+/**
+ * @file resident.h
+ * @brief Resident definition for use in database operations/code
+ */
 #ifndef RESIDENT_H
 #define RESIDENT_H
 

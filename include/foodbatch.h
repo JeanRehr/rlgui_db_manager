@@ -1,3 +1,7 @@
+/**
+ * @file foodbatch.h
+ * @brief Foodbatch definition for use in database operations/code
+ */
 #ifndef FOODBATCH_H
 #define FOODBATCH_H
 

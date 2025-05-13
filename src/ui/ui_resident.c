@@ -181,10 +181,10 @@ void ui_resident_init(struct ui_resident *ui) {
  * 
  * @implements ui_base.render
  * 
- * @param base    Must cast to ui_resident*
- * @param state   Modified on screen transition
- * @param error   Set on database failures
- * @param db      Resident database connection
+ * @param base Must cast to ui_resident*
+ * @param state Modified on screen transition
+ * @param error Set on database failures
+ * @param resident_db Resident database connection
  * 
  * @warning Immediate-mode rendering (draws and handles input in one pass)
  * 

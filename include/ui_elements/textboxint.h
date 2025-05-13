@@ -39,7 +39,7 @@ struct textboxint {
  * @return Preconfigured textboxint instance
  *
  * @note The input buffer is automatically zero-initialized
- * @warning Title pointer is stored directly (must remain valid)
+ * @warning Title pointer is stored directly (must remain valid for the lifetime of the textboxint))
  */
 struct textboxint textboxint_init(Rectangle bounds, const char *title);
 

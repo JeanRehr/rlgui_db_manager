@@ -1,3 +1,7 @@
+/**
+ * @file user.h
+ * @brief User definition for use in database operations/code
+ */
 #ifndef USER_H
 #define USER_H
 

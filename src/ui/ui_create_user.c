@@ -1,3 +1,7 @@
+/**
+ * @file ui_create_user.c
+ * @brief Creation of users implementation
+ */
 #include "ui/ui_create_user.h"
 
 static void ui_create_user_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *user_db);

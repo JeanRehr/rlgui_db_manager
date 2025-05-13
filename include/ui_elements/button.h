@@ -33,7 +33,7 @@ struct button {
  *         - Height preserved from input bounds
  *
  * @note Expands width if text is wider than initial bounds
- * @warning Title pointer is stored directly (must remain valid)
+ * @warning Title pointer is stored directly (must remain valid for the lifetime of the button))
  * @warning Minimum width is preserved (won't shrink below initial bounds.width)
  */
 struct button button_init(Rectangle bounds, const char *title);

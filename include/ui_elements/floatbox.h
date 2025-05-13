@@ -42,7 +42,7 @@ struct floatbox {
  *         - edit_mode set to false
  *         - text_input buffer zeroed
  * 
- * @warning Title pointer is stored directly (must remain valid)
+ * @warning Title pointer is stored directly (must remain valid for the lifetime of the floatbox))
  */
 struct floatbox floatbox_init(Rectangle bounds, const char *title);
 

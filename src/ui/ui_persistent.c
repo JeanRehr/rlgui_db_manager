@@ -1,6 +1,8 @@
 /**
- * @file ui_presistent.c
+ * @file ui_persistent.c
  * @brief Persisnt ui implementation
+ * 
+ * Does not implement ui interface yet
  */
 #include "ui/ui_persistent.h"
 

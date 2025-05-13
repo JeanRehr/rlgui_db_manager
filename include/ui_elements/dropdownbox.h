@@ -36,13 +36,16 @@ struct dropdownbox {
  * 
  * @param bounds Position and dimensions { x, y, width, height }
  * @param options Pipe-delimited string of available options (required)
- * @param label Descriptive text shown above the dropdown (optional)
+ * @param title Descriptive text shown above the dropdown (optional)
  * @return Preconfigured dropdownbox instance with:
- *         - active_option set to 0 (first option)
- *         - edit_mode set to false (collapsed)
+ * 
+ * - active_option set to 0 (first option)
+ * 
+ * - edit_mode set to false (collapsed)
  * 
  * @note Options string format: "OPTION1;OPTION2;OPTION3"
- * @warning Both options and label pointers are stored directly (must remain valid)
+ * @warning Both options and title pointers are stored directly
+ *          (must remain valid for the lifetime of the element)
  */
 struct dropdownbox dropdownbox_init(Rectangle bounds, const char *options, const char *title);
 
@@ -50,7 +53,7 @@ struct dropdownbox dropdownbox_init(Rectangle bounds, const char *options, const
  * @brief Draws and manages the dropdown control
  * 
  * Handles:
- * - Label rendering
+ * - Title rendering
  * - Dropdown box drawing
  * - Option selection
  * - Expand/collapse toggling

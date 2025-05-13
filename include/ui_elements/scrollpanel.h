@@ -40,7 +40,7 @@ struct scrollpanel {
  * 
  * @note Scroll position is automatically initialized to { 0, 0 }
  * @note panel_content_bounds param is dynamically set upon retrieving text based on the Vector2 of text
- * @warning Title pointer is stored directly (must remain valid)
+ * @warning Title pointer is stored directly (must remain valid for the lifetime of the scrollpanel))
  */
 struct scrollpanel scrollpanel_init(Rectangle panel_bounds, const char *title, Rectangle panel_content_bounds);
 
@@ -57,8 +57,8 @@ struct scrollpanel scrollpanel_init(Rectangle panel_bounds, const char *title, R
  * @param content_text Text data passed to draw_content callback, safely handles null
  * 
  * @note Call every frame for proper interaction
- * @note @param Rectangle of draw content is calculated inside implementation by the sp fields.
- * @note @param char pointer of draw content is the same as content_text.
+ * @note Rectangle of draw content is calculated inside implementation by the sp fields.
+ * @note char pointer of draw content is the same as content_text.
  * @warning Content drawing is clipped to visible region
  */
 void scrollpanel_draw(struct scrollpanel *sp, void (*draw_content)(Rectangle, char *), char *content_text);

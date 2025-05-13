@@ -39,7 +39,7 @@ struct textbox {
  * @return Preconfigured textbox instance
  * 
  * @note The input buffer is automatically zero-initialized
- * @warning Title pointer is stored directly (must remain valid)
+ * @warning Title pointer is stored directly (must remain valid for the lifetime of the textbox))
  */
 struct textbox textbox_init(Rectangle bounds, const char *title);
 
@@ -51,7 +51,7 @@ struct textbox textbox_init(Rectangle bounds, const char *title);
  * - Edit mode toggling
  * - Keyboard input handling
  * 
- * @param textbox Pointer to initialized textbox
+ * @param tb Pointer to initialized textbox
  * 
  * @note Call every frame for proper interaction
  */

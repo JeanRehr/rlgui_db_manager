@@ -2,14 +2,13 @@
  * @file tests.c
  * @brief Unit testing for everything that can be unit tested
  */
-
 #include <assert.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 
 /**
- * Including raylib + raygui with #define RAYGUI_IMPLEMENTATION
+ * Including raylib + raygui with define RAYGUI_IMPLEMENTATION
  * As makefile link all src/ files expect main.c for the tests directory
  * It won't see the RAYGUI_IMPLEMENTATION and will complain
  */

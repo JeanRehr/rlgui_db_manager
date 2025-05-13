@@ -38,7 +38,7 @@ struct intbox {
  * @return Preconfigured intbox instance
  * 
  * @note Initial value is set to 0 (clamped to valid range)
- * @warning Title pointer is stored directly (must remain valid).
+ * @warning Title pointer is stored directly (must remain valid for the lifetime of the intbox)).
  *          If min_val > max_val leads to unusable intbox, this is not asserted.
  */
 struct intbox intbox_init(Rectangle bounds, const char *title, const int min_val, const int max_val);

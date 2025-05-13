@@ -128,7 +128,6 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
  * @param state Pointer to application state (modified on success)
  * @param error Pointer to error tracking variable
  * @param user_db Pointer to user database connection
- * @param current_user Pointer to current user session struct
  * 
  * @warning Should be called through the base interface
  * 
@@ -316,7 +315,7 @@ static void ui_login_clear_fields(struct ui_base *base) {
  * @param error Error code to set if operation fails
  * @param user_db Database connection
  * @param current_user User session to update
- * @param action Database action to perform with parameters
+ * @param action Struct with database info to perform action in database function
  * 
  */
 static void process_db_action_in_warning(
