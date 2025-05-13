@@ -162,6 +162,15 @@ int user_db_change_username(database *db, const char *old_username, const char *
 bool user_db_check_admin_status(database *db, const char *username);
 
 /**
+ * @brief Set the given username to reset password
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] username Username to set
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if user doesn't exist, or other SQLite error code
+ */
+int user_db_set_reset_password(database *db, const char *username);
+
+/**
  * @brief Retrieves and displays all user accounts
  *
  * Fetches all user records and displays them in a formatted table showing

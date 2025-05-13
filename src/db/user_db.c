@@ -339,8 +339,7 @@ int user_db_get_by_username(database *db, const char *username, struct user *use
     sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
 
     rc = sqlite3_step(stmt);
-    if (rc == SQLITE_ROW) {        
-        // Safely handle text fields that might be NULL
+    if (rc == SQLITE_ROW) {
         const unsigned char *text;
 
         // Username (column 0)
@@ -507,6 +506,37 @@ bool user_db_check_admin_status(database *db, const char *username) {
 
     sqlite3_finalize(stmt);
     return is_admin;
+}
+
+int user_db_set_reset_password(database *db, const char *username) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (!user_db_check_exists(db, username)) {
+        fprintf(stderr, "User does not exist.\n");
+        return SQLITE_NOTFOUND;
+    }
+
+    const char *sql = "UPDATE Users SET ResetPassword = 1 WHERE Username = ?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to set reset password: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
 int user_db_get_all(database *db) {
