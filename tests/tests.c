@@ -45,7 +45,7 @@ void cleanup_handler(int sig) {
     exit(EXIT_FAILURE);
 }
 
-// Setup function
+// Setup function (only checks SIGABRT)
 void setup_cleanup(const char *filename, database *db) {
     // Set up signal handlers
     signal(SIGABRT, cleanup_handler); // assertion failure signal
@@ -1637,6 +1637,48 @@ void test_user_db_check_admin(void) {
     teardown_cleanup();
 }
 
+void test_user_db_set_password_reset(void) {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+
+    printf("Testing user_db_set_reset_password...\n");
+
+    // Test setting reset password flag for an existing user
+    printf("Creating user 'user1'...\n");
+    int rc = user_db_create_user(&test_user_db, "user1", false, false);
+    assert(rc == SQLITE_OK);
+    printf("User 'user1' created successfully.\n");
+
+    printf("Setting reset password for 'user1'...\n");
+    rc = user_db_set_reset_password(&test_user_db, "user1");
+    assert(rc == SQLITE_OK);
+    printf("Reset password for 'user1' set successfully.\n");
+
+    // Test setting reset password flag for a nonexistent user
+    printf("Setting reset password for nonexistent user 'user_not_exists'...\n");
+    rc = user_db_set_reset_password(&test_user_db, "user_not_exists");
+    assert(rc == SQLITE_ERROR || rc == SQLITE_NOTFOUND);
+    printf("Setting reset password failed for nonexistent user as expected.\n");
+
+    // Test setting reset password flag for an admin user
+    printf("Creating admin user 'admin2'...\n");
+    rc = user_db_create_user(&test_user_db, "admin2", true, false);
+    assert(rc == SQLITE_OK);
+    printf("Admin user 'admin2' created successfully.\n");
+
+    printf("Setting reset password for admin user 'admin2'...\n");
+    rc = user_db_set_reset_password(&test_user_db, "admin2");
+    assert(rc == SQLITE_OK);
+    printf("Reset password for admin user 'admin2' set successfully.\n");
+
+    teardown_cleanup();
+
+    printf("user_db_set_reset_password test passed successfully.\n");
+}
+
 void test_user_db_get_all(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
@@ -2011,7 +2053,7 @@ void test_validate_date(void) {
 
 // UTILSFN TESTS END
 
-int main(void) {
+void test_resident_db_fn(void) {
     test_resident_db_insert();
     test_resident_db_retrieve();
     test_resident_db_update();
@@ -2021,7 +2063,9 @@ int main(void) {
     test_resident_db_get_all_format();
     test_resident_db_get_all_format_old();
     test_resident_db_get_all();
+}
 
+void test_foodbatch_db_fn(void) {
     test_foodbatch_db_insert();
     test_foodbatch_db_retrieve();
     test_foodbatch_db_update();
@@ -2031,7 +2075,9 @@ int main(void) {
     test_foodbatch_db_get_all_format();
     test_foodbatch_db_get_all_format_old();
     test_foodbatch_db_get_all();
+}
 
+void test_user_db_fn(void) {
     test_user_db_create_table();
     test_user_db_create_user();
     test_user_db_authenticate();
@@ -2043,19 +2089,36 @@ int main(void) {
     test_user_db_change_username();
     test_user_db_default_admin_changes();
     test_user_db_check_admin();
+    test_user_db_set_password_reset();
     test_user_db_get_all();
+}
 
+void test_hash_fn(void) {
     test_generate_salt();
     test_hash_password();
     test_hash_consistency();
     test_hash_collision_resistance();
     test_edge_cases();
+}
 
+void test_utils_fn(void) {
     test_flag_macros();
     test_is_int_between_min_max();
     test_wrap_text();
     test_filter_integer_input();
     test_validate_date();
+}
+
+int main(void) {
+    test_resident_db_fn();
+
+    test_foodbatch_db_fn();
+
+    test_user_db_fn();
+
+    test_hash_fn();
+
+    test_utils_fn();
 
     return 0;
 }
