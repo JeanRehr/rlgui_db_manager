@@ -67,37 +67,43 @@ typedef void (*clear_fields_fn)(struct ui_base *base);
 typedef void (*cleanup_fn)(struct ui_base *base);
 
 /**
- * struct ui_vtable
- * brief Virtual function table defining UI screen behavior.
+ * @!struct ui_vtable
+ * @!brief Virtual function table defining UI screen behavior.
  *
  * This structure contains function pointers that define the behavior of UI screens.
  * Each UI screen type has a single shared vtable instance containing implementations
  * specific to that screen type. This enables polymorphic behavior while maintaining
  * type safety and memory efficiency.
  * 
+ * @code{.c}
+ * struct ui_vtable {
+ *     render_fn render; ///< Combined render/interaction handler
+ *     // -- snip --
+ * };
+ * 
+ * // on ui_base struct
+ * struct ui_base {
+ *     struct ui_vtable *vt; ///< Pointer to the vtable
+ *     const  char *type_name; ///< Pointer to the name
+ * };
+ * @endcode
+ * 
  * I have tested a vtable approach, but this doesn't really add anything useful
  * aside from shared memory for instances of the same type
  * 
- * vtable enforces everything is implemented, but C doesn't warn you if something isn't implemented
- * and it silently sets the function pointer not implemented to null
+ * vtable enforces everything is implemented, but C doesn't warn you if something
+ * isn't implemented and it silently sets the function pointer not implemented to
+ * null when assigning vt pointer to a specific vtable implementation
  * 
- * the vtable overrides everything set in the ui_base_init_defaults,
+ * The vtable overrides everything set in the ui_base_init_defaults, redenring it useless
  * as it assigns everything in the function pointer vtable at the same time
  * 
- * so using direct function pointers in ui_base provides more usefulness and safety
+ * So, assigining vt will override even unimplemented function pointers, leading to
+ * unsafe null pointers, no warnings, no way to initialize to a sane default...
+ * 
+ * Using direct function pointers in ui_base provides more usefulness and safety
  * (only because the compiler doesn't warn for unimplemented functions and
  * there isn't an implicit constructor and destructor in c)
- * @code{.c}
- * struct ui_vtable {
- *     render_fn render;                         ///< Combined render/interaction handler
- *     handle_buttons_fn handle_buttons;         ///< Button state manager
- *     handle_warning_msg_fn handle_warning_msg; ///< Dialog handler
- *     update_positions_fn update_positions;     ///< Layout updater (window resize)
- *     clear_fields_fn clear_fields;             ///< Input field reset
- *     cleanup_fn cleanup;                       ///< Resource deallocator
- *     (*bla)(struct ui_base *base); // testing adding a function to see if any warning happens
- * };
- * @endcode
  */
 
 /**
