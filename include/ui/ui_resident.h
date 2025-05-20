@@ -48,7 +48,7 @@ struct ui_resident {
     struct ui_base base; ///< Base ui methods/functionality
 
     struct textbox tb_name;                ///< Name input field
-    struct textboxint tb_cpf;              ///< CPF input field (numeric with formatting)
+    struct textboxint tbi_cpf;              ///< CPF input field (numeric with formatting)
     struct intbox ib_age;                  ///< Age input field
     struct textbox tb_health_status;       ///< Health status description
     struct textbox tb_needs;               ///< Special needs description

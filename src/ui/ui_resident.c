@@ -110,10 +110,10 @@ void ui_resident_init(struct ui_resident *ui) {
     ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
     ui->tb_name =
         textbox_init((Rectangle) { 20, ui->butn_back.bounds.y + (ui->butn_back.bounds.height * 2), 300, 30 }, "Name:");
-    ui->tb_cpf =
+    ui->tbi_cpf =
         textboxint_init((Rectangle) { 20, ui->tb_name.bounds.y + (ui->tb_name.bounds.height * 2), 300, 30 }, "CPF:");
     ui->ib_age =
-        intbox_init((Rectangle) { 20, ui->tb_cpf.bounds.y + (ui->tb_cpf.bounds.height * 2), 125, 30 }, "Age:", 0, 120);
+        intbox_init((Rectangle) { 20, ui->tbi_cpf.bounds.y + (ui->tbi_cpf.bounds.height * 2), 125, 30 }, "Age:", 0, 120);
     ui->tb_health_status = textbox_init(
         (Rectangle) { 20, ui->ib_age.bounds.y + (ui->ib_age.bounds.height * 2), 300, 30 },
         "Health Status:"
@@ -200,7 +200,7 @@ static void ui_resident_render(
     // Start draw UI elements
 
     textbox_draw(&ui->tb_name);
-    textboxint_draw(&ui->tb_cpf);
+    textboxint_draw(&ui->tbi_cpf);
     intbox_draw(&ui->ib_age);
 
     dropdownbox_draw(&ui->ddb_gender);
@@ -324,7 +324,7 @@ static void ui_resident_handle_warning_msg(
         message = "CPF already exists. Update?";
         flag_to_clear = FLAG_CPF_EXISTS;
         action.type = DB_ACTION_UPDATE;
-        action.update.cpf = ui->tb_cpf.input;
+        action.update.cpf = ui->tbi_cpf.input;
         action.update.name = ui->tb_name.input;
         action.update.age = ui->ib_age.input;
         action.update.health_status = ui->tb_health_status.input;
@@ -335,7 +335,7 @@ static void ui_resident_handle_warning_msg(
         message = "Are you sure you want to\ndelete this resident?";
         flag_to_clear = FLAG_CONFIRM_RESIDENT_DELETE;
         action.type = DB_ACTION_DELETE;
-        action.delete.cpf = ui->tb_cpf.input;
+        action.delete.cpf = ui->tbi_cpf.input;
     } else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
         message = "Database error. Try Again";
         *error = NO_ERROR; // Clear error after showing
@@ -402,7 +402,7 @@ static void ui_resident_clear_fields(struct ui_base *base) {
     struct ui_resident *ui = (struct ui_resident *)base;
 
     ui->tb_name.input[0] = '\0';
-    ui->tb_cpf.input[0] = '\0';
+    ui->tbi_cpf.input[0] = '\0';
     ui->ib_age.input = 0;
     ui->tb_health_status.input[0] = '\0';
     ui->tb_needs.input[0] = '\0';
@@ -619,18 +619,18 @@ static void handle_submit_button(struct ui_resident *ui, enum error_code *error,
     CLEAR_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY | FLAG_CPF_NOT_VALID | FLAG_CPF_EXISTS);
 
     // Validate inputs
-    if (ui->tb_cpf.input[0] == '\0') {
+    if (ui->tbi_cpf.input[0] == '\0') {
         SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
         return;
     }
 
-    if (!is_int_between_min_max(ui->tb_cpf.input, 11, 11)) {
+    if (!is_int_between_min_max(ui->tbi_cpf.input, 11, 11)) {
         SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
         return;
     }
 
     // Check if CPF exists
-    if (resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
+    if (resident_db_check_cpf_exists(resident_db, ui->tbi_cpf.input)) {
         SET_FLAG(&ui->flag, FLAG_CPF_EXISTS);
         return;
     }
@@ -638,7 +638,7 @@ static void handle_submit_button(struct ui_resident *ui, enum error_code *error,
     // Insert new resident
     if (resident_db_insert(
             resident_db,
-            ui->tb_cpf.input,
+            ui->tbi_cpf.input,
             ui->tb_name.input,
             ui->ib_age.input,
             ui->tb_health_status.input,
@@ -667,7 +667,7 @@ static void handle_submit_button(struct ui_resident *ui, enum error_code *error,
 static void handle_retrieve_button(struct ui_resident *ui, database *resident_db) {
     CLEAR_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
 
-    if (resident_db_get_by_cpf(resident_db, ui->tb_cpf.input, &ui->resident_retrieved) != SQLITE_OK) {
+    if (resident_db_get_by_cpf(resident_db, ui->tbi_cpf.input, &ui->resident_retrieved) != SQLITE_OK) {
         SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
         return;
     }
@@ -682,17 +682,17 @@ static void handle_delete_button(struct ui_resident *ui, database *resident_db) 
         FLAG_INPUT_CPF_EMPTY | FLAG_CPF_NOT_VALID | FLAG_CPF_NOT_FOUND | FLAG_CONFIRM_RESIDENT_DELETE
     );
 
-    if (ui->tb_cpf.input[0] == '\0') {
+    if (ui->tbi_cpf.input[0] == '\0') {
         SET_FLAG(&ui->flag, FLAG_INPUT_CPF_EMPTY);
         return;
     }
 
-    if (!is_int_between_min_max(ui->tb_cpf.input, 11, 11)) {
+    if (!is_int_between_min_max(ui->tbi_cpf.input, 11, 11)) {
         SET_FLAG(&ui->flag, FLAG_CPF_NOT_VALID);
         return;
     }
 
-    if (!resident_db_check_cpf_exists(resident_db, ui->tb_cpf.input)) {
+    if (!resident_db_check_cpf_exists(resident_db, ui->tbi_cpf.input)) {
         SET_FLAG(&ui->flag, FLAG_CPF_NOT_FOUND);
         return;
     }
