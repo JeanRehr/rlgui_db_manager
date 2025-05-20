@@ -35,6 +35,16 @@
   */
 #define MAX_CPF_LENGTH 12
 
+/**
+  * @def MAX_PHONE_NUMBER_LEN
+  * @brief Storage size for phone numbers
+  *
+  * Specifies the character array size needed to store a phone number
+  * including its null terminator (13 digits + null).
+  *
+  * @note Format: "5551999999999\\0" (13 digits)
+  */
+#define MAX_PHONE_NUMBER_LEN 14
 
 /**
   * @def FONT_SIZE
