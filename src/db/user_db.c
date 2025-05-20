@@ -21,6 +21,8 @@ int user_db_create_table(database *db) {
         "Username TEXT PRIMARY KEY NOT NULL,"
         "PasswordHash TEXT,"
         "Salt TEXT,"
+        "PhoneNumber TEXT,"
+        "CPF TEXT UNIQUE NOT NULL,"
         "IsAdmin INTEGER NOT NULL DEFAULT 0,"
         "ResetPassword INTEGER NOT NULL DEFAULT 1,"
         "CreatedAt INTEGER NOT NULL,"
@@ -41,7 +43,7 @@ int user_db_create_table(database *db) {
     return SQLITE_OK;
 }
 
-int user_db_create_user(database *db, const char *username, bool is_admin, bool reset_password) {
+int user_db_create_user(database *db, const char *username, const char *cpf, const char *phone_number, bool is_admin) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -52,9 +54,14 @@ int user_db_create_user(database *db, const char *username, bool is_admin, bool 
         return SQLITE_CONSTRAINT;
     }
 
+    if (user_db_check_cpf_exists(db, cpf)) {
+        fprintf(stderr, "CPF already exists.\n");
+        return SQLITE_CONSTRAINT;
+    }
+
     const char *sql =
-        "INSERT INTO Users (Username, IsAdmin, ResetPassword, CreatedAt) "
-        "VALUES (?, ?, ?, ?);";
+        "INSERT INTO Users (Username, CPF, PhoneNumber, IsAdmin, ResetPassword, CreatedAt) "
+        "VALUES (?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
@@ -66,9 +73,11 @@ int user_db_create_user(database *db, const char *username, bool is_admin, bool 
     time_t now = time(NULL);
 
     sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 2, is_admin ? 1 : 0);
-    sqlite3_bind_int(stmt, 3, reset_password ? 1 : 0);
-    sqlite3_bind_int64(stmt, 4, now);
+    sqlite3_bind_text(stmt, 2, cpf, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, phone_number, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 4, is_admin ? 1 : 0);
+    sqlite3_bind_int(stmt, 5, 1);
+    sqlite3_bind_int64(stmt, 6, now);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -102,8 +111,8 @@ int user_db_create_admin(database *db) {
     hash_password(password, salt, hash);
 
     const char *sql =
-        "INSERT INTO Users (Username, PasswordHash, Salt, IsAdmin, ResetPassword, CreatedAt) "
-        "VALUES (?, ?, ?, ?, ?, ?);";
+        "INSERT INTO Users (Username, PasswordHash, Salt, CPF, PhoneNumber, IsAdmin, ResetPassword, CreatedAt) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
@@ -118,9 +127,11 @@ int user_db_create_admin(database *db) {
     sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, hash, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 3, salt, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 4, is_admin ? 1 : 0);
-    sqlite3_bind_int(stmt, 5, reset_password ? 1 : 0);
-    sqlite3_bind_int64(stmt, 6, now);
+    sqlite3_bind_text(stmt, 4, "99999999999", -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, "5551900000000", -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 6, is_admin ? 1 : 0);
+    sqlite3_bind_int(stmt, 7, reset_password ? 1 : 0);
+    sqlite3_bind_int64(stmt, 8, now);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -162,7 +173,7 @@ enum auth_result user_db_authenticate(database *db, const char *username, const 
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
-        return true; // Authentication succeeded even if we can't update last login
+        return AUTH_SUCCESS; // Authentication succeeded even if we can't update last login
     }
 
     time_t now = time(NULL);
@@ -290,6 +301,35 @@ int user_db_update_admin_status(database *db, const char *username, bool is_admi
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
+bool user_db_check_cpf_exists(database *db, const char *cpf) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return false;
+    }
+
+    const char *sql = "SELECT 1 FROM Users WHERE CPF = ?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_STATIC);
+
+    bool exists = false;
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        exists = true;
+    } else if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return exists;
+}
+
 bool user_db_check_exists(database *db, const char *username) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -326,7 +366,7 @@ int user_db_get_by_username(database *db, const char *username, struct user *use
     }
 
     const char *sql =
-        "SELECT Username, PasswordHash, Salt, IsAdmin, ResetPassword, CreatedAt, LastLogin "
+        "SELECT Username, PasswordHash, Salt, CPF, PhoneNumber, IsAdmin, ResetPassword, CreatedAt, LastLogin "
         "FROM Users WHERE Username = ?;";
 
     sqlite3_stmt *stmt;
@@ -354,18 +394,26 @@ int user_db_get_by_username(database *db, const char *username, struct user *use
         text = sqlite3_column_text(stmt, 2);
         strncpy(user_out->salt, text ? (const char *)text : "", SALT_LEN);
 
-        // IsAdmin (column 3)
-        user_out->is_admin = sqlite3_column_int(stmt, 3) == 1;
-        
-        // ResetPassword (column 4)
-        user_out->reset_password = sqlite3_column_int(stmt, 4) == 1;
-        
-        // CreatedAt (column 5)
-        user_out->created_at = sqlite3_column_int64(stmt, 5);
+        // CPF (column 3)
+        text = sqlite3_column_text(stmt, 3);
+        strncpy(user_out->cpf, text ? (const char *)text : "", MAX_CPF_LENGTH);
 
-        // LastLogin (column 6) - can be NULL
-        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) {
-            user_out->last_login = sqlite3_column_int64(stmt, 6);
+        // PhoneNumber (column 4)
+        text = sqlite3_column_text(stmt, 4);
+        strncpy(user_out->phone_number, text ? (const char *)text : "", MAX_PHONE_NUMBER_LEN);
+
+        // IsAdmin (column 5)
+        user_out->is_admin = sqlite3_column_int(stmt, 5) == 1;
+
+        // ResetPassword (column 6)
+        user_out->reset_password = sqlite3_column_int(stmt, 6) == 1;
+
+        // CreatedAt (column 7)
+        user_out->created_at = sqlite3_column_int64(stmt, 7);
+
+        // LastLogin (column 8) - can be NULL
+        if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) {
+            user_out->last_login = sqlite3_column_int64(stmt, 8);
         } else {
             user_out->last_login = 0;
         }
@@ -404,75 +452,20 @@ int user_db_change_username(database *db, const char *old_username, const char *
         return SQLITE_CONSTRAINT;
     }
 
-    // Begin transaction since we're modifying the primary key
-    int rc = sqlite3_exec(db->db, "BEGIN TRANSACTION;", 0, 0, 0);
+    const char *update_sql = "UPDATE Users SET Username = ? WHERE Username = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, update_sql, -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to begin transaction: %s\n", sqlite3_errmsg(db->db));
+        fprintf(stderr, "Failed to prepare update statement: %s\n", sqlite3_errmsg(db->db));
         return rc;
     }
-
-    // First get all user data
-    struct user user_data = {0};
-    rc = user_db_get_by_username(db, old_username, &user_data);
-    if (rc != SQLITE_OK) {
-        sqlite3_exec(db->db, "ROLLBACK;", 0, 0, 0);
-        return rc;
-    }
-
-    // Create a new user with the new username and same data
-    const char *insert_sql =
-        "INSERT INTO Users (Username, PasswordHash, Salt, IsAdmin, ResetPassword, CreatedAt, LastLogin) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?);";
-
-    sqlite3_stmt *insert_stmt;
-    rc = sqlite3_prepare_v2(db->db, insert_sql, -1, &insert_stmt, 0);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to prepare insert statement: %s\n", sqlite3_errmsg(db->db));
-        sqlite3_exec(db->db, "ROLLBACK;", 0, 0, 0);
-        return rc;
-    }
-
-    sqlite3_bind_text(insert_stmt, 1, new_username, -1, SQLITE_STATIC);
-    sqlite3_bind_text(insert_stmt, 2, user_data.password_hash, -1, SQLITE_STATIC);
-    sqlite3_bind_text(insert_stmt, 3, user_data.salt, -1, SQLITE_STATIC);
-    sqlite3_bind_int(insert_stmt, 4, user_data.is_admin ? 1 : 0);
-    sqlite3_bind_int(insert_stmt, 5, user_data.reset_password ? 1 : 0);
-    sqlite3_bind_int64(insert_stmt, 6, user_data.created_at);
-    sqlite3_bind_int64(insert_stmt, 7, user_data.last_login);
-
-    rc = sqlite3_step(insert_stmt);
-    sqlite3_finalize(insert_stmt);
-    
-    if (rc != SQLITE_DONE) {
-        fprintf(stderr, "Failed to create new username entry: %s\n", sqlite3_errmsg(db->db));
-        sqlite3_exec(db->db, "ROLLBACK;", 0, 0, 0);
-        return rc;
-    }
-
-    // Delete the old user entry
-    const char *delete_sql = "DELETE FROM Users WHERE Username = ?;";
-    sqlite3_stmt *delete_stmt;
-    rc = sqlite3_prepare_v2(db->db, delete_sql, -1, &delete_stmt, 0);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to prepare delete statement: %s\n", sqlite3_errmsg(db->db));
-        sqlite3_exec(db->db, "ROLLBACK;", 0, 0, 0);
-        return rc;
-    }
-
-    sqlite3_bind_text(delete_stmt, 1, old_username, -1, SQLITE_STATIC);
-    rc = sqlite3_step(delete_stmt);
-    sqlite3_finalize(delete_stmt);
+    sqlite3_bind_text(stmt, 1, new_username, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, old_username, -1, SQLITE_STATIC);
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
 
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "Failed to delete old username entry: %s\n", sqlite3_errmsg(db->db));
-        sqlite3_exec(db->db, "ROLLBACK;", 0, 0, 0);
-        return rc;
-    }
-
-    // Commit the transaction if everything succeeded
-    rc = sqlite3_exec(db->db, "COMMIT;", 0, 0, 0);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to commit transaction: %s\n", sqlite3_errmsg(db->db));
+        fprintf(stderr, "Failed to update username: %s\n", sqlite3_errmsg(db->db));
         return rc;
     }
 
@@ -482,6 +475,11 @@ int user_db_change_username(database *db, const char *old_username, const char *
 bool user_db_check_admin_status(database *db, const char *username) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
+        return false;
+    }
+
+    if (!user_db_check_exists(db, username)) {
+        fprintf(stderr, "Username does not exists.\n");
         return false;
     }
 
@@ -545,7 +543,7 @@ int user_db_get_all(database *db) {
         return SQLITE_ERROR;
     }
 
-    const char *sql = "SELECT Username, IsAdmin, CreatedAt, LastLogin FROM Users;";
+    const char *sql = "SELECT Username, CPF, PhoneNumber, IsAdmin, CreatedAt, LastLogin FROM Users;";
 
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
@@ -553,15 +551,23 @@ int user_db_get_all(database *db) {
         fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
         return rc;
     }
-    printf("+------------------------------------------------------------------------+\n");
-    printf("| Username                 | Admin | Created At       | Last Login       |\n");
-    printf("+--------------------------+-------+------------------+------------------+\n");
+    printf(
+        "+------------------------------------------------------------------------------------------------------+\n"
+    );
+    printf(
+        "| Username                 | CPF         | Phone Number  | Admin | Created At       | Last Login       |\n"
+    );
+    printf(
+        "+--------------------------+-------------+---------------+-------+------------------+------------------+\n"
+    );
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         const char *username = (const char *)sqlite3_column_text(stmt, 0);
-        bool is_admin = sqlite3_column_int(stmt, 1) == 1;
-        time_t created_at = sqlite3_column_int64(stmt, 2);
-        time_t last_login = sqlite3_column_int64(stmt, 3);
+        const char *cpf = (const char *)sqlite3_column_text(stmt, 1);
+        const char *phone_number = (const char *)sqlite3_column_text(stmt, 2);
+        bool is_admin = sqlite3_column_int(stmt, 3) == 1;
+        time_t created_at = sqlite3_column_int64(stmt, 4);
+        time_t last_login = sqlite3_column_int64(stmt, 5);
 
         char created_at_str[32];
         char last_login_str[32];
@@ -573,13 +579,17 @@ int user_db_get_all(database *db) {
         }
 
         printf(
-            "| %-24s | %-5s | %-16s | %-16s |\n",
+            "| %-24s | %-11s | %-13s | %-5s | %-16s | %-16s |\n",
             username,
+            cpf,
+            phone_number,
             is_admin ? "Yes" : "No",
             created_at_str,
             last_login_str
         );
-        printf("+--------------------------+-------+------------------+------------------+\n");
+        printf(
+            "+--------------------------+-------------+---------------+-------+------------------+------------------+\n"
+        );
     }
 
     if (rc != SQLITE_DONE) {

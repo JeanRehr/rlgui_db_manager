@@ -42,12 +42,16 @@ int user_db_create_table(database *db);
  * The account will be created with a temporary password that must be reset.
  *
  * @param[in] db Pointer to initialized database structure
- * @param[in] username Unique username for the new account
+ * @param[in] username Unique username for the new account this is the primary key
+ * @param[in] cpf Unique CPF for the new account
+ * @param[in] phone_number Phone number for the new account, may be null
  * @param[in] is_admin Whether the user should have admin privileges
- * @param[in] reset_password Whether to require password reset on first login
+ *
+ * @note The newly created user will always need a password reset
+ *
  * @return SQLITE_OK on success, SQLITE_CONSTRAINT if username exists, or other SQLite error code
  */
-int user_db_create_user(database *db, const char *username, bool is_admin, bool reset_password);
+int user_db_create_user(database *db, const char *username, const char *cpf, const char *phone_number, bool is_admin);
 
 /**
  * @brief Creates the default admin account
@@ -116,6 +120,17 @@ int user_db_update_password(database *db, const char *username, const char *new_
 int user_db_update_admin_status(database *db, const char *username, bool is_admin);
 
 /**
+ * @brief Checks if a cpf exists
+ *
+ * Verifies whether an account with the specified cpf exists.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] cpf CPF to check
+ * @return true if cpf exists, false otherwise
+ */
+bool user_db_check_cpf_exists(database *db, const char *cpf);
+
+/**
  * @brief Checks if a username exists
  *
  * Verifies whether an account with the specified username exists.
@@ -157,7 +172,7 @@ int user_db_change_username(database *db, const char *old_username, const char *
  *
  * @param[in] db Pointer to initialized database structure
  * @param[in] username Username to check
- * @return true if username has admin status, false otherwise
+ * @return true if username has admin status, false otherwise or if the username does not exists
  */
 bool user_db_check_admin_status(database *db, const char *username);
 
