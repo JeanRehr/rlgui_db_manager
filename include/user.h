@@ -5,14 +5,14 @@
 #ifndef USER_H
 #define USER_H
 
-#include <time.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include "CONSTANTS.h"
 
 /** Length constants for password hashing */
-#define PASSWORD_HASH_LEN 64   ///< Length of SHA-256 hex string (2 chars per byte)
-#define SALT_LEN 32            ///< Recommended length for cryptographic salts
+#define PASSWORD_HASH_LEN 64 ///< Length of SHA-256 hex string (2 chars per byte)
+#define SALT_LEN 32          ///< Recommended length for cryptographic salts
 
 /**
  * @struct user
