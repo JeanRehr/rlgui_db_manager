@@ -22,6 +22,8 @@ struct user {
     char username[MAX_INPUT];                  ///< Unique username identifier
     char password_hash[PASSWORD_HASH_LEN + 1]; ///< Hashed password
     char salt[SALT_LEN + 1];                   ///< Password salt
+    char cpf[MAX_CPF_LENGTH];                  ///< CPF (must be unique per user)
+    char phone_number[MAX_PHONE_NUMBER_LEN];   ///< Contact data
     bool is_admin;                             ///< Administrator flag
     bool reset_password;                       ///< Password reset required flag
     time_t created_at;                         ///< Account creation timestamp
