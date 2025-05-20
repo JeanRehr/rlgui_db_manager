@@ -1180,7 +1180,13 @@ void test_user_db_create_table(void) {
     printf("Admin user created successfully.\n");
 
     // Verify table structure by trying to insert a user
-    int rc = user_db_create_user(&test_user_db, "testuser", false, true);
+    int rc = user_db_create_user(
+        &test_user_db,
+        "testuser",      // username
+        "12345678901",   // cpf (sample)
+        "5551900100200", // phone number
+        false            // is_admin
+    );
     assert(rc == SQLITE_OK);
     printf("Table structure is correct.\n");
 
@@ -1200,19 +1206,24 @@ void test_user_db_create_user(void) {
 
     // Test creating a regular user
     printf("Creating regular user 'user1'...\n");
-    int rc = user_db_create_user(&test_user_db, "user1", false, true);
+    int rc = user_db_create_user(&test_user_db, "user1", "00000000000", "1234567890123", false);
     assert(rc == SQLITE_OK);
     printf("Regular user created successfully.\n");
 
     // Test creating an admin user
     printf("Creating admin user 'admin2'...\n");
-    rc = user_db_create_user(&test_user_db, "admin2", true, false);
+    rc = user_db_create_user(&test_user_db, "admin2", "11111111111", "1234567890123", true);
     assert(rc == SQLITE_OK);
     printf("Admin user created successfully.\n");
 
     // Test creating duplicate user
-    printf("Attempting to create duplicate user 'user1'...\n");
-    rc = user_db_create_user(&test_user_db, "user1", false, true);
+    printf("Attempting to create duplicate user 'user1' by username...\n");
+    rc = user_db_create_user(&test_user_db, "user1", "87655366273", "", false);
+    assert(rc == SQLITE_CONSTRAINT);
+    printf("Duplicate user creation failed as expected.\n");
+
+    printf("Attempting to create duplicate user by CPF...\n");
+    rc = user_db_create_user(&test_user_db, "user2", "00000000000", "", false);
     assert(rc == SQLITE_CONSTRAINT);
     printf("Duplicate user creation failed as expected.\n");
 
@@ -1236,7 +1247,7 @@ void test_user_db_authenticate(void) {
 
     // First create user without password (reset_password flag set)
     printf("Creating user '%s' with reset_password flag...\n", username);
-    int rc = user_db_create_user(&test_user_db, username, false, true);
+    int rc = user_db_create_user(&test_user_db, username, "00000000000", "", false);
     assert(rc == SQLITE_OK);
 
     // Test authentication with reset_password flag
@@ -1285,7 +1296,7 @@ void test_user_db_delete(void) {
     // Create a test user
     const char *username = "user_to_delete";
     printf("Creating user '%s'...\n", username);
-    int rc = user_db_create_user(&test_user_db, username, false, true);
+    int rc = user_db_create_user(&test_user_db, username, "00000000000", "", false);
     assert(rc == SQLITE_OK);
 
     // Verify user exists
@@ -1326,7 +1337,7 @@ void test_user_db_update_password(void) {
     // Create a test user
     const char *username = "password_test_user";
     printf("Creating user '%s'...\n", username);
-    int rc = user_db_create_user(&test_user_db, username, false, true);
+    int rc = user_db_create_user(&test_user_db, username, "00000000000", "", false);
     assert(rc == SQLITE_OK);
 
     // Set initial password
@@ -1382,7 +1393,7 @@ void test_user_db_update_admin_status(void) {
     // Create a test user (non-admin)
     const char *username = "admin_test_user";
     printf("Creating non-admin user '%s'...\n", username);
-    int rc = user_db_create_user(&test_user_db, username, false, true);
+    int rc = user_db_create_user(&test_user_db, username, "00000000000", "", false);
     assert(rc == SQLITE_OK);
 
     // Verify initial admin status
@@ -1425,6 +1436,37 @@ void test_user_db_update_admin_status(void) {
     printf("user_db_update_admin_status test passed successfully.\n");
 }
 
+void test_user_db_check_cpf_exists(void) {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+
+    printf("Testing user_db_check_cpf_exists...\n");
+
+    // Check for non-existent user
+    printf("Checking for non-existent user...\n");
+    bool exists = user_db_check_exists(&test_user_db, "nonexistent");
+    assert(!exists);
+    printf("Non-existent user correctly not found.\n");
+
+    // Create a test user
+    const char *cpf = "00000000000";
+    printf("Creating user with cpf '%s'...\n", cpf);
+    user_db_create_user(&test_user_db, "test_user", cpf, "", false);
+
+    // Check for existing user
+    printf("Checking for existing user...\n");
+    exists = user_db_check_cpf_exists(&test_user_db, cpf);
+    assert(exists);
+    printf("Existing user correctly found.\n");
+
+    teardown_cleanup();
+
+    printf("user_db_check_cpf_exists test passed successfully.\n");
+}
+
 void test_user_db_check_exists(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
@@ -1441,10 +1483,9 @@ void test_user_db_check_exists(void) {
     printf("Non-existent user correctly not found.\n");
 
     // Create a test user
-    const char *username = "existence_test_user";
+    const char *username = "existent_test_user";
     printf("Creating user '%s'...\n", username);
-    int rc = user_db_create_user(&test_user_db, username, false, true);
-    assert(rc == SQLITE_OK);
+    user_db_create_user(&test_user_db, username, "00000000000", "", false);
 
     // Check for existing user
     printf("Checking for existing user...\n");
@@ -1468,10 +1509,11 @@ void test_user_db_get_by_username(void) {
 
     // Create a test user with known properties
     const char *username = "get_test_user";
+    const char *cpf = "00000000000";
+    const char *phone_number = "5551912345678";
     bool is_admin = true;
-    bool reset_password = false;
     printf("Creating test user '%s'...\n", username);
-    int rc = user_db_create_user(&test_user_db, username, is_admin, reset_password);
+    int rc = user_db_create_user(&test_user_db, username, cpf, phone_number, is_admin);
     assert(rc == SQLITE_OK);
 
     // Set password
@@ -1488,8 +1530,10 @@ void test_user_db_get_by_username(void) {
 
     // Verify retrieved data
     assert(strcmp(user_data.username, username) == 0);
+    assert(strcmp(user_data.cpf, cpf) == 0);
+    assert(strcmp(user_data.phone_number, phone_number) == 0);
     assert(user_data.is_admin == is_admin);
-    assert(user_data.reset_password == reset_password);
+    assert(user_data.reset_password == false);
     assert(user_data.created_at > 0);
     printf("User data retrieved correctly.\n");
 
@@ -1517,9 +1561,8 @@ void test_user_db_change_username(void) {
     const char *old_username = "old_username";
     const char *new_username = "new_username";
     bool is_admin = false;
-    bool reset_password = true;
     printf("Creating test user '%s'...\n", old_username);
-    int rc = user_db_create_user(&test_user_db, old_username, is_admin, reset_password);
+    int rc = user_db_create_user(&test_user_db, old_username, "00000000000", "", is_admin);
     assert(rc == SQLITE_OK);
 
     // Set password
@@ -1621,14 +1664,14 @@ void test_user_db_check_admin(void) {
     printf("Default admin is correctly an admin.\n");
 
     printf("Checking if a newly created admin user is admin...\n");
-    user_db_create_user(&test_user_db, "testadmin", true, true);
+    user_db_create_user(&test_user_db, "testadmin", "00000000000", "", true);
 
     is_admin = user_db_check_admin_status(&test_user_db, "testadmin");
     assert(is_admin == true);
     printf("Newly create admin user is correctly an admin.\n");
 
     printf("Checking if a newly created non-admin user is admin...\n");
-    user_db_create_user(&test_user_db, "test_nonadmin", false, true);
+    user_db_create_user(&test_user_db, "test_nonadmin", "00000000000", "", false);
 
     is_admin = user_db_check_admin_status(&test_user_db, "test_nonadmin");
     assert(is_admin == false);
@@ -1648,7 +1691,7 @@ void test_user_db_set_password_reset(void) {
 
     // Test setting reset password flag for an existing user
     printf("Creating user 'user1'...\n");
-    int rc = user_db_create_user(&test_user_db, "user1", false, false);
+    int rc = user_db_create_user(&test_user_db, "user1", "00000000000", "", false);
     assert(rc == SQLITE_OK);
     printf("User 'user1' created successfully.\n");
 
@@ -1665,9 +1708,7 @@ void test_user_db_set_password_reset(void) {
 
     // Test setting reset password flag for an admin user
     printf("Creating admin user 'admin2'...\n");
-    rc = user_db_create_user(&test_user_db, "admin2", true, false);
-    assert(rc == SQLITE_OK);
-    printf("Admin user 'admin2' created successfully.\n");
+    rc = user_db_create_user(&test_user_db, "admin2", "00000000001", "", true);
 
     printf("Setting reset password for admin user 'admin2'...\n");
     rc = user_db_set_reset_password(&test_user_db, "admin2");
@@ -1690,10 +1731,10 @@ void test_user_db_get_all(void) {
 
     // Create several test users
     printf("Creating test users...\n");
-    user_db_create_user(&test_user_db, "user1", false, true);
-    user_db_create_user(&test_user_db, "user2", false, false);
-    user_db_create_user(&test_user_db, "admin1", true, true);
-    user_db_create_user(&test_user_db, "admin2", true, false);
+    user_db_create_user(&test_user_db, "user1", "00000000000", "", false);
+    user_db_create_user(&test_user_db, "user2", "00000000001", "", false);
+    user_db_create_user(&test_user_db, "admin1", "00000000002", "", true);
+    user_db_create_user(&test_user_db, "admin2", "00000000003", "", true);
 
     // Set a password and authenticate a user to set Last Login date.
     user_db_update_password(&test_user_db, "user1", "newpassword");
