@@ -8,10 +8,10 @@
  * - Data formatting standards
  */
 
- #ifndef CONSTANTS_H
- #define CONSTANTS_H
- 
- /**
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+/**
   * @def MAX_INPUT
   * @brief Maximum length for text input buffers
   *
@@ -21,9 +21,9 @@
   * @note Used for char arrays storing user input
   * @warning Does not include null terminator in count, 256 should be the null
   */
- #define MAX_INPUT 256
- 
- /**
+#define MAX_INPUT 256
+
+/**
   * @def MAX_CPF_LENGTH
   * @brief Storage size for CPF numbers
   *
@@ -33,9 +33,10 @@
   * @note Format: "XXXXXXXXXXX\\0" (11 digits)
   * @see resident_db.h and resident.h
   */
- #define MAX_CPF_LENGTH 12
- 
- /**
+#define MAX_CPF_LENGTH 12
+
+
+/**
   * @def FONT_SIZE
   * @brief Base font size for UI elements
   *
@@ -45,6 +46,6 @@
   * @note All UI elements should derive their text sizes from this value
   * @warning Changing this may require layout adjustments
   */
- #define FONT_SIZE 16
- 
- #endif // CONSTANTS_H
+#define FONT_SIZE 16
+
+#endif // CONSTANTS_H
