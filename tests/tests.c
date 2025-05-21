@@ -1720,6 +1720,52 @@ void test_user_db_set_password_reset(void) {
     printf("user_db_set_reset_password test passed successfully.\n");
 }
 
+void test_user_db_get_count(void) {
+    const char *test_userdb_filename = "test_user_db.db";
+    database test_user_db;
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+
+    setup_cleanup(test_userdb_filename, &test_user_db);
+
+    // Test empty database
+    printf("Testing count on empty database...\n");
+    int count = user_db_get_count(&test_user_db);
+    assert(count == 1);
+    printf("Database has only default admin (1).\n");
+
+    // Add one resident
+    printf("Adding one user...\n");
+    user_db_create_user(&test_user_db, "test_user0", "00000000000", "5551912345678", false);
+
+    // Verify count is now 2
+    printf("Verifying count after insertion...\n");
+    count = user_db_get_count(&test_user_db);
+    assert(count == 2);
+    printf("Count correct after insertion (2).\n");
+
+    // Add multiple residents
+    printf("Adding multiple residents...\n");
+    user_db_create_user(&test_user_db, "test_user1", "00000000001", "5551912345679", true);
+    user_db_create_user(&test_user_db, "test_user2", "00000000002", "5551912345670", false);
+
+    // Verify count is now 4
+    printf("Verifying count after multiple insertions...\n");
+    count = user_db_get_count(&test_user_db);
+    assert(count == 4);
+    printf("Count correct after multiple insertions (4).\n");
+
+    // Delete one and verify count
+    printf("Deleting one resident...\n");
+    user_db_delete(&test_user_db, "test_user2");
+    count = user_db_get_count(&test_user_db);
+    assert(count == 3);
+    printf("Count correct after deletion (3).\n");
+
+    teardown_cleanup();
+
+    printf("user_db_get_count test passed successfully.\n");
+}
+
 void test_user_db_get_all(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
@@ -2131,6 +2177,7 @@ void test_user_db_fn(void) {
     test_user_db_default_admin_changes();
     test_user_db_check_admin();
     test_user_db_set_password_reset();
+    test_user_db_get_count();
     test_user_db_get_all();
 }
 
