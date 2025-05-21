@@ -139,6 +139,7 @@ int main(void) {
             ui_login.base.update_positions(&ui_login.base);
             ui_resident.base.update_positions(&ui_resident.base);
             ui_food.base.update_positions(&ui_food.base);
+            ui_create_user.base.update_positions(&ui_create_user.base);
             ui_persistent_updt_pos(&ui_persistent);
         }
 
