@@ -233,16 +233,16 @@ static void ui_resident_render(
 
 /**
  * @brief Handle button drawing and logic.
- * 
+ *
  * @implements ui_base.handle_buttons
  *
  * @param base Pointer to base UI structure (can be safely cast to any ui*)
  * @param state Pointer to application state (modified on success)
  * @param error Pointer to error tracking variable
  * @param resident_db Pointer to resident database connection
- * 
+ *
  * @warning Should be called through the base interface
- * 
+ *
  */
 static void ui_resident_handle_buttons(
     struct ui_base *base,
@@ -282,9 +282,9 @@ static void ui_resident_handle_buttons(
 
 /**
  * @brief Manages warning message display and response handling.
- * 
+ *
  * @implements ui_base.handle_warning_msg
- * 
+ *
  * Shows appropriate warning messages (e.g., deletions),
  * handles user responses, and triggers follow-up actions.
  *
@@ -292,9 +292,9 @@ static void ui_resident_handle_buttons(
  * @param state Pointer to application state (ui_resident does not modify this, but the interface needs this parameter)
  * @param error Pointer to error tracking variable
  * @param resident_db Pointer to resident database connection
- * 
+ *
  * @warning Should be called through the base interface, may trigger database operations
- * 
+ *
  */
 static void ui_resident_handle_warning_msg(
     struct ui_base *base,
@@ -365,16 +365,16 @@ static void ui_resident_handle_warning_msg(
  *
  * Adjusts UI element positions based on current window dimensions.
  * Should be called when the window is resized.
- * 
+ *
  * @implements ui_base.update_positions
  *
  * @param base Pointer to base UI structure (can be safely cast to any ui*)
- * 
+ *
  * @note If any ui element is initialized with window_width or window_height
  *       in their bounds, they must be updated here
- * 
+ *
  * @warning Should be called through the base interface
- * 
+ *
  */
 static void ui_resident_update_positions(struct ui_base *base) {
     struct ui_resident *ui = (struct ui_resident *)base;
@@ -390,13 +390,13 @@ static void ui_resident_update_positions(struct ui_base *base) {
 
 /**
  * @brief Clear fields of the ui_resident
- * 
+ *
  * @implements ui_base.clear_fields
  *
  * @param base Pointer to base UI structure (can be safely cast to any ui*)
- * 
+ *
  * @warning Should be called through the base interface
- * 
+ *
  */
 static void ui_resident_clear_fields(struct ui_base *base) {
     struct ui_resident *ui = (struct ui_resident *)base;
@@ -412,13 +412,13 @@ static void ui_resident_clear_fields(struct ui_base *base) {
 
 /**
  * @brief Cleanup of any memory allocated by ui resident
- * 
+ *
  * @implements ui_base.cleanup
  *
  * @param base Pointer to base UI structure (can be safely cast to any ui*)
- * 
+ *
  * @warning Should be called through the base interface
- * 
+ *
  */
 static void ui_resident_cleanup(struct ui_base *base) {
     struct ui_resident *ui = (struct ui_resident *)base;
@@ -658,7 +658,7 @@ static void handle_submit_button(struct ui_resident *ui, enum error_code *error,
 
 /**
  * @internal
- * @brief Private function to handle the submit of a resident into the database.
+ * @brief Private function to handle the retrieving of a resident to draw into the panel bounds.
  * 
  * @param ui Pointer to ui_resident struct to handle button action
  * @param resident_db Pointer to the resident database
@@ -702,7 +702,7 @@ static void handle_delete_button(struct ui_resident *ui, database *resident_db) 
 
 /**
  * @internal
- * @brief Private function to handle the submit of a resident into the database.
+ * @brief Private function to handle the retrieval of all residents and draw into the database view.
  * 
  * @param ui Pointer to ui_resident struct to handle button action
  * @param resident_db Pointer to the resident database
