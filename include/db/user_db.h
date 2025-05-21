@@ -186,6 +186,16 @@ bool user_db_check_admin_status(database *db, const char *username);
 int user_db_set_reset_password(database *db, const char *username);
 
 /**
+ * @brief Gets the count of registered users in the database
+ *
+ * @param db Pointer to initialized database structure
+ * @return Total number of users on success, -1 on failure
+ *
+ * @note The user database will always have a default admin created
+ */
+int user_db_get_count(database *db);
+
+/**
  * @brief Retrieves and displays all user accounts
  *
  * Fetches all user records and displays them in a formatted table showing

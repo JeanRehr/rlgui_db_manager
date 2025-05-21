@@ -537,6 +537,32 @@ int user_db_set_reset_password(database *db, const char *username) {
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
+int user_db_get_count(database *db) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return -1;
+    }
+
+    const char *sql = "SELECT COUNT(*) FROM Users;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return -1;
+    }
+
+    int count = 0;
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return count;
+}
+
 int user_db_get_all(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
