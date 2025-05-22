@@ -165,6 +165,8 @@ int resident_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * table structure with borders and aligned columns. The returned string is dynamically
  * allocated and must be freed by the caller.
  *
+ * This was mostly used to calculate more or less how many bytes each row + header will need at max
+ *
  * @param db Pointer to initialized database connection
  * @return char* Formatted table string containing all records, or NULL on failure
  *
@@ -174,9 +176,12 @@ int resident_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * +-------------+--------------------------------------------+-----+--------------------------------------------+--------------------------------------------+--------------------+--------+------------+
  * | 12345678901 | John Doe                                   | 30  | Healthy                                    | None                                       | False              | Other  | 2000-01-01 |
  * +-------------+--------------------------------------------+-----+--------------------------------------------+--------------------------------------------+--------------------+--------+------------+
+ *
+ * @note Header will always needs 601 bytes and each row + separator (201) will need at max 1040 with the current table and format
  * 
  * @warning The caller is responsible for freeing the returned string with free()
  * @warning Returns NULL if database is not initialized or on query failure
+ * @warning This is not safe as it does not adhere to the memory encapsulation principle
  *
  * Memory Management:
  * - Allocates initial 4KB buffer
@@ -188,6 +193,8 @@ int resident_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * - Validates SQL preparation
  * - Handles memory allocation failures
  * - Reports SQL execution errors
+ *
+ * @deprecated
  */
 char *resident_db_get_all_format_old(database *db);
 

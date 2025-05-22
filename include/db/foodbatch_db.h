@@ -161,6 +161,8 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * table structure with borders and aligned columns. The returned string is dynamically
  * allocated and must be freed by the caller.
  *
+ * This was mostly used to calculate more or less how many bytes each row + header will need at max
+ *
  * @param db Pointer to initialized database connection
  * @return char* Formatted table string containing all records, or NULL on failure
  *
@@ -171,8 +173,11 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * |       1 | Milk                             | 10       | True       | 2000-01-30      | 2.00       |
  * +---------+----------------------------------+----------+------------+-----------------+------------+
  * 
+ * @note Header will always needs 307 bytes and each row + separator (103 bytes) will need at max 455 with the current table and format
+ *
  * @warning The caller is responsible for freeing the returned string with free()
  * @warning Returns NULL if database is not initialized or on query failure
+ * @warning This is not safe as it does not adhere to the memory encapsulation principle
  *
  * Memory Management:
  * - Allocates initial 4KB buffer
@@ -184,6 +189,8 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * - Validates SQL preparation
  * - Handles memory allocation failures
  * - Reports SQL execution errors
+ *
+ * @deprecated
  */
 char *foodbatch_db_get_all_format_old(database *db);
 

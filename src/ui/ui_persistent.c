@@ -96,7 +96,7 @@ void ui_persistent_updt_pos(struct ui_persistent *ui) {
     ui->logout_butn.bounds.x = window_width - 100;
     ui->logout_butn.bounds.y = window_height - 60;
 
-    ui->ddb_style_options.bounds.x =  window_width - 110;
+    ui->ddb_style_options.bounds.x = window_width - 110;
 
     ui->statusbar_bounds.y = window_height - 20;
     ui->statusbar_bounds.width = window_width;

@@ -112,8 +112,12 @@ void ui_resident_init(struct ui_resident *ui) {
         textbox_init((Rectangle) { 20, ui->butn_back.bounds.y + (ui->butn_back.bounds.height * 2), 300, 30 }, "Name:");
     ui->tbi_cpf =
         textboxint_init((Rectangle) { 20, ui->tb_name.bounds.y + (ui->tb_name.bounds.height * 2), 300, 30 }, "CPF:");
-    ui->ib_age =
-        intbox_init((Rectangle) { 20, ui->tbi_cpf.bounds.y + (ui->tbi_cpf.bounds.height * 2), 125, 30 }, "Age:", 0, 120);
+    ui->ib_age = intbox_init(
+        (Rectangle) { 20, ui->tbi_cpf.bounds.y + (ui->tbi_cpf.bounds.height * 2), 125, 30 },
+        "Age:",
+        0,
+        120
+    );
     ui->tb_health_status = textbox_init(
         (Rectangle) { 20, ui->ib_age.bounds.y + (ui->ib_age.bounds.height * 2), 300, 30 },
         "Health Status:"
@@ -154,7 +158,7 @@ void ui_resident_init(struct ui_resident *ui) {
 
     memset(&ui->resident_retrieved, 0, sizeof(struct resident));
 
-    ui->table_view = scrollpanel_init(
+    ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->panel_bounds.x + ui->panel_bounds.width + 10,
                       10,
                       window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20 + 110),
@@ -163,7 +167,7 @@ void ui_resident_init(struct ui_resident *ui) {
         (Rectangle) { 0, 0, 0, 0 }
     );
 
-    ui->table_content = NULL;
+    ui->str_table_content = NULL;
 
     ui->flag = 0;
 }
@@ -216,7 +220,7 @@ static void ui_resident_render(
     draw_resident_info_panel(ui);
 
     // Draw database content
-    scrollpanel_draw(&ui->table_view, draw_resident_table_content, ui->table_content);
+    scrollpanel_draw(&ui->sp_table_view, draw_resident_table_content, ui->str_table_content);
 
     // Handle button actions
     ui->base.handle_buttons(&ui->base, state, error, resident_db);
@@ -383,9 +387,9 @@ static void ui_resident_update_positions(struct ui_base *base) {
     ui->butn_retrieve.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_delete.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_retrieve_all.bounds.y = ui->butn_submit.bounds.y;
-    ui->table_view.panel_bounds.width =
+    ui->sp_table_view.panel_bounds.width =
         window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20 + /* +100 for styler offset */ 110);
-    ui->table_view.panel_bounds.height = window_height - 100;
+    ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
 /**
@@ -423,9 +427,9 @@ static void ui_resident_clear_fields(struct ui_base *base) {
 static void ui_resident_cleanup(struct ui_base *base) {
     struct ui_resident *ui = (struct ui_resident *)base;
 
-    if (ui->table_content) {
-        free(ui->table_content);
-        ui->table_content = NULL; // Prevent double-free
+    if (ui->str_table_content) {
+        free(ui->str_table_content);
+        ui->str_table_content = NULL; // Prevent double-free
     }
 }
 /** @} */
@@ -709,9 +713,9 @@ static void handle_delete_button(struct ui_resident *ui, database *resident_db) 
  *
  */
 static void handle_retrieve_all_button(struct ui_resident *ui, database *resident_db) {
-    if (ui->table_content) {
-        free(ui->table_content); // Free old data before getting new data
-        ui->table_content = NULL;
+    if (ui->str_table_content) {
+        free(ui->str_table_content); // Free old data before getting new data
+        ui->str_table_content = NULL;
     }
 
     int total_residents = resident_db_get_count(resident_db);
@@ -723,22 +727,22 @@ static void handle_retrieve_all_button(struct ui_resident *ui, database *residen
     // 1024 for header + 2048 for each row
     size_t buffer_size = 1024 + 2048 * total_residents;
 
-    ui->table_content = malloc(buffer_size);
-    if (!ui->table_content) {
+    ui->str_table_content = malloc(buffer_size);
+    if (!ui->str_table_content) {
         fprintf(stderr, "Memory allocation failed.\n");
         return;
     }
 
-    if (resident_db_get_all_format(resident_db, ui->table_content, buffer_size) == -1) {
+    if (resident_db_get_all_format(resident_db, ui->str_table_content, buffer_size) == -1) {
         fprintf(stderr, "Failed to get formatted table.\n");
         return;
     }
 
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
-    if (ui->table_content) {
-        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->table_content, FONT_SIZE, 0);
-        ui->table_view.panel_content_bounds.width = text_size.x * 0.9;
-        ui->table_view.panel_content_bounds.height = text_size.y / 0.7;
+    if (ui->str_table_content) {
+        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
     }
 
     resident_db_get_all(resident_db); // also prints to stdout

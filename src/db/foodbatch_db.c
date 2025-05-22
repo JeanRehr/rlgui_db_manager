@@ -378,7 +378,8 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size) 
         }
 
         // Add separator line
-        const char *separator = "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+        const char *separator =
+            "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
 
         size_t separator_len = strlen(separator);
         if (written + separator_len < buffer_size) {
@@ -420,8 +421,6 @@ char *foodbatch_db_get_all_format_old(database *db) {
         fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
         return NULL;
     }
-
-    // Header will always needs 307 bytes and each row + separator will need at max 455 with the current table and format
 
     // Initial buffer
     size_t buffer_size = 1024;
