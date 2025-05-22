@@ -421,8 +421,6 @@ char *foodbatch_db_get_all_format_old(database *db) {
         return NULL;
     }
 
-    // Header will always needs 307 bytes and each row + separator will need at max 455 with the current table and format
-
     // Initial buffer
     size_t buffer_size = 1024;
     char *result = malloc(buffer_size);
