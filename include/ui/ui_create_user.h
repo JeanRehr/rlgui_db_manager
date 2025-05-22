@@ -62,7 +62,7 @@ struct ui_create_user {
     struct button butn_back;            ///< Navigation back button
 
     struct scrollpanel sp_table_view; ///< A scrollpanel to view the users's database
-    char *table_content;           ///< The content of the users's database (MUST BE FREED IF ALLOCATED)
+    char *str_table_content;           ///< The content of the users's database (MUST BE FREED IF ALLOCATED)
 
     enum create_user_screen_flags flag;
 };

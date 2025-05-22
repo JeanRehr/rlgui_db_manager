@@ -65,7 +65,7 @@ struct ui_resident {
     struct resident resident_retrieved; ///< Currently displayed resident data
 
     struct scrollpanel sp_table_view; ///< A scrollpanel to view the resident's database
-    char *table_content;           ///< The content of the resident's database (MUST BE FREED IF ALLOCATED)
+    char *str_table_content;           ///< The content of the resident's database (MUST BE FREED IF ALLOCATED)
 
     enum resident_screen_flags flag; ///< Current screen state flags
 };
