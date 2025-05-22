@@ -97,13 +97,6 @@ int main(void) {
         goto cleanup;
     }
 
-    /**
-     * Initializing a non-admin user here just for testing ui permissions
-     */
-    const char *test_user = "test";
-    user_db_delete(&user_db, test_user); // delete first if already created
-    user_db_create_user(&user_db, test_user, "00000000000", "5551912345678", false);
-
     // Application state tracking
     struct user current_user = { 0 };            ///< Currently logged in user
     enum error_code error = NO_ERROR;            ///< Application error state
