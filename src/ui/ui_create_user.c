@@ -4,8 +4,8 @@
  */
 #include "ui/ui_create_user.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <external/raylib/raygui.h>
 
@@ -144,7 +144,7 @@ void ui_create_user_init(struct ui_create_user *ui) {
         "Retrieve Users"
     );
 
-    ui->table_view = scrollpanel_init(
+    ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->tb_username.bounds.x + ui->tb_username.bounds.width + 10,
                       10,
                       window_width - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20 + 110),
@@ -152,7 +152,7 @@ void ui_create_user_init(struct ui_create_user *ui) {
         "Database view",
         (Rectangle) { 0, 0, 0, 0 }
     );
-    ui->table_content = NULL;
+    ui->str_table_content = NULL;
 
     ui->flag = 0;
 }
@@ -191,7 +191,7 @@ static void ui_create_user_render(
     textboxint_draw(&ui->tbi_phone_number);
     checkbox_draw(&ui->cb_is_admin);
 
-    scrollpanel_draw(&ui->table_view, draw_user_table_content, ui->table_content);
+    scrollpanel_draw(&ui->sp_table_view, draw_user_table_content, ui->str_table_content);
 
     ui->base.handle_buttons(&ui->base, state, error, user_db);
 
@@ -364,9 +364,9 @@ static void ui_create_user_update_positions(struct ui_base *base) {
     ui->butn_update_adm_stat.bounds.y = window_height - 60;
     ui->butn_delete.bounds.y = window_height - 60;
     ui->butn_get_all.bounds.y = window_height - 60;
-    ui->table_view.panel_bounds.width = window_width
+    ui->sp_table_view.panel_bounds.width = window_width
         - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20 + /* +100 for styler offset */ 110);
-    ui->table_view.panel_bounds.height = window_height - 100;
+    ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
 /**
@@ -400,9 +400,9 @@ static void ui_create_user_clear_fields(struct ui_base *base) {
  */
 static void ui_create_user_cleanup(struct ui_base *base) {
     struct ui_create_user *ui = (struct ui_create_user *)base;
-    if (ui->table_content) {
-        free(ui->table_content);
-        ui->table_content = NULL;
+    if (ui->str_table_content) {
+        free(ui->str_table_content);
+        ui->str_table_content = NULL;
     }
 }
 
@@ -592,9 +592,9 @@ static void handle_delete_button(struct ui_create_user *ui, database *user_db) {
 }
 
 static void handle_get_all_button(struct ui_create_user *ui, database *user_db) {
-    if (ui->table_content) {
-        free(ui->table_content); // Free old data before getting new data
-        ui->table_content = NULL;
+    if (ui->str_table_content) {
+        free(ui->str_table_content); // Free old data before getting new data
+        ui->str_table_content = NULL;
     }
 
     int total_users = user_db_get_count(user_db);
@@ -606,22 +606,22 @@ static void handle_get_all_button(struct ui_create_user *ui, database *user_db) 
     // 512 for header + 512 for each row
     size_t buffer_size = 512 + 512 * total_users;
 
-    ui->table_content = malloc(buffer_size);
-    if (!ui->table_content) {
+    ui->str_table_content = malloc(buffer_size);
+    if (!ui->str_table_content) {
         fprintf(stderr, "Memory allocation failed.\n");
         return;
     }
 
-    if (user_db_get_all_format(user_db, ui->table_content, buffer_size) == -1) {
+    if (user_db_get_all_format(user_db, ui->str_table_content, buffer_size) == -1) {
         fprintf(stderr, "Failed to get formatted table.\n");
         return;
     }
 
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
-    if (ui->table_content) {
-        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->table_content, FONT_SIZE, 0);
-        ui->table_view.panel_content_bounds.width = text_size.x * 0.9;
-        ui->table_view.panel_content_bounds.height = text_size.y / 0.7;
+    if (ui->str_table_content) {
+        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
     }
 
     user_db_get_all(user_db);
