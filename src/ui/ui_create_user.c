@@ -5,6 +5,7 @@
 #include "ui/ui_create_user.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <external/raylib/raygui.h>
 
@@ -591,6 +592,25 @@ static void handle_get_all_button(struct ui_create_user *ui, database *user_db) 
     if (ui->table_content) {
         free(ui->table_content); // Free old data before getting new data
         ui->table_content = NULL;
+    }
+
+    int total_users = user_db_get_count(user_db);
+    if (total_users == -1) {
+        fprintf(stderr, "Failed to get total count.\n");
+        return;
+    }
+    (void)total_users;
+
+    
+    printf("%s", ui->table_content);
+    ui->table_content = user_db_get_all_format_old(user_db);
+    printf("%s", ui->table_content);
+
+    // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
+    if (ui->table_content) {
+        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->table_content, FONT_SIZE, 0);
+        ui->table_view.panel_content_bounds.width = text_size.x * 0.9;
+        ui->table_view.panel_content_bounds.height = text_size.y / 0.7;
     }
 
     user_db_get_all(user_db);
