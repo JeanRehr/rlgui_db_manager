@@ -211,7 +211,7 @@ static void ui_create_user_render(
  * @param base Pointer to base UI structure (can be safely cast to any ui*)
  * @param state Pointer to application state (modified on success)
  * @param error Pointer to error tracking variable
- * @param resident_db Pointer to resident database connection
+ * @param user_db Pointer to user database connection
  *
  * @warning Should be called through the base interface
  *
@@ -266,9 +266,9 @@ static void ui_create_user_handle_buttons(
  * handles user responses, and triggers follow-up actions.
  *
  * @param base Pointer to base UI structure (can be safely cast to any ui*)
- * @param state Pointer to application state (ui_resident does not modify this, but the interface needs this parameter)
+ * @param state Pointer to application state
  * @param error Pointer to error tracking variable
- * @param resident_db Pointer to resident database connection
+ * @param user_db Pointer to user database connection
  *
  * @warning Should be called through the base interface, may trigger database operations
  *
@@ -400,7 +400,10 @@ static void ui_create_user_clear_fields(struct ui_base *base) {
  */
 static void ui_create_user_cleanup(struct ui_base *base) {
     struct ui_create_user *ui = (struct ui_create_user *)base;
-    (void)ui;
+    if (ui->table_content) {
+        free(ui->table_content);
+        ui->table_content = NULL;
+    }
 }
 
 /** @} */
@@ -450,7 +453,7 @@ static void draw_user_table_content(Rectangle bounds, char *data) {
  * @brief Private function to handle going back to the main menu.
  *        Any freeing of memory should be done here if necessary, set it back to null for further use.
  *
- * @param ui Pointer to ui_resident struct to handle button action
+ * @param ui Pointer to ui_create_user struct to handle button action
  * @param state Pointer to the state of the app
  *
  */
