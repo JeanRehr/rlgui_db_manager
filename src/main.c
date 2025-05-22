@@ -14,10 +14,10 @@
  */
 
 #include <external/raylib/raylib.h>
-#define RAYGUI_IMPLEMENTATION
 #include <external/raylib/raygui.h>
 #include <external/sqlite3/sqlite3.h>
 
+#include <stdlib.h>
 #include <stdio.h>
 
 #include "CONSTANTS.h"
