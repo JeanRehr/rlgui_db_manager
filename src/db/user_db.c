@@ -564,7 +564,7 @@ int user_db_get_count(database *db) {
 
     sqlite3_finalize(stmt);
     return count;
-
+}
 
 char *user_db_get_all_format_old(database *db) {
     if (!db_is_init(db)) {
