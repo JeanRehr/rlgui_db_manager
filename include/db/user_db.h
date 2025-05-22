@@ -196,11 +196,48 @@ int user_db_set_reset_password(database *db, const char *username);
 int user_db_get_count(database *db);
 
 /**
- * @brief Retrieves all resident records as a formatted string
+ * @brief Writes all user records as a formatted string into provided buffer
  *
- * Executes a database query and formats all resident records into a human-readable
+ * Executes a database query and formats all user records into a human-readable
+ * table structure with borders and aligned columns.
+ *
+ * @param db Pointer to initialized database connection
+ * @param buffer Pointer to buffer where formatted string will be written
+ * @param buffer_size Size of the provided buffer
+ * @return int Number of bytes written (excluding null terminator), or -1 on failure
+ *
+ * @note Header will always needs 316 bytes and each row + separator (Considering max input is 256)
+ *       will need at max 441 with the current table and format
+ *       String format:
+ * +------------------------------------------------------------------------------------------------------+
+ * | Username                 | CPF         | Phone Number  | Admin | Created At       | Last Login       |
+ * +--------------------------+-------------+---------------+-------+------------------+------------------+
+ * | admin                    | 99999999999 | 5551900000000 | Yes   | 2000-01-31 00:00 | 2000-01-31 00:01 |
+ * +--------------------------+-------------+---------------+-------+------------------+------------------+
+ *
+ * @warning Returns -1 if database is not initialized, on query failure, or if buffer is too small
+ * @warning Buffer will be null-terminated if there's space, even on truncation
+ *
+ * Memory Management:
+ * - Caller provides buffer and manages its memory
+ * - Function never allocates memory
+ *
+ * Error Handling:
+ * - Checks database connection state
+ * - Validates SQL preparation
+ * - Reports SQL execution errors
+ * - Handles buffer overflow
+ */
+int user_db_get_all_format(database *db, char *buffer, size_t buffer_size);
+
+/**
+ * @brief Retrieves all user records as a formatted string
+ *
+ * Executes a database query and formats all user records into a human-readable
  * table structure with borders and aligned columns. The returned string is dynamically
  * allocated and must be freed by the caller.
+ *
+ * This was mostly used to calculate more or less how many bytes each row + header will need at max
  *
  * @param db Pointer to initialized database connection
  * @return char* Formatted table string containing all records, or NULL on failure
@@ -212,8 +249,13 @@ int user_db_get_count(database *db);
  * | admin                    | 99999999999 | 5551900000000 | Yes   | 2025-05-22 00:15 | 2025-05-22 00:31 |
  * +--------------------------+-------------+---------------+-------+------------------+------------------+
  * 
+ * @note HEADER (316 bytes) + default admin user + separator (106 bytes (\n+\0)) will allocate 526 bytes (counting null terminator)
+ *       each subsequent user + separator will need at most 441 (counting null terminator) with the current table and format.
+ *       Only the Header will need 316 bytes (counting null terminator)
+ *
  * @warning The caller is responsible for freeing the returned string with free()
  * @warning Returns NULL if database is not initialized or on query failure
+ * @warning This is not safe as it does not adhere to the memory encapsulation principle
  *
  * Memory Management:
  * - Allocates initial 4KB buffer
@@ -225,6 +267,8 @@ int user_db_get_count(database *db);
  * - Validates SQL preparation
  * - Handles memory allocation failures
  * - Reports SQL execution errors
+ *
+ * @deprecated
  */
 char *user_db_get_all_format_old(database *db);
 
