@@ -572,7 +572,7 @@ char *user_db_get_all_format_old(database *db) {
         return NULL;
     }
 
-    const char *sql = "SELECT * FROM Users;";
+    const char *sql = "SELECT Username, CPF, PhoneNumber, IsAdmin, CreatedAt, LastLogin FROM Users;";
     sqlite3_stmt *stmt;
 
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
