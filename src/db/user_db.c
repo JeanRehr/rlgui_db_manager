@@ -5,8 +5,11 @@
 #include "db/user_db.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#include <inttypes.h> // For PRIu64 (compatibility for both windows and linux)
 
 #include "utils_hash.h"
 
@@ -561,6 +564,136 @@ int user_db_get_count(database *db) {
 
     sqlite3_finalize(stmt);
     return count;
+}
+
+char *user_db_get_all_format_old(database *db) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return NULL;
+    }
+
+    const char *sql = "SELECT * FROM Users;";
+    sqlite3_stmt *stmt;
+
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return NULL;
+    }
+
+    // Initial buffer
+    size_t buffer_size = 1024;
+    char *result = malloc(buffer_size);
+    if (!result) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+    result[0] = '\0';                     // Initialize empty string
+    size_t total_allocated = buffer_size; // Track total bytes allocated
+
+    // Append header to the result string
+    const char *header =
+        "+------------------------------------------------------------------------------------------------------+\n"
+        "| Username                 | CPF         | Phone Number  | Admin | Created At       | Last Login       |\n"
+        "+--------------------------+-------------+---------------+-------+------------------+------------------+\n";
+
+    // Check if buffer is large enough for the header
+    if (strlen(header) + 1 > buffer_size) {
+        buffer_size = strlen(header) + 1;
+        result = realloc(result, buffer_size);
+        printf("REALLOC CALLED DURING HEADER!\n");
+        if (!result) {
+            fprintf(stderr, "Memory reallocation failed.\n");
+            sqlite3_finalize(stmt);
+            return NULL;
+        }
+        total_allocated += (buffer_size - total_allocated); // Update total allocated
+    }
+    strcpy(result, header);
+
+    // Process each row
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        const char *username = (const char *)sqlite3_column_text(stmt, 0);
+        const char *cpf = (const char *)sqlite3_column_text(stmt, 1);
+        const char *phone_number = (const char *)sqlite3_column_text(stmt, 2);
+        bool is_admin = sqlite3_column_int(stmt, 3) == 1;
+        time_t created_at = sqlite3_column_int64(stmt, 4);
+        time_t last_login = sqlite3_column_int64(stmt, 5);
+
+        char created_at_str[32];
+        char last_login_str[32];
+        strftime(created_at_str, sizeof(created_at_str), "%Y-%m-%d %H:%M", localtime(&created_at));
+        if (last_login > 0) {
+            strftime(last_login_str, sizeof(last_login_str), "%Y-%m-%d %H:%M", localtime(&last_login));
+        } else {
+            strcpy(last_login_str, "Never");
+        }
+        
+        char row[2048];
+        snprintf(
+            row,
+            sizeof(row),
+            "| %-24s | %-11s | %-13s | %-5s | %-16s | %-16s |\n",
+            username,
+            cpf,
+            phone_number,
+            is_admin ? "Yes" : "No",
+            created_at_str,
+            last_login_str
+        );
+
+        // Check if buffer needs to grow
+        size_t required_size = strlen(result) + strlen(row) + 1;
+        if (required_size > buffer_size) {
+            size_t old_size = buffer_size;
+            buffer_size = required_size * 2; // Double the buffer to reduce realloc calls
+            char *new_result = realloc(result, buffer_size);
+            printf("REALLOC CALLED DURING ROW FORMATTING!\n");
+            if (!new_result) {
+                fprintf(stderr, "Memory reallocation failed.\n");
+                free(result);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            result = new_result;
+            total_allocated += (buffer_size - old_size); // Update total allocated
+        }
+
+        // Append the row to the result
+        strcat(result, row);
+
+        // Add separator line
+        const char *separator =
+            "+--------------------------+-------------+---------------+-------+------------------+------------------+\n";
+        required_size = strlen(result) + strlen(separator) + 1;
+        if (required_size > buffer_size) {
+            size_t old_size = buffer_size;
+            buffer_size = required_size * 2;
+            char *new_result = realloc(result, buffer_size);
+            printf("REALLOC CALLED DURING SEPARATOR!\n");
+            if (!new_result) {
+                fprintf(stderr, "Memory reallocation failed.\n");
+                free(result);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            result = new_result;
+            total_allocated += (buffer_size - old_size); // Update total allocated
+        }
+        strcat(result, separator);
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute query: %s\n", sqlite3_errmsg(db->db));
+        free(result);
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+
+    sqlite3_finalize(stmt);
+    printf("Total bytes allocated: %" PRIu64 "\n", total_allocated);
+    return result; // Caller must free() this memory!
 }
 
 int user_db_get_all(database *db) {

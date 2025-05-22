@@ -196,6 +196,39 @@ int user_db_set_reset_password(database *db, const char *username);
 int user_db_get_count(database *db);
 
 /**
+ * @brief Retrieves all resident records as a formatted string
+ *
+ * Executes a database query and formats all resident records into a human-readable
+ * table structure with borders and aligned columns. The returned string is dynamically
+ * allocated and must be freed by the caller.
+ *
+ * @param db Pointer to initialized database connection
+ * @return char* Formatted table string containing all records, or NULL on failure
+ *
+ * @note Returned string format:
+ * +------------------------------------------------------------------------------------------------------+
+ * | Username                 | CPF         | Phone Number  | Admin | Created At       | Last Login       |
+ * +--------------------------+-------------+---------------+-------+------------------+------------------+
+ * | admin                    | 99999999999 | 5551900000000 | Yes   | 2025-05-22 00:15 | 2025-05-22 00:31 |
+ * +--------------------------+-------------+---------------+-------+------------------+------------------+
+ * 
+ * @warning The caller is responsible for freeing the returned string with free()
+ * @warning Returns NULL if database is not initialized or on query failure
+ *
+ * Memory Management:
+ * - Allocates initial 4KB buffer
+ * - Automatically grows buffer as needed
+ * - Returns NULL on allocation failures
+ *
+ * Error Handling:
+ * - Checks database connection state
+ * - Validates SQL preparation
+ * - Handles memory allocation failures
+ * - Reports SQL execution errors
+ */
+char *user_db_get_all_format_old(database *db);
+
+/**
  * @brief Retrieves and displays all user accounts
  *
  * Fetches all user records and displays them in a formatted table showing
