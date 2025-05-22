@@ -566,6 +566,128 @@ int user_db_get_count(database *db) {
     return count;
 }
 
+int user_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return -1;
+    }
+
+    if (!buffer || buffer_size == 0) {
+        fprintf(stderr, "Invalid buffer provided.\n");
+        return -1;
+    }
+
+    const char *sql = "SELECT Username, CPF, PhoneNumber, IsAdmin, CreatedAt, LastLogin FROM Users;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return -1;
+    }
+
+    // Initialize buffer with empty string
+    buffer[0] = '\0';
+    size_t written = 0;
+
+    // Format header
+    const char *header =
+        "+------------------------------------------------------------------------------------------------------+\n"
+        "| Username                 | CPF         | Phone Number  | Admin | Created At       | Last Login       |\n"
+        "+--------------------------+-------------+---------------+-------+------------------+------------------+\n";
+
+    // Write header if there's space
+    size_t header_len = strlen(header);
+    if (written + header_len < buffer_size) {
+        strcpy(buffer + written, header);
+        written += header_len;
+    } else {
+        // Truncate but ensure null termination
+        if (buffer_size > 0) {
+            strncpy(buffer, header, buffer_size - 1);
+            buffer[buffer_size - 1] = '\0';
+        }
+        sqlite3_finalize(stmt);
+        fprintf(stderr, "Header truncated\n");
+        return -1;
+    }
+
+    // Process each row
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        const char *username = (const char *)sqlite3_column_text(stmt, 0);
+        const char *cpf = (const char *)sqlite3_column_text(stmt, 1);
+        const char *phone_number = (const char *)sqlite3_column_text(stmt, 2);
+        bool is_admin = sqlite3_column_int(stmt, 3) == 1;
+        time_t created_at = sqlite3_column_int64(stmt, 4);
+        time_t last_login = sqlite3_column_int64(stmt, 5);
+
+        char created_at_str[32];
+        char last_login_str[32];
+        strftime(created_at_str, sizeof(created_at_str), "%Y-%m-%d %H:%M", localtime(&created_at));
+        if (last_login > 0) {
+            strftime(last_login_str, sizeof(last_login_str), "%Y-%m-%d %H:%M", localtime(&last_login));
+        } else {
+            strcpy(last_login_str, "Never");
+        }
+
+        char row[1024];
+        snprintf(
+            row,
+            sizeof(row),
+            "| %-24s | %-11s | %-13s | %-5s | %-16s | %-16s |\n",
+            username,
+            cpf,
+            phone_number,
+            is_admin ? "Yes" : "No",
+            created_at_str,
+            last_login_str
+        );
+
+        // Check if there is space
+        size_t row_len = strlen(row);
+        if (written + row_len < buffer_size) {
+            strcpy(buffer + written, row);
+            written += row_len;
+        } else {
+            // Truncate but ensure null termination
+            if (buffer_size > 0) {
+                strncpy(buffer, row, buffer_size - 1);
+                buffer[buffer_size - 1] = '\0';
+            }
+            sqlite3_finalize(stmt);
+            fprintf(stderr, "Row truncated\n");
+            return -1;
+        }
+
+        // Add separator line
+        const char *separator =
+            "+--------------------------+-------------+---------------+-------+------------------+------------------+\n";
+
+        size_t separator_len = strlen(separator);
+        if (written + separator_len < buffer_size) {
+            strcpy(buffer + written, separator);
+            written += separator_len;
+        } else {
+            // Truncate but ensure null termination
+            if (buffer_size > 0) {
+                strncpy(buffer, separator, buffer_size - 1);
+                buffer[buffer_size - 1] = '\0';
+            }
+            sqlite3_finalize(stmt);
+            fprintf(stderr, "Separator truncated\n");
+            return -1;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute query: %s\n", sqlite3_errmsg(db->db));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    return written;
+}
+
 char *user_db_get_all_format_old(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -582,7 +704,7 @@ char *user_db_get_all_format_old(database *db) {
     }
 
     // Initial buffer
-    size_t buffer_size = 1024;
+    size_t buffer_size = 967;
     char *result = malloc(buffer_size);
     if (!result) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -629,7 +751,7 @@ char *user_db_get_all_format_old(database *db) {
         } else {
             strcpy(last_login_str, "Never");
         }
-        
+
         char row[2048];
         snprintf(
             row,
