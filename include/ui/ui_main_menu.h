@@ -23,7 +23,6 @@ enum main_menu_screen_flags {
 #include "ui_elements/button.h"
 #include "user.h"
 
-
 /**
  * @struct ui_main_menu
  * @brief Main menu screen UI components

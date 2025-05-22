@@ -378,7 +378,8 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size) 
         }
 
         // Add separator line
-        const char *separator = "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+        const char *separator =
+            "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
 
         size_t separator_len = strlen(separator);
         if (written + separator_len < buffer_size) {

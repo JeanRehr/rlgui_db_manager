@@ -13,12 +13,12 @@
  * @note Uses OpenSSL for crypto
  */
 
-#include <external/raylib/raylib.h>
 #include <external/raylib/raygui.h>
+#include <external/raylib/raylib.h>
 #include <external/sqlite3/sqlite3.h>
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "CONSTANTS.h"
 #include "app_state.h"

@@ -48,7 +48,7 @@ struct ui_resident {
     struct ui_base base; ///< Base ui methods/functionality
 
     struct textbox tb_name;                ///< Name input field
-    struct textboxint tbi_cpf;              ///< CPF input field (numeric with formatting)
+    struct textboxint tbi_cpf;             ///< CPF input field (numeric with formatting)
     struct intbox ib_age;                  ///< Age input field
     struct textbox tb_health_status;       ///< Health status description
     struct textbox tb_needs;               ///< Special needs description
@@ -64,7 +64,7 @@ struct ui_resident {
     Rectangle panel_bounds;             ///< Information display panel bounds
     struct resident resident_retrieved; ///< Currently displayed resident data
 
-    struct scrollpanel table_view; ///< A scrollpanel to view the resident's database
+    struct scrollpanel sp_table_view; ///< A scrollpanel to view the resident's database
     char *table_content;           ///< The content of the resident's database (MUST BE FREED IF ALLOCATED)
 
     enum resident_screen_flags flag; ///< Current screen state flags

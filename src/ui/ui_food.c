@@ -186,7 +186,7 @@ void ui_food_init(struct ui_food *ui) {
     // Only set the bounds of the panel, draw everything inside based on it on the draw register resident screen function
     ui->panel_bounds = (Rectangle) { ui->tb_name.bounds.x + ui->tb_name.bounds.width + 10, 10, 300, 250 };
 
-    ui->table_view = scrollpanel_init(
+    ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->panel_bounds.x + ui->panel_bounds.width + 10,
                       10,
                       window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20 + 110),
@@ -195,7 +195,7 @@ void ui_food_init(struct ui_food *ui) {
         (Rectangle) { 0, 0, 0, 0 }
     );
 
-    ui->table_content = NULL;
+    ui->str_table_content = NULL;
 
     ui->flag = 0;
 }
@@ -279,7 +279,7 @@ static void ui_food_render(
     draw_foodbatch_info_panel(ui);
 
     // Draw database content
-    scrollpanel_draw(&ui->table_view, draw_foodbatch_table_content, ui->table_content);
+    scrollpanel_draw(&ui->sp_table_view, draw_foodbatch_table_content, ui->str_table_content);
 
     // End draw UI elements
 
@@ -453,9 +453,9 @@ static void ui_food_update_positions(struct ui_base *base) {
     ui->butn_retrieve.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_delete.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_retrieve_all.bounds.y = ui->butn_submit.bounds.y;
-    ui->table_view.panel_bounds.width =
+    ui->sp_table_view.panel_bounds.width =
         window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20 + /* +100 for styler offset */ 110);
-    ui->table_view.panel_bounds.height = window_height - 100;
+    ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
 /**
@@ -495,9 +495,9 @@ static void ui_food_clear_fields(struct ui_base *base) {
 static void ui_food_cleanup(struct ui_base *base) {
     struct ui_food *ui = (struct ui_food *)base;
 
-    if (ui->table_content) {
-        free(ui->table_content);
-        ui->table_content = NULL; // Prevent double-free
+    if (ui->str_table_content) {
+        free(ui->str_table_content);
+        ui->str_table_content = NULL; // Prevent double-free
     }
 }
 /** @} */
@@ -636,9 +636,9 @@ static void handle_delete_button(struct ui_food *ui, database *foodbatch_db) {
 }
 
 static void handle_retrieve_all_button(struct ui_food *ui, database *foodbatch_db) {
-    if (ui->table_content) {
-        free(ui->table_content); // Free old data before getting new data
-        ui->table_content = NULL;
+    if (ui->str_table_content) {
+        free(ui->str_table_content); // Free old data before getting new data
+        ui->str_table_content = NULL;
     }
 
     int total_foodbatch = foodbatch_db_get_count(foodbatch_db);
@@ -650,22 +650,22 @@ static void handle_retrieve_all_button(struct ui_food *ui, database *foodbatch_d
     // 512 for header + 512 for each row as documented on foodbatch_db_get_all_format
     size_t buffer_size = 512 + 512 * total_foodbatch;
 
-    ui->table_content = malloc(buffer_size);
-    if (!ui->table_content) {
+    ui->str_table_content = malloc(buffer_size);
+    if (!ui->str_table_content) {
         fprintf(stderr, "Memory allocation failed.\n");
         return;
     }
 
-    if (foodbatch_db_get_all_format(foodbatch_db, ui->table_content, buffer_size) == -1) {
+    if (foodbatch_db_get_all_format(foodbatch_db, ui->str_table_content, buffer_size) == -1) {
         fprintf(stderr, "Failed to get formatted table.\n");
         return;
     }
 
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
-    if (ui->table_content) {
-        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->table_content, FONT_SIZE, 0);
-        ui->table_view.panel_content_bounds.width = text_size.x * 0.9;
-        ui->table_view.panel_content_bounds.height = text_size.y / 0.7;
+    if (ui->str_table_content) {
+        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
     }
 
     foodbatch_db_get_all(foodbatch_db); // also prints to stdout
