@@ -52,7 +52,7 @@ void filter_integer_input(char *input, const int max_len) {
     char filtered[MAX_INPUT] = { 0 };
 
     for (int i = 0; input[i] != '\0'; i++) {
-        if (isdigit(input[i]) && index < max_len) {
+        if (isdigit((unsigned char) input[i]) && index < max_len) {
             filtered[index++] = input[i];
             if (index >= MAX_INPUT) {
                 break;
