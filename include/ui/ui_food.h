@@ -13,11 +13,11 @@
 
 #include "foodbatch.h"
 #include "ui_base.h"
-#include "ui_elements/scrollpanel.h"
 #include "ui_elements/button.h"
 #include "ui_elements/checkbox.h"
 #include "ui_elements/floatbox.h"
 #include "ui_elements/intbox.h"
+#include "ui_elements/scrollpanel.h"
 #include "ui_elements/textbox.h"
 
 /**
@@ -66,7 +66,7 @@ struct ui_food {
     struct foodbatch foodbatch_retrieved; ///< Currently displayed record
 
     struct scrollpanel sp_table_view; ///< A scrollpanel to view the resident's database
-    char *str_table_content;           ///< The content of the resident's database (MUST BE FREED IF ALLOCATED)
+    char *str_table_content;          ///< The content of the resident's database (MUST BE FREED IF ALLOCATED)
 
     enum food_screen_flags flag; ///< Current operation flags
 };
