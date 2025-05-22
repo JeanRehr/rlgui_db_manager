@@ -9,6 +9,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <inttypes.h> // For PRIu64 (compatibility for both windows and linux)
+
 int resident_db_create_table(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -69,7 +71,11 @@ int resident_db_insert(
 
     struct tm curr_time = { 0 };
 
+#ifdef _WIN32
     localtime_s(&curr_time, &now);
+#else
+    localtime_r(&now, &curr_time);
+#endif
 
     char date_string[32]; // Increased buffer to supress warning
     snprintf(
@@ -564,7 +570,7 @@ char *resident_db_get_all_format_old(database *db) {
     }
 
     sqlite3_finalize(stmt);
-    printf("Total bytes allocated: %llu\n", total_allocated);
+    printf("Total bytes allocated: %" PRIu64 "\n", total_allocated);
     return result; // Caller must free() this memory!
 }
 

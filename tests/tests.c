@@ -4,6 +4,7 @@
  */
 #include <assert.h>
 #include <ctype.h>
+#include <inttypes.h> // For PRIu64 (compatibility for both windows and linux)
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -526,7 +527,7 @@ void test_resident_db_get_all_format(void) {
     assert(written == -1);
     printf("Format correctly detected buffer overflow (returned -1).\n");
     printf(
-        "Truncated output (first %llu bytes):\n%.*s\n",
+        "Truncated output (first %" PRIu64 " bytes):\n%.*s\n",
         sizeof(small_buffer),
         (int)sizeof(small_buffer),
         small_buffer
@@ -1088,7 +1089,7 @@ void test_foodbatch_db_get_all_format(void) {
     assert(written == -1);
     printf("Format correctly detected buffer overflow (returned -1).\n");
     printf(
-        "Truncated output (first %llu bytes):\n%.*s\n",
+        "Truncated output (first %" PRIu64 " bytes):\n%.*s\n",
         sizeof(small_buffer),
         (int)sizeof(small_buffer),
         small_buffer
@@ -1854,7 +1855,7 @@ void test_hash_password(void) {
 
     // Verify it's a valid hex string
     for (int i = 0; i < PASSWORD_HASH_LEN; i++) {
-        assert(isxdigit(hash[i]));
+        assert(isxdigit((int)hash[i]));
     }
     printf("Hash generated successfully: %s\n", hash);
 

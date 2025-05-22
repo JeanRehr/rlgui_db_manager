@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <inttypes.h> // For PRIu64 (compatibility for both windows and linux)
+
 int foodbatch_db_create_table(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -525,7 +527,7 @@ char *foodbatch_db_get_all_format_old(database *db) {
     }
 
     sqlite3_finalize(stmt);
-    printf("Total bytes allocated: %llu\n", total_allocated);
+    printf("Total bytes allocated: %" PRIu64 "\n", total_allocated);
     return result; // Caller must free() this memory!
 }
 
