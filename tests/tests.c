@@ -3,18 +3,12 @@
  * @brief Unit testing for everything that can be unit tested
  */
 #include <assert.h>
+#include <ctype.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
-
-/**
- * Including raylib + raygui with define RAYGUI_IMPLEMENTATION
- * As makefile link all src/ files expect main.c for the tests directory
- * It won't see the RAYGUI_IMPLEMENTATION and will complain
- */
-#include <external/raylib/raylib.h>
-#define RAYGUI_IMPLEMENTATION
-#include <external/raylib/raygui.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
