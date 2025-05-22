@@ -602,12 +602,20 @@ static void handle_get_all_button(struct ui_create_user *ui, database *user_db) 
         fprintf(stderr, "Failed to get total count.\n");
         return;
     }
-    (void)total_users;
 
-    
-    printf("%s", ui->table_content);
-    ui->table_content = user_db_get_all_format_old(user_db);
-    printf("%s", ui->table_content);
+    // 512 for header + 512 for each row
+    size_t buffer_size = 512 + 512 * total_users;
+
+    ui->table_content = malloc(buffer_size);
+    if (!ui->table_content) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return;
+    }
+
+    if (user_db_get_all_format(user_db, ui->table_content, buffer_size) == -1) {
+        fprintf(stderr, "Failed to get formatted table.\n");
+        return;
+    }
 
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
     if (ui->table_content) {
