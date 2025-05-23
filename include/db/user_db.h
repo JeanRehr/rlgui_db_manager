@@ -93,6 +93,30 @@ enum auth_result user_db_authenticate(database *db, const char *username, const 
 int user_db_delete(database *db, const char *username);
 
 /**
+ * @brief Updates a user's phone number
+ *
+ * Changes the phone_number for the specified user account
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] username Username of account to update
+ * @param[in] phone_number New phone number to set
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if user doesn't exist, or other SQLite error code
+ */
+int user_db_update_phone_number(database *db, const char *username, const char *phone_number);
+
+/**
+ * @brief Updates a user's cpf
+ *
+ * Changes the cpf for the specified user account.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] username Username of account to update
+ * @param[in] cpf New CPF to set
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if user doesn't exist, or other SQLite error code
+ */
+int user_db_update_cpf(database *db, const char *username, const char *cpf);
+
+/**
  * @brief Updates a user's password
  *
  * Changes the password for the specified user account, generating a new salt
@@ -165,7 +189,7 @@ int user_db_get_by_username(database *db, const char *username, struct user *use
  * @return SQLITE_OK on success, SQLITE_NOTFOUND if old username doesn't exist,
  *         SQLITE_CONSTRAINT if new username exists or modifying admin, or other SQLite error code
  */
-int user_db_change_username(database *db, const char *old_username, const char *new_username);
+int user_db_update_username(database *db, const char *old_username, const char *new_username);
 
 /**
  * @brief Check if the given username has admin status

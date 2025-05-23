@@ -228,6 +228,70 @@ int user_db_delete(database *db, const char *username) {
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
+int user_db_update_phone_number(database *db, const char *username, const char *phone_number) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (!user_db_check_exists(db, username)) {
+        fprintf(stderr, "User does not exist.\n");
+        return SQLITE_NOTFOUND;
+    }
+
+    const char *sql = "UPDATE Users SET PhoneNumber = ? WHERE Username = ?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    sqlite3_bind_text(stmt, 1, phone_number, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, username, -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to update admin status: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE ? SQLITE_OK : rc;
+}
+
+int user_db_update_cpf(database *db, const char *username, const char *cpf) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (!user_db_check_exists(db, username)) {
+        fprintf(stderr, "User does not exist.\n");
+        return SQLITE_NOTFOUND;
+    }
+
+    const char *sql = "UPDATE Users SET CPF = ? WHERE Username = ?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, username, -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to update cpf: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE ? SQLITE_OK : rc;
+}
+
 int user_db_update_password(database *db, const char *username, const char *new_password) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -432,7 +496,7 @@ int user_db_get_by_username(database *db, const char *username, struct user *use
     return rc;
 }
 
-int user_db_change_username(database *db, const char *old_username, const char *new_username) {
+int user_db_update_username(database *db, const char *old_username, const char *new_username) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
