@@ -25,9 +25,12 @@
  * for the settings screen.
  */
 enum settings_screen_flags {
-    FLAG_SETTINGS_OPERATION_DONE = 1 << 0,  ///< Submission completed successfully
-    FLAG_SETTINGS_USERNAME_EXISTS = 1 << 1, ///< Chosen username already exists
-    FLAG_SETTINGS_CPF_EXISTS = 1 << 2,      ///< Chosen CPF already exists
+    FLAG_SETTINGS_OPERATION_DONE = 1 << 0,     ///< Submission completed successfully
+    FLAG_SETTINGS_USERNAME_EXISTS = 1 << 1,    ///< Chosen username already exists
+    FLAG_SETTINGS_CPF_EXISTS = 1 << 2,         ///< Chosen CPF already exists
+    FLAG_SETTINGS_CPF_NOT_VALID = 1 << 3,      ///< CPF not valid format (11 digits)
+    FLAG_SETTINGS_PHONE_NUMBER_WRONG = 1 << 4, ///< Phone number not valid format (13 digits)
+    FLAG_SETTINGS_ADMIN_TEMPER = 1 << 5,       ///< Temper of admin username
 };
 
 /**
@@ -50,6 +53,8 @@ struct ui_settings {
     struct button butn_back;           ///< Return to previous screen
     struct button butn_submit;         ///< Submit updated info to the database
     struct button butn_reset_password; ///< Reset logged-in user password
+
+    Rectangle panel_bounds; ///< Panel bounds to display current user info
 
     struct user *current_user; ///< Pointer to the currently logged in user
 

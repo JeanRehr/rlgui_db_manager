@@ -56,6 +56,8 @@ static void ui_settings_clear_fields(struct ui_base *base);
 
 static void detect_styler_changes(struct ui_settings *ui);
 
+static void draw_current_user_info_panel(struct ui_settings *ui);
+
 static void handle_back_button(enum app_state *state);
 
 static void handle_submit_button(struct ui_settings *ui, enum error_code *error, database *user_db);
@@ -112,6 +114,10 @@ void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
         "Reset Password"
     );
 
+    // Only set the bounds of the panel, draw everything inside based on it
+    ui->panel_bounds =
+        (Rectangle) { ui->tb_new_username.bounds.x + ui->tb_new_username.bounds.width + 10, 10, 300, 250 };
+
     ui->flag = 0;
 
     // Set a default theme in init
@@ -156,6 +162,9 @@ static void ui_settings_render(struct ui_base *base, enum app_state *state, enum
 
     // Style selector
     detect_styler_changes(ui);
+
+    // Panel info
+    draw_current_user_info_panel(ui);
 
     // Handle button actions
     ui->base.handle_buttons(&ui->base, state, error, user_db);
@@ -235,10 +244,42 @@ static void ui_settings_handle_warning_msg(
     (void)state;
     (void)user_db;
 
-    struct ui_settings_db_action_info action = { 0 };
-    action.type = DB_ACTION_NONE;
+    const char *message = NULL;
+    enum settings_screen_flags flag_to_clear = 0;
 
-    process_db_action_in_warning(ui, error, &action, user_db);
+    if (IS_FLAG_SET(&ui->flag, FLAG_SETTINGS_USERNAME_EXISTS)) {
+        message = "This username already\nexists.";
+        flag_to_clear = FLAG_SETTINGS_USERNAME_EXISTS;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_SETTINGS_CPF_EXISTS)) {
+        message = "This CPF already exists.";
+        flag_to_clear = FLAG_SETTINGS_CPF_EXISTS;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_SETTINGS_CPF_NOT_VALID)) {
+        message = "CPF must be exactly 11\ndigits.";
+        flag_to_clear = FLAG_SETTINGS_CPF_NOT_VALID;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_SETTINGS_PHONE_NUMBER_WRONG)) {
+        message = "Phone Number must be\nexactly 13 digits.";
+        flag_to_clear = FLAG_SETTINGS_PHONE_NUMBER_WRONG;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_SETTINGS_ADMIN_TEMPER)) {
+        message = "Username of default admin can't be\nchanged. Other fields\nhave been changed.";
+        flag_to_clear = FLAG_SETTINGS_ADMIN_TEMPER;
+    } else if (*error == ERROR_UPDATE_DB) {
+        message = "Database error. Try Again";
+        *error = NO_ERROR; // Clear error after showing
+    }
+
+    if (message) {
+        const char *buttons = "OK";
+        int result = GuiMessageBox(
+            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            "#191#Warning!",
+            message,
+            buttons
+        );
+
+        if (result >= 0 && flag_to_clear) {
+            CLEAR_FLAG(&ui->flag, flag_to_clear);
+        }
+    }
 }
 
 /**
@@ -355,6 +396,40 @@ static void detect_styler_changes(struct ui_settings *ui) {
     ui->prev_active_style = ui->ddb_style_options.active_option;
 }
 
+/**
+ * @internal
+ * @brief Draws the current user info panel
+ * 
+ */
+static void draw_current_user_info_panel(struct ui_settings *ui) {
+    GuiPanel(ui->panel_bounds, TextFormat("Current User:"));
+
+    GuiLabel(
+        (Rectangle) { ui->panel_bounds.x + 10, ui->panel_bounds.y + 30, 280, 20 },
+        TextFormat("Username: %s", ui->current_user->username)
+    );
+
+    GuiLabel(
+        (Rectangle) { ui->panel_bounds.x + 10, ui->panel_bounds.y + 60, 280, 20 },
+        TextFormat("CPF: %s", ui->current_user->cpf)
+    );
+
+    GuiLabel(
+        (Rectangle) { ui->panel_bounds.x + 10, ui->panel_bounds.y + 90, 280, 20 },
+        TextFormat("Phone Number: %s", ui->current_user->phone_number)
+    );
+
+    GuiLabel(
+        (Rectangle) { ui->panel_bounds.x + 10, ui->panel_bounds.y + 120, 280, 20 },
+        TextFormat("Is Admin: %s", ui->current_user->is_admin == true ? "Yes" : "No")
+    );
+
+    GuiLabel(
+        (Rectangle) { ui->panel_bounds.x + 10, ui->panel_bounds.y + 150, 280, 20 },
+        TextFormat("Flagged for password reset: %s", ui->current_user->reset_password == true ? "Yes" : "No")
+    );
+}
+
 static void handle_back_button(enum app_state *state) {
     *state = STATE_MAIN_MENU;
     return;
@@ -367,12 +442,83 @@ static void handle_back_button(enum app_state *state) {
  * @param ui Pointer to ui_settings struct to handle button action
  * @param error Pointer to the error code
  * @param user_db Pointer to the user database
+ * 
+ * @warning New username must be set LAST!
  *
  */
 static void handle_submit_button(struct ui_settings *ui, enum error_code *error, database *user_db) {
-    (void)ui;
-    (void)error;
-    (void)user_db;
+    // Clear previous flags
+    CLEAR_FLAG(
+        &ui->flag,
+        FLAG_SETTINGS_CPF_NOT_VALID | FLAG_SETTINGS_PHONE_NUMBER_WRONG | FLAG_SETTINGS_USERNAME_EXISTS
+            | FLAG_SETTINGS_CPF_EXISTS | FLAG_SETTINGS_ADMIN_TEMPER
+    );
+
+    // Validate inputs
+    if (ui->tbi_new_cpf.input[0] != '\0' && !is_int_between_min_max(ui->tbi_new_cpf.input, 11, 11)) {
+        SET_FLAG(&ui->flag, FLAG_SETTINGS_CPF_NOT_VALID);
+        return;
+    }
+
+    if (ui->tbi_new_phone_number.input[0] != '\0' && !is_int_between_min_max(ui->tbi_new_phone_number.input, 13, 13)) {
+        SET_FLAG(&ui->flag, FLAG_SETTINGS_PHONE_NUMBER_WRONG);
+        return;
+    }
+
+    if (user_db_check_exists(user_db, ui->tb_new_username.input)) {
+        SET_FLAG(&ui->flag, FLAG_SETTINGS_USERNAME_EXISTS);
+        return;
+    }
+
+    if (user_db_check_cpf_exists(user_db, ui->tbi_new_cpf.input)) {
+        SET_FLAG(&ui->flag, FLAG_SETTINGS_CPF_EXISTS);
+        return;
+    }
+
+    if (ui->tbi_new_cpf.input[0] != '\0') {
+        if (user_db_update_cpf(user_db, ui->current_user->username, ui->tbi_new_cpf.input) != SQLITE_OK) {
+            *error = ERROR_UPDATE_DB;
+            return;
+        }
+    }
+
+    if (ui->tbi_new_phone_number.input[0] != '\0') {
+        if (user_db_update_phone_number(user_db, ui->current_user->username, ui->tbi_new_phone_number.input)
+            != SQLITE_OK)
+        {
+            *error = ERROR_UPDATE_DB;
+            return;
+        }
+    }
+
+    if (ui->tb_new_username.input[0] != '\0') {
+        int rc = user_db_update_username(user_db, ui->current_user->username, ui->tb_new_username.input);
+
+        if (rc == SQLITE_CONSTRAINT) {
+            SET_FLAG(&ui->flag, FLAG_SETTINGS_ADMIN_TEMPER);
+            return;
+        }
+
+        if (rc != SQLITE_OK) {
+            *error = ERROR_INSERT_DB;
+            return;
+        }
+    }
+
+    // Update current user pointer
+    // These operations are safe because the buffers are all limited by the app's constants
+    if (ui->tbi_new_cpf.input[0] != '\0') {
+        strcpy(ui->current_user->cpf, ui->tbi_new_cpf.input);
+    }
+    if (ui->tbi_new_phone_number.input[0] != '\0') {
+        strcpy(ui->current_user->phone_number, ui->tbi_new_phone_number.input);
+    }
+    if (ui->tb_new_username.input[0] != '\0') {
+        strcpy(ui->current_user->username, ui->tb_new_username.input);
+    }
+
+    SET_FLAG(&ui->flag, FLAG_SETTINGS_OPERATION_DONE);
+    return;
 }
 
 static void handle_reset_password_button(struct ui_settings *ui, enum error_code *error, database *user_db) {
@@ -380,4 +526,5 @@ static void handle_reset_password_button(struct ui_settings *ui, enum error_code
         *error = ERROR_INSERT_DB;
         return;
     }
+    ui->current_user->reset_password = true;
 }
