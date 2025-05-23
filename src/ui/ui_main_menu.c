@@ -4,6 +4,8 @@
  */
 #include "ui/ui_main_menu.h"
 
+#include <string.h>
+
 #include <external/raylib/raygui.h>
 
 #include "db/user_db.h"
@@ -28,6 +30,8 @@ static void ui_main_menu_handle_warning_msg(
     database *user_db
 );
 
+static void ui_main_menu_update_positions(struct ui_base *base);
+
 static void handle_manage_resident_button(enum app_state *state);
 
 static void handle_manage_food_button(enum app_state *state);
@@ -40,6 +44,10 @@ static void handle_create_user_button(
     struct user *current_user
 );
 
+static void handle_settings_button(enum app_state *state);
+
+static void handle_logout_button(struct ui_main_menu *ui, enum app_state *state);
+
 /* ======================= PUBLIC FUNCTIONS ======================= */
 
 void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
@@ -49,6 +57,7 @@ void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
     ui->base.render = ui_main_menu_render;
     ui->base.handle_buttons = ui_main_menu_handle_buttons;
     ui->base.handle_warning_msg = ui_main_menu_handle_warning_msg;
+    ui->base.update_positions = ui_main_menu_update_positions;
 
     // Initialize ui specific fields
 
@@ -65,6 +74,13 @@ void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
         (Rectangle) { ui->reg_food_butn.bounds.x, ui->reg_food_butn.bounds.y + 100, 200, 50 },
         "Create User"
     );
+
+    ui->settings_butn = button_init(
+        (Rectangle) { ui->create_user_butn.bounds.x, ui->create_user_butn.bounds.y + 100, 200, 50 },
+        "Settings"
+    );
+
+    ui->logout_butn = button_init((Rectangle) { window_width - 100, window_height - 60, 0, 30 }, "Log Out");
 
     ui->flag = 0;
 }
@@ -138,6 +154,15 @@ static void ui_main_menu_handle_buttons(
         handle_create_user_button(ui, state, error, user_db, ui->current_user);
         return;
     }
+
+    if (button_draw_updt(&ui->settings_butn)) {
+        handle_settings_button(state);
+        return;
+    }
+
+    if (button_draw_updt(&ui->logout_butn)) {
+        handle_logout_button(ui, state);
+    }
 }
 
 /**
@@ -191,6 +216,13 @@ static void ui_main_menu_handle_warning_msg(
         }
     }
 }
+
+static void ui_main_menu_update_positions(struct ui_base *base) {
+    struct ui_main_menu *ui = (struct ui_main_menu *)base;
+
+    ui->logout_butn.bounds.x = window_width - 100;
+    ui->logout_butn.bounds.y = window_height - 60;
+}
 /** @} */
 
 /* ======================= INTERNAL HELPERS ======================= */
@@ -222,4 +254,13 @@ static void handle_create_user_button(
     }
 
     *state = STATE_CREATE_USER;
+}
+
+static void handle_settings_button(enum app_state *state) {
+    *state = STATE_SETTINGS;
+}
+
+static void handle_logout_button(struct ui_main_menu *ui, enum app_state *state) {
+    memset(ui->current_user, 0, sizeof(struct user));
+    *state = STATE_LOGIN_MENU;
 }
