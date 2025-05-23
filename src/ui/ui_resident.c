@@ -161,7 +161,7 @@ void ui_resident_init(struct ui_resident *ui) {
     ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->panel_bounds.x + ui->panel_bounds.width + 10,
                       10,
-                      window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20 + 110),
+                      window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20),
                       window_height - 100 },
         "Database view",
         (Rectangle) { 0, 0, 0, 0 }
@@ -388,7 +388,7 @@ static void ui_resident_update_positions(struct ui_base *base) {
     ui->butn_delete.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_retrieve_all.bounds.y = ui->butn_submit.bounds.y;
     ui->sp_table_view.panel_bounds.width =
-        window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20 + /* +100 for styler offset */ 110);
+        window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20);
     ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 

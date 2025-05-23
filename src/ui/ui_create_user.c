@@ -147,7 +147,7 @@ void ui_create_user_init(struct ui_create_user *ui) {
     ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->tb_username.bounds.x + ui->tb_username.bounds.width + 10,
                       10,
-                      window_width - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20 + 110),
+                      window_width - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20),
                       window_height - 100 },
         "Database view",
         (Rectangle) { 0, 0, 0, 0 }
@@ -365,7 +365,7 @@ static void ui_create_user_update_positions(struct ui_base *base) {
     ui->butn_delete.bounds.y = window_height - 60;
     ui->butn_get_all.bounds.y = window_height - 60;
     ui->sp_table_view.panel_bounds.width = window_width
-        - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20 + /* +100 for styler offset */ 110);
+        - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20);
     ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
