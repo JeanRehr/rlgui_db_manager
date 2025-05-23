@@ -32,8 +32,8 @@
 #include "ui/ui_food.h"
 #include "ui/ui_login.h"
 #include "ui/ui_main_menu.h"
-#include "ui/ui_persistent.h"
 #include "ui/ui_resident.h"
+#include "ui/ui_settings.h"
 #include "user.h"
 
 /**
@@ -118,8 +118,11 @@ int main(void) {
     struct ui_create_user ui_create_user = { 0 }; ///< Create new user interface
     ui_create_user_init(&ui_create_user);
 
-    struct ui_persistent ui_persistent = { 0 }; ///< Persistent UI elements
-    ui_persistent_init(&ui_persistent);
+    struct ui_settings ui_settings = { 0 }; ///< Modify user info/settings interface
+    ui_settings_init(&ui_settings, &current_user);
+
+    // Status bar is a persistent element
+    Rectangle statusbar_bounds = (Rectangle) { 0, window_height - 20, window_width, 20 };
 
     // Main application loop
     while (!WindowShouldClose()) {
@@ -130,14 +133,16 @@ int main(void) {
         if (IsWindowResized()) {
             update_window_size(GetScreenWidth(), GetScreenHeight());
             ui_login.base.update_positions(&ui_login.base);
+            ui_main_menu.base.update_positions(&ui_main_menu.base);
             ui_resident.base.update_positions(&ui_resident.base);
             ui_food.base.update_positions(&ui_food.base);
             ui_create_user.base.update_positions(&ui_create_user.base);
-            ui_persistent_updt_pos(&ui_persistent);
+            ui_settings.base.update_positions(&ui_settings.base);
+            
+            // Persistent element
+            statusbar_bounds.y = window_height - 20;
+            statusbar_bounds.width = window_width;
         }
-
-        // Updating the current style selector
-        ui_persistent_updt(&ui_persistent);
 
         //----------------------------------------------------------------------------------
 
@@ -162,12 +167,19 @@ int main(void) {
             break;
         case STATE_CREATE_USER:
             ui_create_user.base.render(&ui_create_user.base, &app_state, &error, &user_db);
+            break;
+        case STATE_SETTINGS:
+            ui_settings.base.render(&ui_settings.base, &app_state, &error, &user_db);
+            break;
         default:
             break;
         }
 
-        // Draw persistent UI elements (visible in all states)
-        ui_persistent_draw(&ui_persistent, &current_user, &app_state);
+        // Persistent element
+        GuiStatusBar(
+            statusbar_bounds,
+            TextFormat("Logged: %s    Current screen: %s", current_user.username, app_state_to_string(&app_state))
+        );
 
         EndDrawing();
         //----------------------------------------------------------------------------------
