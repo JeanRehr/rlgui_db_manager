@@ -16,6 +16,8 @@ const char *app_state_to_string(const enum app_state *const state) {
         return "Register Food";
     case STATE_CREATE_USER:
         return "Create User";
+    case STATE_SETTINGS:
+        return "Settings screen";
     default:
         return "!!!*UNKNOWN MENU*!!!";
     }

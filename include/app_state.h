@@ -62,6 +62,16 @@ enum app_state {
      * - STATE_MAIN_MENU on going back
      */
     STATE_CREATE_USER,
+
+    /**
+     * @brief Settings screens
+     * 
+     * Manages the modification of currently logged in user.
+     * Also some styling settings.
+     * Transitions back to:
+     * - STATE_MAIN_MENU on going back
+     */
+    STATE_SETTINGS,
 };
 
 /**
