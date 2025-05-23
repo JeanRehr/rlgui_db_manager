@@ -54,32 +54,6 @@ static void ui_settings_update_positions(struct ui_base *base);
 
 static void ui_settings_clear_fields(struct ui_base *base);
 
-// Tagged union for when a warning message needs to perform a database operation
-// Type of the operation
-enum ui_settings_db_action_type {
-    DB_ACTION_NONE,
-    DB_ACTION_UPDATE,
-};
-
-// Info for the database operation based on the type
-struct ui_settings_db_action_info {
-    enum ui_settings_db_action_type type;
-    union {
-        struct {
-            const char *username;
-            const char *cpf;
-            const char *phone_number;
-        } update;
-    };
-};
-
-static void process_db_action_in_warning(
-    struct ui_settings *ui,
-    enum error_code *error,
-    struct ui_settings_db_action_info *action,
-    database *user_db
-);
-
 static void detect_styler_changes(struct ui_settings *ui);
 
 static void handle_back_button(enum app_state *state);
@@ -258,9 +232,7 @@ static void ui_settings_handle_warning_msg(
     database *user_db
 ) {
     struct ui_settings *ui = (struct ui_settings *)base;
-    (void)ui;
     (void)state;
-    (void)error;
     (void)user_db;
 
     struct ui_settings_db_action_info action = { 0 };
@@ -311,31 +283,6 @@ static void ui_settings_clear_fields(struct ui_base *base) {
 /** @} */
 
 /* ======================= INTERNAL HELPERS ======================= */
-
-/**
- * @internal
- * @brief Processes database actions triggered by warning messages
- * 
- * Handles user updates, deletion and other DB operations that may be requested
- * through warning message dialogs.
- * 
- * @param ui UI context
- * @param error Error code to set if operation fails
- * @param action Database action to perform with parameters
- * @param user_db Database connection
- * 
- */
-static void process_db_action_in_warning(
-    struct ui_settings *ui,
-    enum error_code *error,
-    struct ui_settings_db_action_info *action,
-    database *user_db
-) {
-    (void)ui;
-    (void)error;
-    (void)action;
-    (void)user_db;
-}
 
 /**
  * @private
