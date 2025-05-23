@@ -147,7 +147,7 @@ void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
     GuiLoadStyleGenesis();
 }
 
-/* ======================= BASE INTERFACE OVERRIDES ====================== */
+/* ======================= BASE INTERFACE OVERRIDES ======================= */
 
 /**
  * @name UI Base Overrides
