@@ -141,6 +141,9 @@ void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
     ui->flag = 0;
 
     // Set a default theme in init
+    // Reset to default internal style
+    // NOTE: Required to unload any previously loaded font texture
+    GuiLoadStyleDefault();
     GuiLoadStyleGenesis();
 }
 
