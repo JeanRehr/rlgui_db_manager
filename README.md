@@ -3,8 +3,8 @@ COURSE: Computer Science\
 SUBJECT: Software Engineering - Fundamentals Prof. Flávio Oliveira\
 SCHOOL Polytechnic\
 Case 3: Shelter management system for homeless/refugee people.\
-The management of shelters for homeless or refugee people involves several challenges, such as the control and efficient distribution of resources,\
-monitoring the well-being of the sheltered people and the coordination of the shelter's daily activities.\
+The management of shelters for homeless or refugee people involves several challenges, such as the control and efficient\
+distribution of resources, monitoring the well-being of the sheltered people and the coordination of the shelter's daily activities.\
 Often, this management is based on manual and error-prone processes, making it difficult to make quick and informed decisions.\
 The lack of a clear and real-time view of needs and availability can lead to underutilization or lack of essential resources,\
 directly affecting the quality of the service provided to the sheltered people. In addition, documentation and individualized\
