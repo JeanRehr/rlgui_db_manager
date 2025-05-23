@@ -1543,14 +1543,14 @@ void test_user_db_get_by_username(void) {
     printf("user_db_get_by_username test passed successfully.\n");
 }
 
-void test_user_db_change_username(void) {
+void test_user_db_update_username(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
     db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
-    printf("Testing user_db_change_username...\n");
+    printf("Testing user_db_update_username...\n");
 
     // Create a test user with known properties
     const char *old_username = "old_username";
@@ -1569,7 +1569,7 @@ void test_user_db_change_username(void) {
 
     // Change username
     printf("Changing username from '%s' to '%s'...\n", old_username, new_username);
-    rc = user_db_change_username(&test_user_db, old_username, new_username);
+    rc = user_db_update_username(&test_user_db, old_username, new_username);
     assert(rc == SQLITE_OK);
     printf("Username changed successfully.\n");
 
@@ -1597,19 +1597,19 @@ void test_user_db_change_username(void) {
 
     // Try to change to existing username
     printf("Attempting to change to existing username...\n");
-    rc = user_db_change_username(&test_user_db, new_username, "admin"); // admin exists
+    rc = user_db_update_username(&test_user_db, new_username, "admin"); // admin exists
     assert(rc == SQLITE_CONSTRAINT);
     printf("Change to existing username failed as expected.\n");
 
     // Try to change non-existent user
     printf("Attempting to change non-existent user...\n");
-    rc = user_db_change_username(&test_user_db, "nonexistent", "whatever");
+    rc = user_db_update_username(&test_user_db, "nonexistent", "whatever");
     assert(rc == SQLITE_NOTFOUND);
     printf("Change of non-existent user failed as expected.\n");
 
     teardown_cleanup();
 
-    printf("user_db_change_username test passed successfully.\n");
+    printf("user_db_update_username test passed successfully.\n");
 }
 
 void test_user_db_default_admin_changes(void) {
@@ -1630,7 +1630,7 @@ void test_user_db_default_admin_changes(void) {
     printf("Update of the default admin status failed as expected.\n");
 
     printf("Trying to update the default admin username...\n");
-    rc = user_db_change_username(&test_user_db, "admin", "newusername");
+    rc = user_db_update_username(&test_user_db, "admin", "newusername");
     assert(rc != SQLITE_OK);
     printf("Update of the default admin username failed as expected.\n");
 
@@ -2168,7 +2168,7 @@ void test_user_db_fn(void) {
     test_user_db_update_admin_status();
     test_user_db_check_exists();
     test_user_db_get_by_username();
-    test_user_db_change_username();
+    test_user_db_update_username();
     test_user_db_default_admin_changes();
     test_user_db_check_admin();
     test_user_db_set_password_reset();
