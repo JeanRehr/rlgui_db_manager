@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/99a26bd7-87f2-4a16-b8cc-fab494bacdfb)
+
 UNISINOS\
 COURSE: Computer Science\
 SUBJECT: Software Engineering - Fundamentals Prof. Flávio Oliveira\
@@ -11,5 +13,3 @@ directly affecting the quality of the service provided to the sheltered people. 
 monitoring of residents are complex and fundamental tasks to ensure that each person receives the necessary support.\
 Our task is to develop an efficient automated management solution to guarantee the organization, safety and well-being of residents,\
 facilitating communication between the different actors involved and promoting a more human and welcoming environment.
-
-![image](https://github.com/user-attachments/assets/99a26bd7-87f2-4a16-b8cc-fab494bacdfb)
