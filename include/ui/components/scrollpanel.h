@@ -53,7 +53,7 @@ struct scrollpanel scrollpanel_init(Rectangle panel_bounds, const char *title, R
  * - Content clipping to visible region
  * 
  * @param sp Pointer to initialized scrollpanel
- * @param draw_content Callback function to render panel content
+ * @param draw_content Callback function to render panel content, safely handles null
  * @param content_text Text data passed to draw_content callback, safely handles null
  * 
  * @note Call every frame for proper interaction

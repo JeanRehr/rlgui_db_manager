@@ -23,6 +23,8 @@ void scrollpanel_draw(struct scrollpanel *sp, void (*draw_content)(Rectangle, ch
                                            sp->panel_content_bounds.height };
 
     BeginScissorMode(sp->view.x, sp->view.y, sp->view.width, sp->view.height);
-    draw_content(content_rect, content_text);
+    if (draw_content) {
+        draw_content(content_rect, content_text);
+    }
     EndScissorMode();
 }
