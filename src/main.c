@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "CONSTANTS.h"
-#include "app_state.h"
+#include "global/CONSTANTS.h"
+#include "global/app_state.h"
 #include "db/clothes_db.h"
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
@@ -29,18 +29,18 @@
 #include "db/resident_db.h"
 #include "db/supplies_db.h"
 #include "db/user_db.h"
-#include "error_handling.h"
-#include "globals.h"
-#include "ui/ui_clothes.h"
-#include "ui/ui_create_user.h"
-#include "ui/ui_food.h"
-#include "ui/ui_login.h"
-#include "ui/ui_main_menu.h"
-#include "ui/ui_medication.h"
-#include "ui/ui_resident.h"
-#include "ui/ui_settings.h"
-#include "ui/ui_supplies.h"
-#include "user.h"
+#include "global/error_handling.h"
+#include "global/globals.h"
+#include "ui/screens/ui_clothes.h"
+#include "ui/screens/ui_create_user.h"
+#include "ui/screens/ui_food.h"
+#include "ui/screens/ui_login.h"
+#include "ui/screens/ui_main_menu.h"
+#include "ui/screens/ui_medication.h"
+#include "ui/screens/ui_resident.h"
+#include "ui/screens/ui_settings.h"
+#include "ui/screens/ui_supplies.h"
+#include "entities/user.h"
 
 /**
   * @brief Application entry point

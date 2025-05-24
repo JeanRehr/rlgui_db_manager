@@ -10,7 +10,7 @@
 #define USER_DB_H
 
 #include "db/db_manager.h"
-#include "user.h"
+#include "entities/user.h"
 
 /**
  * @enum auth_result

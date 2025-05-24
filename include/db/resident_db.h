@@ -12,7 +12,7 @@
 #include <stddef.h>
 
 #include "db_manager.h"
-#include "resident.h"
+#include "entities/resident.h"
 
 /**
  * @brief Creates the Resident table in the database

@@ -11,7 +11,7 @@
 
 #include <external/raylib/raygui.h>
 
-#include "CONSTANTS.h"
+#include "global/CONSTANTS.h"
 
 bool is_int_between_min_max(const char *input, const int min_len, const int max_len) {
     int length = strlen(input);

@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "error_handling.h"
+#include "global/error_handling.h"
 
 int db_init(database *db, const char *filename) {
     int rc = sqlite3_open(filename, &db->db);

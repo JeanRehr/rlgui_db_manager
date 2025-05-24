@@ -15,7 +15,7 @@
 #include "db/foodbatch_db.h"
 #include "db/resident_db.h"
 #include "db/user_db.h"
-#include "user.h"
+#include "entities/user.h"
 #include "utils/utils_hash.h"
 #include "utils/utilsfn.h"
 

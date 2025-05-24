@@ -13,7 +13,7 @@
 #include <stddef.h>
 
 #include "db_manager.h"
-#include "foodbatch.h" // Requires struct foodbatch definition
+#include "entities/foodbatch.h" // Requires struct foodbatch definition
 
 /**
  * @brief Creates the FoodBatch table in the database
