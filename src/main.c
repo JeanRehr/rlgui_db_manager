@@ -249,6 +249,18 @@ cleanup:
         db_deinit(&user_db);
     }
 
+    if (db_is_init(&medication_db)) {
+        db_deinit(&medication_db);
+    }
+
+    if (db_is_init(&clothes_db)) {
+        db_deinit(&clothes_db);
+    }
+
+    if (db_is_init(&supplies_db)) {
+        db_deinit(&supplies_db);
+    }
+
     // Close graphics window
     CloseWindow();
     //--------------------------------------------------------------------------------------
