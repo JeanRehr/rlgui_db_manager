@@ -98,22 +98,22 @@ void ui_create_user_init(struct ui_create_user *ui) {
     ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
 
     ui->tb_username = textbox_init(
-        (Rectangle) { 20, ui->butn_back.bounds.y + (FONT_SIZE * 4), 300, 30 },
+        (Rectangle) { 20, ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "Username:"
     );
 
     ui->tbi_cpf = textboxint_init(
-        (Rectangle) { 20, ui->tb_username.bounds.y + (FONT_SIZE * 4), 300, 30 },
+        (Rectangle) { 20, ui->tb_username.bounds.y + ui->tb_username.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "CPF:"
     );
 
     ui->tbi_phone_number = textboxint_init(
-        (Rectangle) { 20, ui->tbi_cpf.bounds.y + (FONT_SIZE * 4), 300, 30 },
+        (Rectangle) { 20, ui->tbi_cpf.bounds.y + ui->tbi_cpf.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "Phone Number:"
     );
 
     ui->cb_is_admin = checkbox_init(
-        (Rectangle) { 20, ui->tbi_phone_number.bounds.y + (FONT_SIZE * 4), 20, 20 },
+        (Rectangle) { 20, ui->tbi_phone_number.bounds.y + ui->tbi_phone_number.bounds.height + (FONT_SIZE * 2), 20, 20 },
         "Admin:"
     );
 

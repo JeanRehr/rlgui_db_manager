@@ -84,17 +84,17 @@ void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
     ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
 
     ui->tb_new_username = textbox_init(
-        (Rectangle) { 20, ui->butn_back.bounds.y + (FONT_SIZE * 4), 300, 30 },
+        (Rectangle) { 20, ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "New Username:"
     );
 
     ui->tbi_new_phone_number = textboxint_init(
-        (Rectangle) { 20, ui->tb_new_username.bounds.y + (FONT_SIZE * 4), 300, 30 },
+        (Rectangle) { 20, ui->tb_new_username.bounds.y + ui->tb_new_username.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "New Phone Number:"
     );
 
     ui->tbi_new_cpf = textboxint_init(
-        (Rectangle) { 20, ui->tbi_new_phone_number.bounds.y + (FONT_SIZE * 4), 300, 30 },
+        (Rectangle) { 20, ui->tbi_new_phone_number.bounds.y + ui->tbi_new_phone_number.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "New CPF:"
     );
 

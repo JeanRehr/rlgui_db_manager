@@ -106,36 +106,37 @@ void ui_food_init(struct ui_food *ui) {
     ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
 
     ui->ib_batch_id = intbox_init(
-        (Rectangle) { 20, ui->butn_back.bounds.y + (ui->butn_back.bounds.height * 2), 130, 30 },
+        (Rectangle) { 20, ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2), 130, 30 },
         "Batch ID:",
         0,
         99999999
     );
 
     ui->tb_name = textbox_init(
-        (Rectangle) { 20, ui->ib_batch_id.bounds.y + (ui->ib_batch_id.bounds.height * 2), 300, 30 },
+        (Rectangle) { 20, ui->ib_batch_id.bounds.y + ui->ib_batch_id.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "Food Name:"
     );
 
     ui->ib_quantity = intbox_init(
-        (Rectangle) { 20, ui->tb_name.bounds.y + (ui->tb_name.bounds.height * 2), 125, 30 },
+        (Rectangle) { 20, ui->tb_name.bounds.y + ui->tb_name.bounds.height + (FONT_SIZE * 2), 125, 30 },
         "Quantity:",
         0,
         INT_MAX
     );
 
     ui->cb_is_perishable = checkbox_init(
-        (Rectangle) { 20, ui->ib_quantity.bounds.y + (ui->ib_quantity.bounds.height * 2), 20, 20 },
+        (Rectangle) { 20, ui->ib_quantity.bounds.y + ui->ib_quantity.bounds.height + (FONT_SIZE * 2), 20, 20 },
         "Is Perishable?"
     );
 
-    ui->expirationDateText = (Rectangle) { 20,
-                                           ui->cb_is_perishable.bounds.y + (ui->cb_is_perishable.bounds.height * 2),
-                                           MeasureText("Expiration date:", FONT_SIZE),
-                                           20 };
+    ui->expirationDateText =
+        (Rectangle) { 20,
+                      ui->cb_is_perishable.bounds.y + ui->cb_is_perishable.bounds.height + (FONT_SIZE * 2),
+                      MeasureText("Expiration date:", FONT_SIZE),
+                      20 };
 
     ui->ib_year = intbox_init(
-        (Rectangle) { 20, ui->expirationDateText.y + (ui->expirationDateText.height * 2), 40, 30 },
+        (Rectangle) { 20, ui->expirationDateText.y + ui->expirationDateText.height + (FONT_SIZE * 2), 40, 30 },
         "Year",
         0,
         9999
@@ -143,7 +144,7 @@ void ui_food_init(struct ui_food *ui) {
 
     ui->ib_month = intbox_init(
         (Rectangle) { ui->ib_year.bounds.x + ui->ib_year.bounds.width + 5,
-                      ui->expirationDateText.y + (ui->expirationDateText.height * 2),
+                      ui->expirationDateText.y + ui->expirationDateText.height + (FONT_SIZE * 2),
                       35,
                       30 },
         "Month",
@@ -153,7 +154,7 @@ void ui_food_init(struct ui_food *ui) {
 
     ui->ib_day = intbox_init(
         (Rectangle) { ui->ib_month.bounds.x + ui->ib_month.bounds.width + 5,
-                      ui->expirationDateText.y + (ui->expirationDateText.height * 2),
+                      ui->expirationDateText.y + ui->expirationDateText.height + (FONT_SIZE * 2),
                       35,
                       30 },
         "Day",
@@ -162,7 +163,7 @@ void ui_food_init(struct ui_food *ui) {
     );
 
     ui->fb_daily_consumption_rate = floatbox_init(
-        (Rectangle) { 20, ui->ib_year.bounds.y + (ui->ib_year.bounds.height * 2), 250, 30 },
+        (Rectangle) { 20, ui->ib_year.bounds.y + ui->ib_year.bounds.height + (FONT_SIZE * 2), 250, 30 },
         "Avg daily consumption rate per resident?"
     );
 
@@ -453,8 +454,7 @@ static void ui_food_update_positions(struct ui_base *base) {
     ui->butn_retrieve.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_delete.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_retrieve_all.bounds.y = ui->butn_submit.bounds.y;
-    ui->sp_table_view.panel_bounds.width =
-        window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20);
+    ui->sp_table_view.panel_bounds.width = window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20);
     ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
