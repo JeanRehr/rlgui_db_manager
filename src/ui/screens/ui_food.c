@@ -4,7 +4,7 @@
  */
 #include "ui/screens/ui_food.h"
 
-#include <limits.h>
+#include <limits.h> // For INT_MAX
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
