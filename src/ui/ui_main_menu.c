@@ -10,7 +10,7 @@
 
 #include "db/user_db.h"
 #include "globals.h"
-#include "utilsfn.h"
+#include "utils/utilsfn.h"
 
 /* Forward declarations */
 
@@ -35,6 +35,12 @@ static void ui_main_menu_update_positions(struct ui_base *base);
 static void handle_manage_resident_button(enum app_state *state);
 
 static void handle_manage_food_button(enum app_state *state);
+
+static void handle_manage_meds_button(enum app_state *state);
+
+static void handle_manage_clothes_button(enum app_state *state);
+
+static void handle_manage_supplies_button(enum app_state *state);
 
 static void handle_create_user_button(
     struct ui_main_menu *ui,
@@ -63,20 +69,36 @@ void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
 
     ui->current_user = current_user;
 
-    ui->reg_resident_butn = button_init((Rectangle) { 100, 100, 200, 50 }, "Manage Residents");
+    ui->reg_resident_butn = button_init((Rectangle) { 50, 50, 200, 50 }, "Manage Residents");
 
     ui->reg_food_butn = button_init(
         (Rectangle) { ui->reg_resident_butn.bounds.x, ui->reg_resident_butn.bounds.y + 100, 200, 50 },
         "Manage Food"
     );
 
-    ui->create_user_butn = button_init(
+    ui->reg_meds_butn = button_init(
         (Rectangle) { ui->reg_food_butn.bounds.x, ui->reg_food_butn.bounds.y + 100, 200, 50 },
+        "Manage Medications"
+    );
+
+    ui->reg_clothes_butn = button_init(
+        (Rectangle) { ui->reg_meds_butn.bounds.x, ui->reg_meds_butn.bounds.y + 100, 200, 50 },
+        "Manage Clothes"
+    );
+
+    ui->reg_supplies_butn = button_init(
+        (Rectangle) { ui->reg_clothes_butn.bounds.x, ui->reg_clothes_butn.bounds.y + 100, 200, 50 },
+        "Manage Supplies"
+    );
+
+    ui->create_user_butn = button_init(
+        (Rectangle) { ui->reg_supplies_butn.bounds.x + ui->reg_supplies_butn.bounds.width + 20, 50, 200, 50 },
         "Create User"
     );
 
+
     ui->settings_butn = button_init(
-        (Rectangle) { ui->create_user_butn.bounds.x, ui->create_user_butn.bounds.y + 100, 200, 50 },
+        (Rectangle) { window_width - 250, 50, 200, 50 },
         "Settings"
     );
 
@@ -150,6 +172,21 @@ static void ui_main_menu_handle_buttons(
         return;
     }
 
+    if (button_draw_updt(&ui->reg_meds_butn)) {
+        handle_manage_meds_button(state);
+        return;
+    }
+
+    if (button_draw_updt(&ui->reg_clothes_butn)) {
+        handle_manage_clothes_button(state);
+        return;
+    }
+
+    if (button_draw_updt(&ui->reg_supplies_butn)) {
+        handle_manage_supplies_button(state);
+        return;
+    }
+
     if (button_draw_updt(&ui->create_user_butn)) {
         handle_create_user_button(ui, state, error, user_db, ui->current_user);
         return;
@@ -220,6 +257,7 @@ static void ui_main_menu_handle_warning_msg(
 static void ui_main_menu_update_positions(struct ui_base *base) {
     struct ui_main_menu *ui = (struct ui_main_menu *)base;
 
+    ui->settings_butn.bounds.x = window_width - 250;
     ui->logout_butn.bounds.x = window_width - 100;
     ui->logout_butn.bounds.y = window_height - 60;
 }
@@ -233,6 +271,18 @@ static void handle_manage_resident_button(enum app_state *state) {
 
 static void handle_manage_food_button(enum app_state *state) {
     *state = STATE_REGISTER_FOOD;
+}
+
+static void handle_manage_meds_button(enum app_state *state) {
+    *state = STATE_REGISTER_MEDICATION;
+}
+
+static void handle_manage_clothes_button(enum app_state *state) {
+    *state = STATE_REGISTER_CLOTHES;
+}
+
+static void handle_manage_supplies_button(enum app_state *state) {
+    *state = STATE_REGISTER_SUPPLIES;
 }
 
 static void handle_create_user_button(

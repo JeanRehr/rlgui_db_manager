@@ -11,7 +11,7 @@
 
 #include <inttypes.h> // For PRIu64 (compatibility for both windows and linux)
 
-#include "utils_hash.h"
+#include "utils/utils_hash.h"
 
 int user_db_create_table(database *db) {
     if (!db_is_init(db)) {

@@ -6,7 +6,7 @@
 
 #include <external/raylib/raygui.h>
 
-#include "utilsfn.h"
+#include "utils/utilsfn.h"
 
 struct textboxint textboxint_init(Rectangle bounds, const char *title) {
     struct textboxint tbi = { 0 }; // Initialize struct with zeroed memory

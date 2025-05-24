@@ -12,7 +12,7 @@
 
 #include "db/resident_db.h"
 #include "globals.h"
-#include "utilsfn.h"
+#include "utils/utilsfn.h"
 
 /* Forward declarations */
 

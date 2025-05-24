@@ -15,8 +15,9 @@
 #include "db/foodbatch_db.h"
 #include "db/resident_db.h"
 #include "db/user_db.h"
-#include "utils_hash.h"
-#include "utilsfn.h"
+#include "user.h"
+#include "utils/utils_hash.h"
+#include "utils/utilsfn.h"
 
 // Global context structure
 struct test_cleanup_ctx {
@@ -1795,9 +1796,6 @@ void test_user_db_get_all(void) {
 // TEST DB USER END
 
 // UTILS_HASH TESTS
-
-#include "user.h"
-#include "utils_hash.h"
 
 // Helper function to count non-null bytes in a string
 int count_non_null_bytes(const char *str, size_t len) {

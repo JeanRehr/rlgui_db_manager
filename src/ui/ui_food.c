@@ -13,7 +13,7 @@
 
 #include "db/foodbatch_db.h"
 #include "globals.h"
-#include "utilsfn.h"
+#include "utils/utilsfn.h"
 
 /* Forward declarations */
 
@@ -101,7 +101,7 @@ void ui_food_init(struct ui_food *ui) {
     ui->base.clear_fields = ui_food_clear_fields;
     ui->base.cleanup = ui_food_cleanup;
 
-    // UI Resident specific fields
+    // UI Food specific fields
 
     ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
 
@@ -183,7 +183,7 @@ void ui_food_init(struct ui_food *ui) {
 
     memset(&ui->foodbatch_retrieved, 0, sizeof(struct foodbatch));
 
-    // Only set the bounds of the panel, draw everything inside based on it on the draw register resident screen function
+    // Only set the bounds of the panel, draw everything inside based on it on the draw register food screen function
     ui->panel_bounds = (Rectangle) { ui->tb_name.bounds.x + ui->tb_name.bounds.width + 10, 10, 300, 250 };
 
     ui->sp_table_view = scrollpanel_init(

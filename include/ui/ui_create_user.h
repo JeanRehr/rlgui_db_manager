@@ -3,10 +3,16 @@
  * @brief User Creation Management Screen
  *
  * Provides interface for managing creation of new users, including:
- * - Adding new admin
- * - Updating username
- * - Updating password
- * - @todo add more
+ *
+ * - Adding new users
+ *
+ * - Update admin status
+ *
+ * - Resetting password
+ *
+ * - Delete a user
+ *
+ * - View all users
  */
 
 #ifndef UI_CREATE_USER_H
