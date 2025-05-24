@@ -2,7 +2,7 @@
  * @file utilsfn.c
  * @brief General utilities functions implementations
  */
-#include "utilsfn.h"
+#include "utils/utilsfn.h"
 
 #include <ctype.h>
 #include <stdio.h>

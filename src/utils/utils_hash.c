@@ -2,7 +2,7 @@
  * @file utils_hash.c
  * @brief Utils hashing functions implementations
  */
-#include "utils_hash.h"
+#include "utils/utils_hash.h"
 
 #ifdef _WIN32
     // Isolated to this file to not have name mangling of functions
