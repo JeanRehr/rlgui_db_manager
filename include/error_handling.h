@@ -17,7 +17,7 @@
  * @brief Numeric error codes for application failures
  * 
  * Values are designed to be used as function return codes and can be
- * converted to human-readable messages via error_code_to_string().
+ * converted to human-readable messages via error_code_to_string() (not implemented).
  */
 enum error_code {
     NO_ERROR = 0,            ///< Operation completed successfully

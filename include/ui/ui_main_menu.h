@@ -34,6 +34,9 @@ struct ui_main_menu {
 
     struct button reg_resident_butn; ///< Button for resident management
     struct button reg_food_butn;     ///< Button for food inventory management
+    struct button reg_meds_butn;     ///< Button for medication inventory management
+    struct button reg_clothes_butn;  ///< Button for clothes inventory management
+    struct button reg_supplies_butn; ///< Button for supplies inventory management
     struct button create_user_butn;  ///< Button for the create user screen
     struct button settings_butn;     ///< Button for the settings screen
     struct button logout_butn;       ///< Button to logout the current user

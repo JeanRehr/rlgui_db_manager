@@ -55,6 +55,33 @@ enum app_state {
     STATE_REGISTER_FOOD,
 
     /**
+     * @brief Medication management screen
+     *
+     * Manages the medication tracking and storage information
+     * Transitions back to:
+     * - STATE_MAIN_MENU on going back
+     */
+    STATE_REGISTER_MEDICATION,
+
+    /**
+     * @brief Clothes management screen
+     *
+     * Manages the clothes tracking and storage information
+     * Transitions back to:
+     * - STATE_MAIN_MENU on going back
+     */
+    STATE_REGISTER_CLOTHES,
+
+    /**
+     * @brief Supplies management screen
+     *
+     * Manages the supplies tracking and storage information
+     * Transitions back to:
+     * - STATE_MAIN_MENU on going back
+     */
+    STATE_REGISTER_SUPPLIES,
+
+    /**
      * @brief Create user screen
      * 
      * Only admins can access this screen.

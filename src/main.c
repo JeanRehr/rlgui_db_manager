@@ -22,18 +22,24 @@
 
 #include "CONSTANTS.h"
 #include "app_state.h"
+#include "db/clothes_db.h"
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
+#include "db/medication_db.h"
 #include "db/resident_db.h"
+#include "db/supplies_db.h"
 #include "db/user_db.h"
 #include "error_handling.h"
 #include "globals.h"
+#include "ui/ui_clothes.h"
 #include "ui/ui_create_user.h"
 #include "ui/ui_food.h"
 #include "ui/ui_login.h"
 #include "ui/ui_main_menu.h"
+#include "ui/ui_medication.h"
 #include "ui/ui_resident.h"
 #include "ui/ui_settings.h"
+#include "ui/ui_supplies.h"
 #include "user.h"
 
 /**
@@ -74,9 +80,12 @@ int main(void) {
     SetTargetFPS(60);
 
     // Database connections
-    database resident_db = { 0 };  ///< Resident records database
-    database foodbatch_db = { 0 }; ///< Food inventory database
-    database user_db = { 0 };      ///< User accounts database
+    database resident_db = { 0 };   ///< Resident records database
+    database foodbatch_db = { 0 };  ///< Food inventory database
+    database user_db = { 0 };       ///< User accounts database
+    database medication_db = { 0 }; ///< Medication database
+    database clothes_db = { 0 };    ///< Clothes database
+    database supplies_db = { 0 };   ///< Supplies database
 
     // Initialize databases with tables
     if (db_init_with_tbl(&resident_db, "resident_db.db", resident_db_create_table) != SQLITE_OK) {
@@ -93,6 +102,24 @@ int main(void) {
 
     if (db_init_with_tbl(&user_db, "user_db.db", user_db_create_table) != SQLITE_OK) {
         fprintf(stderr, "Error opening user db.\n");
+        return_code = ERROR_OPENING_DB;
+        goto cleanup;
+    }
+
+    if (db_init_with_tbl(&medication_db, "medication_db.db", medication_db_create_table) != SQLITE_OK) {
+        fprintf(stderr, "Error opening medication db.\n");
+        return_code = ERROR_OPENING_DB;
+        goto cleanup;
+    }
+
+    if (db_init_with_tbl(&clothes_db, "clothes_db.db", clothes_db_create_table) != SQLITE_OK) {
+        fprintf(stderr, "Error opening clothes db.\n");
+        return_code = ERROR_OPENING_DB;
+        goto cleanup;
+    }
+
+    if (db_init_with_tbl(&supplies_db, "supplies_db.db", supplies_db_create_table) != SQLITE_OK) {
+        fprintf(stderr, "Error opening supplies db.\n");
         return_code = ERROR_OPENING_DB;
         goto cleanup;
     }
@@ -115,6 +142,15 @@ int main(void) {
     struct ui_food ui_food = { 0 }; ///< Food management interface
     ui_food_init(&ui_food);
 
+    struct ui_medication ui_medication = { 0 }; ///< Medication management interface
+    ui_medication_init(&ui_medication);
+
+    struct ui_clothes ui_clothes = { 0 }; ///< Clothes management interface
+    ui_clothes_init(&ui_clothes);
+
+    struct ui_supplies ui_supplies = { 0 }; ///< Supplies management interface
+    ui_supplies_init(&ui_supplies);
+
     struct ui_create_user ui_create_user = { 0 }; ///< Create new user interface
     ui_create_user_init(&ui_create_user);
 
@@ -136,9 +172,12 @@ int main(void) {
             ui_main_menu.base.update_positions(&ui_main_menu.base);
             ui_resident.base.update_positions(&ui_resident.base);
             ui_food.base.update_positions(&ui_food.base);
+            ui_medication.base.update_positions(&ui_medication.base);
+            ui_clothes.base.update_positions(&ui_clothes.base);
+            ui_supplies.base.update_positions(&ui_supplies.base);
             ui_create_user.base.update_positions(&ui_create_user.base);
             ui_settings.base.update_positions(&ui_settings.base);
-            
+
             // Persistent element
             statusbar_bounds.y = window_height - 20;
             statusbar_bounds.width = window_width;
@@ -164,6 +203,15 @@ int main(void) {
             break;
         case STATE_REGISTER_FOOD:
             ui_food.base.render(&ui_food.base, &app_state, &error, &foodbatch_db);
+            break;
+        case STATE_REGISTER_MEDICATION:
+            ui_medication.base.render(&ui_medication.base, &app_state, &error, &foodbatch_db);
+            break;
+        case STATE_REGISTER_CLOTHES:
+            ui_clothes.base.render(&ui_clothes.base, &app_state, &error, &foodbatch_db);
+            break;
+        case STATE_REGISTER_SUPPLIES:
+            ui_supplies.base.render(&ui_supplies.base, &app_state, &error, &foodbatch_db);
             break;
         case STATE_CREATE_USER:
             ui_create_user.base.render(&ui_create_user.base, &app_state, &error, &user_db);
