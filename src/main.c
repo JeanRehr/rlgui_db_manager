@@ -20,8 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "global/CONSTANTS.h"
-#include "global/app_state.h"
 #include "db/clothes_db.h"
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
@@ -29,6 +27,9 @@
 #include "db/resident_db.h"
 #include "db/supplies_db.h"
 #include "db/user_db.h"
+#include "entities/user.h"
+#include "global/CONSTANTS.h"
+#include "global/app_state.h"
 #include "global/error_handling.h"
 #include "global/globals.h"
 #include "ui/screens/ui_clothes.h"
@@ -40,7 +41,6 @@
 #include "ui/screens/ui_resident.h"
 #include "ui/screens/ui_settings.h"
 #include "ui/screens/ui_supplies.h"
-#include "entities/user.h"
 
 /**
   * @brief Application entry point

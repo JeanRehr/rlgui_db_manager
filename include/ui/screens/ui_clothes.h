@@ -9,6 +9,9 @@
 #ifndef UI_CLOTHES_H
 #define UI_CLOTHES_H
 
+#include "ui/screens/ui_base.h"
+#include "ui/components/button.h"
+
 /**
  * @enum clothes_screen_flags
  * @brief State flags for the clothes screen
@@ -18,9 +21,6 @@
 enum clothes_screen_flags {
     FLAG_CLOTHES_OPERATION_DONE = 1 << 0, ///< Operation done
 };
-
-#include "ui/screens/ui_base.h"
-#include "ui/components/button.h"
 
 /**
  * @struct ui_clothes
