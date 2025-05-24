@@ -90,13 +90,13 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
 
     ui->tbs_password = textboxsecret_init(
         (Rectangle
-        ) { ui->tb_username.bounds.x, ui->tb_username.bounds.y + (ui->tb_username.bounds.height * 2), 300, 30 },
+        ) { ui->tb_username.bounds.x, ui->tb_username.bounds.y + (FONT_SIZE * 4), 300, 30 },
         "Password:"
     );
 
     ui->butn_login = button_init(
         (Rectangle) { ui->tbs_password.bounds.x + (ui->tbs_password.bounds.width / 2) - 50,
-                      ui->tbs_password.bounds.y + (ui->tbs_password.bounds.height * 2),
+                      ui->tbs_password.bounds.y + (FONT_SIZE * 4),
                       100,
                       30 },
         "Login"
@@ -276,10 +276,10 @@ static void ui_login_updt_pos(struct ui_base *base) {
     ui->tb_username.bounds.y = window_height / 2 - 15;
 
     ui->tbs_password.bounds.x = ui->tb_username.bounds.x;
-    ui->tbs_password.bounds.y = ui->tb_username.bounds.y + (ui->tb_username.bounds.height * 2);
+    ui->tbs_password.bounds.y = ui->tb_username.bounds.y + (FONT_SIZE * 4);
 
     ui->butn_login.bounds.x = ui->tbs_password.bounds.x + (ui->tbs_password.bounds.width / 2) - 50;
-    ui->butn_login.bounds.y = ui->tbs_password.bounds.y + (ui->tbs_password.bounds.height * 2);
+    ui->butn_login.bounds.y = ui->tbs_password.bounds.y + (FONT_SIZE * 4);
 }
 
 /**

@@ -109,31 +109,31 @@ void ui_resident_init(struct ui_resident *ui) {
     // UI Resident specific fields
     ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
     ui->tb_name =
-        textbox_init((Rectangle) { 20, ui->butn_back.bounds.y + (ui->butn_back.bounds.height * 2), 300, 30 }, "Name:");
+        textbox_init((Rectangle) { 20, ui->butn_back.bounds.y + (FONT_SIZE * 4), 300, 30 }, "Name:");
     ui->tbi_cpf =
-        textboxint_init((Rectangle) { 20, ui->tb_name.bounds.y + (ui->tb_name.bounds.height * 2), 300, 30 }, "CPF:");
+        textboxint_init((Rectangle) { 20, ui->tb_name.bounds.y + (FONT_SIZE * 4), 300, 30 }, "CPF:");
     ui->ib_age = intbox_init(
-        (Rectangle) { 20, ui->tbi_cpf.bounds.y + (ui->tbi_cpf.bounds.height * 2), 125, 30 },
+        (Rectangle) { 20, ui->tbi_cpf.bounds.y + (FONT_SIZE * 4), 125, 30 },
         "Age:",
         0,
         120
     );
     ui->tb_health_status = textbox_init(
-        (Rectangle) { 20, ui->ib_age.bounds.y + (ui->ib_age.bounds.height * 2), 300, 30 },
+        (Rectangle) { 20, ui->ib_age.bounds.y + (FONT_SIZE * 4), 300, 30 },
         "Health Status:"
     );
     ui->tb_needs = textbox_init(
-        (Rectangle) { 20, ui->tb_health_status.bounds.y + (ui->tb_health_status.bounds.height * 2), 300, 30 },
+        (Rectangle) { 20, ui->tb_health_status.bounds.y + (FONT_SIZE * 4), 300, 30 },
         "Needs:"
     );
 
     ui->cb_medical_assistance = checkbox_init(
-        (Rectangle) { 20, ui->tb_needs.bounds.y + (ui->tb_needs.bounds.height * 2), 20, 20 },
+        (Rectangle) { 20, ui->tb_needs.bounds.y + (FONT_SIZE * 4), 20, 20 },
         "Need Medical Assistance:"
     );
 
     ui->ddb_gender = dropdownbox_init(
-        (Rectangle) { 20, ui->cb_medical_assistance.bounds.y + (ui->cb_medical_assistance.bounds.height * 2), 200, 30 },
+        (Rectangle) { 20, ui->cb_medical_assistance.bounds.y + (FONT_SIZE * 4), 200, 30 },
         "Other;Male;Female",
         "Gender"
     );
