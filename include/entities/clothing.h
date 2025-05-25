@@ -35,6 +35,8 @@ const char *clothing_type_str =
  * @brief Clothing type enumeration
  * 
  * This enumeration defines clothing type options.
+ * 
+ * @warning Terminating NUM must always be last to maximize compile-time access safety
  */
 enum clothing_type {
     TSHIRT = 0,
@@ -63,6 +65,7 @@ enum clothing_type {
     SNEAKERS,
     SANDALS,
     OTHER_TYPE,
+    NUM_CLOTHING_TYPE
 };
 
 /**
@@ -70,28 +73,19 @@ enum clothing_type {
  * @brief Clothing size enumeration
  * 
  * This enumeration defines clothing size options.
+ * @warning Terminating NUM must always be last to maximize compile-time access safety
  */
-enum clothing_size {
-    XXS = 0,
-    XS,
-    S,
-    M,
-    L,
-    XL,
-    XXL,
-};
+enum clothing_size { XXS = 0, XS, S, M, L, XL, XXL, NUM_CLOTHING_SIZE };
 
 /**
  * @enum clothing_gender
  * @brief Clothing gender enumeration
  * 
  * This enumeration defines clothing gender options.
+ * 
+ * @warning Terminating NUM must always be last to maximize compile-time access safety
  */
-enum clothing_gender {
-    UNISSEX = 0,
-    MALE,
-    FEMALE,
-};
+enum clothing_gender { UNISSEX = 0, MALE, FEMALE, NUM_CLOTHING_GENDER };
 
 /**
  * @enum clothing_color
@@ -101,6 +95,8 @@ enum clothing_gender {
  * 
  * @note As this is a shelter management system, granularity or well-defined colors are really
  *       not necessary, should not be important
+ * 
+ * @warning Terminating NUM must always be last to maximize compile-time access safety
  */
 enum clothing_color {
     CL_BLACK = 0,
@@ -117,6 +113,7 @@ enum clothing_color {
     CL_MULTICOLORED,
     CL_PATTERNED,
     CL_OTHER_COLOR,
+    NUM_CLOTHING_COLOR
 };
 
 /**
@@ -127,13 +124,51 @@ enum clothing_color {
  * 
  * @note As this is a shelter management system, granularity or well-defined colors are really
  *       not necessary, should not be important
+ *
+ * @warning Terminating NUM must always be last to maximize compile-time access safety
  */
-enum clothing_condition {
-    NEW = 0,
-    GOOD,
-    WORN,
-    NEEDS_REPAIR,
+enum clothing_condition { NEW = 0, GOOD, WORN, NEEDS_REPAIR, NUM_CLOTHING_CONDITION };
+
+/**
+ * @addtogroup clothing_lookup_table
+ * 
+ * @details If adding a string here, add it in the enum in the same order
+ * 
+ * @{
+ */
+
+/**
+ * @brief Clothing type lookup
+ */
+static const char *clothing_type_str[NUM_CLOTHING_TYPE] = {
+    "t-shirt", "shirts", "jeans",   "pants", "shorts",    "skirts",   "dresses",    "sweaters", "hoodies",
+    "jackets", "coats",  "blazers", "socks", "underwear", "swimwear", "activewear", "pajamas",  "hats",
+    "scarves", "gloves", "suits",   "vests", "boots",     "sneakers", "sandals",    "other"
 };
+
+/**
+ * @brief Clothing type lookup
+ */
+static const char *clothing_size_str[NUM_CLOTHING_SIZE] = { "xxs", "xs", "s", "m", "l", "xl", "xxl" };
+
+/**
+ * @brief Clothing gender lookup
+ */
+static const char *clothing_gender_str[NUM_CLOTHING_GENDER] = { "other", "male", "female" };
+
+/**
+ * @brief Clothing color lookup
+ */
+static const char *clothing_color_str[NUM_CLOTHING_COLOR] = { "black",  "white",        "gray",      "blue", "red",
+                                                              "green",  "yellow",       "brown",     "pink", "purple",
+                                                              "orange", "multicolored", "patterned", "other" };
+
+/**
+ * @brief Clothing condition lookup
+ */
+const char *clothing_condition_str[NUM_CLOTHING_CONDITION] = { "new", "good", "worn", "needs repair" };
+
+/** @} */
 
 /**
  * @struct clothing
