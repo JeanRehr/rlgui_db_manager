@@ -140,33 +140,27 @@ enum clothing_condition { NEW = 0, GOOD, WORN, NEEDS_REPAIR, NUM_CLOTHING_CONDIT
 /**
  * @brief Clothing type lookup
  */
-const char *clothing_type_str[NUM_CLOTHING_TYPE] = {
-    "t-shirt", "shirts", "jeans",   "pants", "shorts",    "skirts",   "dresses",    "sweaters", "hoodies",
-    "jackets", "coats",  "blazers", "socks", "underwear", "swimwear", "activewear", "pajamas",  "hats",
-    "scarves", "gloves", "suits",   "vests", "boots",     "sneakers", "sandals",    "other"
-};
+extern const char *clothing_type_str[NUM_CLOTHING_TYPE];
 
 /**
  * @brief Clothing type lookup
  */
-const char *clothing_size_str[NUM_CLOTHING_SIZE] = { "xxs", "xs", "s", "m", "l", "xl", "xxl" };
+extern const char *clothing_size_str[NUM_CLOTHING_SIZE];
 
 /**
  * @brief Clothing gender lookup
  */
-const char *clothing_gender_str[NUM_CLOTHING_GENDER] = { "other", "male", "female" };
+extern const char *clothing_gender_str[NUM_CLOTHING_GENDER];
 
 /**
  * @brief Clothing color lookup
  */
-const char *clothing_color_str[NUM_CLOTHING_COLOR] = { "black",  "white",        "gray",      "blue", "red",
-                                                              "green",  "yellow",       "brown",     "pink", "purple",
-                                                              "orange", "multicolored", "patterned", "other" };
+extern const char *clothing_color_str[NUM_CLOTHING_COLOR];
 
 /**
  * @brief Clothing condition lookup
  */
-const char *clothing_condition_str[NUM_CLOTHING_CONDITION] = { "new", "good", "worn", "needs repair" };
+extern const char *clothing_condition_str[NUM_CLOTHING_CONDITION];
 
 /** @} */
 
