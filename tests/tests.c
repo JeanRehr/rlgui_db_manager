@@ -2043,21 +2043,8 @@ void test_clothes_db_upsert(void) {
     );
 
     assert(rc == SQLITE_OK);
+
     printf("Attempt to insert the same clothing was succesful.\n");
-
-    struct clothing test_clothing = { 0 };
-    rc =
-        clothes_db_get(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition, &test_clothing);
-
-    assert(rc == SQLITE_OK);
-
-    printf("Checking if the entries on the database are equal to the inserted data.\n");
-    assert(test_type == test_clothing.type);
-    assert(test_size == test_clothing.size);
-    assert(test_gender == test_clothing.gender);
-    assert(test_color == test_clothing.color);
-    assert(test_first_quantity + added_quantity == test_clothing.quantity);
-    assert(strcmp(test_notes, test_clothing.notes) == 0);
 
     const char *upd_notes = "Updated notes.";
 
@@ -2079,6 +2066,8 @@ void test_clothes_db_upsert(void) {
     printf("Succesful.\n");
 
     printf("Checking if the note entry was updated.\n");
+
+    struct clothing test_clothing = { 0 };
 
     clothes_db_get(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition, &test_clothing);
     assert(strcmp(upd_notes, test_clothing.notes) == 0);
@@ -2108,6 +2097,8 @@ void test_clothes_db_remove(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
     db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+
+    setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
     const enum clothing_type test_type = TSHIRTS;
     const enum clothing_size test_size = M;
@@ -2192,15 +2183,7 @@ void test_clothes_db_remove(void) {
 
     printf("Attempting to remove 0 quantity.\n");
 
-    rc = clothes_db_remove(
-        &test_clothes_db,
-        test_type,
-        test_size,
-        test_gender,
-        test_color,
-        test_condition,
-        0
-    );
+    rc = clothes_db_remove(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition, 0);
 
     assert(rc == SQLITE_CONSTRAINT);
 
@@ -2208,15 +2191,7 @@ void test_clothes_db_remove(void) {
 
     printf("Attempting to remove negative quantity.\n");
 
-    rc = clothes_db_remove(
-        &test_clothes_db,
-        test_type,
-        test_size,
-        test_gender,
-        test_color,
-        test_condition,
-        -4
-    );
+    rc = clothes_db_remove(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition, -4);
 
     assert(rc == SQLITE_CONSTRAINT);
 
@@ -2224,15 +2199,7 @@ void test_clothes_db_remove(void) {
 
     printf("Attempting to remove a quantity that will make the stock goes below 0.\n");
 
-    rc = clothes_db_remove(
-        &test_clothes_db,
-        test_type,
-        test_size,
-        test_gender,
-        test_color,
-        test_condition,
-        10000
-    );
+    rc = clothes_db_remove(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition, 10000);
 
     assert(rc == SQLITE_CONSTRAINT);
 
@@ -2241,6 +2208,198 @@ void test_clothes_db_remove(void) {
     teardown_cleanup();
 
     printf("clothes_db_remove test passed successfully.\n");
+}
+
+void test_clothes_db_delete_entry(void) {
+    const char *test_clothesdb_filename = "test_clothes_db.db";
+    database test_clothes_db;
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+
+    setup_cleanup(test_clothesdb_filename, &test_clothes_db);
+
+    const enum clothing_type test_type = TSHIRTS;
+    const enum clothing_size test_size = M;
+    const enum clothing_gender test_gender = MALE;
+    const enum clothing_color test_color = CL_RED;
+    const enum clothing_condition test_condition = NEW;
+    const int test_first_quantity = 5;
+    const char *test_notes = "Special donation";
+
+    printf(
+        "Inserting clothes record with the following values:\n"
+        "Type: %s\n"
+        "Size: %s\n"
+        "Gender: %s\n"
+        "Color: %s\n"
+        "Condition: %s\n"
+        "Quantity: %d\n"
+        "Notes: %s\n",
+        clothing_type_str[test_type],
+        clothing_size_str[test_size],
+        clothing_gender_str[test_gender],
+        clothing_color_str[test_color],
+        clothing_condition_str[test_condition],
+        test_first_quantity,
+        test_notes
+    );
+
+    clothes_db_upsert(
+        &test_clothes_db,
+        test_type,
+        test_size,
+        test_gender,
+        test_color,
+        test_condition,
+        test_first_quantity,
+        test_notes
+    );
+
+    printf("Attempting to delete previous inserted entry.\n");
+
+    int rc = clothes_db_delete_entry(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition);
+
+    assert(rc == SQLITE_OK);
+
+    struct clothing test_clothing = { 0 };
+    rc =
+        clothes_db_get(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition, &test_clothing);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion was successful.\n");
+
+    printf("Attempting to delete a non-existent entry.\n");
+
+    rc = clothes_db_delete_entry(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion of non-existent entry was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("clothes_db_delete_entry test passed successfully.\n");
+}
+
+void test_clothes_db_check_exists(void) {
+    const char *test_clothesdb_filename = "test_clothes_db.db";
+    database test_clothes_db;
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+
+    setup_cleanup(test_clothesdb_filename, &test_clothes_db);
+
+    printf("Checking if a non-existent entry exists.\n");
+
+    bool exists = clothes_db_check_exists(&test_clothes_db, COATS, M, FEMALE, CL_RED, NEW);
+    assert(exists == false);
+
+    printf("Doesn't exist as expected.\n");
+
+    printf("Checking if a an existent entry exists.\n");
+
+    const enum clothing_type test_type = TSHIRTS;
+    const enum clothing_size test_size = M;
+    const enum clothing_gender test_gender = MALE;
+    const enum clothing_color test_color = CL_RED;
+    const enum clothing_condition test_condition = NEW;
+    const int test_first_quantity = 5;
+    const char *test_notes = "Special donation";
+
+    clothes_db_upsert(
+        &test_clothes_db,
+        test_type,
+        test_size,
+        test_gender,
+        test_color,
+        test_condition,
+        test_first_quantity,
+        test_notes
+    );
+
+    exists = clothes_db_check_exists(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition);
+
+    assert(exists == true);
+
+    printf("Exist as expected.\n");
+
+    teardown_cleanup();
+
+    printf("clothes_db_check_exists passed successfully.\n");
+}
+
+void test_clothes_db_get(void) {
+    const char *test_clothesdb_filename = "test_clothes_db.db";
+    database test_clothes_db;
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+
+    setup_cleanup(test_clothesdb_filename, &test_clothes_db);
+
+    const enum clothing_type test_type = TSHIRTS;
+    const enum clothing_size test_size = M;
+    const enum clothing_gender test_gender = MALE;
+    const enum clothing_color test_color = CL_RED;
+    const enum clothing_condition test_condition = NEW;
+    const int test_first_quantity = 5;
+    const char *test_notes = "Special donation";
+
+    printf(
+        "Inserting clothes record with the following values:\n"
+        "Type: %s\n"
+        "Size: %s\n"
+        "Gender: %s\n"
+        "Color: %s\n"
+        "Condition: %s\n"
+        "Quantity: %d\n"
+        "Notes: %s\n",
+        clothing_type_str[test_type],
+        clothing_size_str[test_size],
+        clothing_gender_str[test_gender],
+        clothing_color_str[test_color],
+        clothing_condition_str[test_condition],
+        test_first_quantity,
+        test_notes
+    );
+
+    clothes_db_upsert(
+        &test_clothes_db,
+        test_type,
+        test_size,
+        test_gender,
+        test_color,
+        test_condition,
+        test_first_quantity,
+        test_notes
+    );
+
+    printf("Attempting to fill in a struct clothing.\n");
+
+    struct clothing test_clothing = { 0 };
+    int rc =
+        clothes_db_get(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition, &test_clothing);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Checking if the entries on the database are equal to the inserted data.\n");
+    assert(test_type == test_clothing.type);
+    assert(test_size == test_clothing.size);
+    assert(test_gender == test_clothing.gender);
+    assert(test_color == test_clothing.color);
+    assert(test_first_quantity == test_clothing.quantity);
+    assert(strcmp(test_notes, test_clothing.notes) == 0);
+
+    printf("Struct filled with correct data successfully.\n");
+
+    printf("Attempting to get a non-existent entry.\n");
+
+    rc = clothes_db_get(&test_clothes_db, COATS, test_size, test_gender, test_color, test_condition, &test_clothing);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Getting a non-existent entry was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("clothes_db_get test passed successfully.\n");
 }
 
 // TEST DB CLOTHES END
@@ -2635,6 +2794,9 @@ void test_clothes_db_fn(void) {
     test_clothes_db_create_table();
     test_clothes_db_upsert();
     test_clothes_db_remove();
+    test_clothes_db_delete_entry();
+    test_clothes_db_check_exists();
+    test_clothes_db_get();
 }
 
 void test_hash_fn(void) {
@@ -2654,17 +2816,19 @@ void test_utils_fn(void) {
 }
 
 int main(void) {
-    /*test_resident_db_fn();
+    test_db_manager_fn();
+
+    test_resident_db_fn();
 
     test_foodbatch_db_fn();
 
-    test_user_db_fn();*/
+    test_user_db_fn();
 
     test_clothes_db_fn();
 
-    /*test_hash_fn();
+    test_hash_fn();
 
-    test_utils_fn();*/
+    test_utils_fn();
 
     return 0;
 }
