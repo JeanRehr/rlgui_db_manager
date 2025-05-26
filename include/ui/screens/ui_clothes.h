@@ -9,8 +9,14 @@
 #ifndef UI_CLOTHES_H
 #define UI_CLOTHES_H
 
-#include "ui/screens/ui_base.h"
+#include "entities/clothing.h"
 #include "ui/components/button.h"
+#include "ui/components/dropdownbox.h"
+#include "ui/components/intbox.h"
+#include "ui/components/listview.h"
+#include "ui/components/scrollpanel.h"
+#include "ui/components/textbox.h"
+#include "ui/screens/ui_base.h"
 
 /**
  * @enum clothes_screen_flags
@@ -27,11 +33,32 @@ enum clothes_screen_flags {
  * @brief Clothes screen UI components
  *
  * Contains all interactive elements for the clothes management.
+ *
+ * @note These type options are meant to be enums in clothing.h
+ *
+ * @warning These type options MUST follow the same naming and ORDER as in the corresponding enum on clothing.h enum
  */
 struct ui_clothes {
     struct ui_base base; ///< Base ui methods/functionality
 
-    struct button butn_back; ///< Button to got back to main menu
+    struct listview lv_type;          ///< Types option
+    struct listview lv_size;          ///< Sizes option
+    struct dropdownbox ddb_gender;    ///< Gender options
+    struct listview lv_color;         ///< Color options
+    struct dropdownbox ddb_condition; ///< Condition options
+
+    struct intbox ib_quantity; ///< Quantity being inserted/updated
+
+    struct textbox tb_notes; ///< General notes about the item being inserted
+
+    struct button butn_back;         ///< Button to go back to main menu
+    struct button butn_insert;       ///< Button to insert/update into the database
+    struct button butn_remove;       ///< Button to remove a clothing by quantity from the database
+    struct button butn_delete_entry; ///< Button to delete the entry from the database
+    struct button butn_view_all;     ///< Button to get a database view
+
+    struct scrollpanel sp_table_view; ///< A scrollpanel to view the clothes database
+    char *str_table_content;          ///< The content of the clothes database (MUST BE FREED IF ALLOCATED)
 
     enum clothes_screen_flags flag; ///< Flags for the struct
 };
