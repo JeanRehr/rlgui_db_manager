@@ -6,6 +6,7 @@
 #include "db/clothes_db.h"
 
 #include <stdio.h>
+#include <string.h>
 
 int clothes_db_create_table(database *db) {
     if (!db_is_init(db)) {
@@ -36,4 +37,272 @@ int clothes_db_create_table(database *db) {
     }
 
     return SQLITE_OK;
+}
+
+int clothes_db_upsert(
+    database *db,
+    const enum clothing_type type,
+    const enum clothing_size size,
+    const enum clothing_gender gender,
+    const enum clothing_color color,
+    const enum clothing_condition condition,
+    const int quantity,
+    const char *notes
+) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (quantity < 0) {
+        fprintf(stderr, "Quantity cannot be less than 0.\n");
+        return SQLITE_CONSTRAINT;
+    }
+
+    const char *sql =
+        "INSERT INTO Clothes "
+        "(Type, Size, Gender, Color, Condition, Quantity, Notes) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?) "
+        "ON CONFLICT(Type, Size, Gender, Color, Condition) DO UPDATE SET "
+        "Quantity = Quantity + excluded.Quantity, "
+        "Notes = COALESCE(excluded.Notes, Clothes.Notes);";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Not possible to prepare sql statement: %s.\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    // Bind params
+    sqlite3_bind_int(stmt, 1, type);
+    sqlite3_bind_int(stmt, 2, size);
+    sqlite3_bind_int(stmt, 3, gender);
+    sqlite3_bind_int(stmt, 4, color);
+    sqlite3_bind_int(stmt, 5, condition);
+    sqlite3_bind_int(stmt, 6, quantity);
+    if (notes) // Only substitute notes if it is not null
+        sqlite3_bind_text(stmt, 7, notes, -1, SQLITE_STATIC);
+    else
+        sqlite3_bind_null(stmt, 7);
+
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
+}
+
+bool clothes_db_check_exists(
+    database *db,
+    const enum clothing_type type,
+    const enum clothing_size size,
+    const enum clothing_gender gender,
+    const enum clothing_color color,
+    const enum clothing_condition condition
+) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return false;
+    }
+
+    const char *sql = "SELECT 1 FROM Clothes WHERE Type=? AND Size=? AND Gender=? AND Color=? AND Condition=?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return false;
+    }
+
+    // Bind params
+    sqlite3_bind_int(stmt, 1, type);
+    sqlite3_bind_int(stmt, 2, size);
+    sqlite3_bind_int(stmt, 3, gender);
+    sqlite3_bind_int(stmt, 4, color);
+    sqlite3_bind_int(stmt, 5, condition);
+
+    bool exists = false;
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        exists = true; // A row was found with the given data
+    } else if (rc != SQLITE_DONE) {
+        fprintf(
+            stderr,
+            "Failed to execute statement on function %s, line %d: %s\n",
+            __func__,
+            __LINE__,
+            sqlite3_errmsg(db->db)
+        );
+    }
+
+    sqlite3_finalize(stmt);
+    return exists;
+}
+
+int clothes_db_remove(
+    database *db,
+    const enum clothing_type type,
+    const enum clothing_size size,
+    const enum clothing_gender gender,
+    const enum clothing_color color,
+    const enum clothing_condition condition,
+    const int quantity_to_remove
+) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (quantity_to_remove <= 0) {
+        fprintf(stderr, "Quantity cannot be less or equal to 0.\n");
+        return SQLITE_CONSTRAINT;
+    }
+
+    if (!clothes_db_check_exists(db, type, size, gender, color, condition)) {
+        fprintf(stderr, "Record doesn't exists.\n");
+        return SQLITE_NOTFOUND; // Row not found
+    }
+
+    const char *update_sql =
+        "UPDATE Clothes SET Quantity=Quantity-? "
+        "WHERE Type=? AND Size=? AND Gender=? AND Color=? AND Condition=? AND Quantity >= ?;";
+
+    sqlite3_stmt *stmt;
+
+    int rc = sqlite3_prepare_v2(db->db, update_sql, -1, &stmt, 0);
+
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Not possible to prepare sql statement: %s.\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    sqlite3_bind_int(stmt, 1, quantity_to_remove);
+    sqlite3_bind_int(stmt, 2, type);
+    sqlite3_bind_int(stmt, 3, size);
+    sqlite3_bind_int(stmt, 4, gender);
+    sqlite3_bind_int(stmt, 5, color);
+    sqlite3_bind_int(stmt, 6, condition);
+    sqlite3_bind_int(stmt, 7, quantity_to_remove);
+
+    rc = sqlite3_step(stmt);
+
+    int rows = sqlite3_changes(db->db);
+
+    sqlite3_finalize(stmt);
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Not possible to remove clothes quantity: %s.\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    if (rows > 0) {
+        return SQLITE_OK;
+    }
+
+    // If we get here it means not enough stock
+    fprintf(stderr, "Stock quantityt cannot go below 0.\n");
+    return SQLITE_CONSTRAINT;
+}
+
+int clothes_db_delete_entry(
+    database *db,
+    const enum clothing_type type,
+    const enum clothing_size size,
+    const enum clothing_gender gender,
+    const enum clothing_color color,
+    const enum clothing_condition condition
+) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (!clothes_db_check_exists(db, type, size, gender, color, condition)) {
+        fprintf(stderr, "Record not found in the dabatase.\n");
+        return SQLITE_NOTFOUND;
+    }
+
+    // Prepare the SQL delete statement
+    const char *sql = "DELETE FROM Clothes WHERE Type=? AND Size=? AND Gender=? AND Color=? AND Condition=?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare delete statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    // Bind the parameters
+    sqlite3_bind_int(stmt, 1, type);
+    sqlite3_bind_int(stmt, 2, size);
+    sqlite3_bind_int(stmt, 3, gender);
+    sqlite3_bind_int(stmt, 4, color);
+    sqlite3_bind_int(stmt, 5, condition);
+
+    // Execute the DELETE statement
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute delete statement: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    // Finalize the statement
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
+}
+
+int clothes_db_get(
+    database *db,
+    const enum clothing_type type,
+    const enum clothing_size size,
+    const enum clothing_gender gender,
+    const enum clothing_color color,
+    const enum clothing_condition condition,
+    struct clothing *clothing
+) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    const char *sql =
+        "SELECT Type, Size, Gender, Color, Condition, Quantity, Notes FROM Clothes WHERE Type=? AND Size=? AND Gender=? AND Color=? AND Condition=?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    // Bind the parameters
+    sqlite3_bind_int(stmt, 1, type);
+    sqlite3_bind_int(stmt, 2, size);
+    sqlite3_bind_int(stmt, 3, gender);
+    sqlite3_bind_int(stmt, 4, color);
+    sqlite3_bind_int(stmt, 5, condition);
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        // Type (0), Size (1), Gender (2), Color (3), Condition (4), Quantity (5), Notes (6)
+        clothing->type = sqlite3_column_int(stmt, 0);
+        clothing->size = sqlite3_column_int(stmt, 1);
+        clothing->gender = sqlite3_column_int(stmt, 2);
+        clothing->color = sqlite3_column_int(stmt, 3);
+        clothing->condition = sqlite3_column_int(stmt, 4);
+        clothing->quantity = sqlite3_column_int(stmt, 5);
+        const char *note_val = (const char *)sqlite3_column_text(stmt, 6);
+        if (note_val) {
+            strcpy(clothing->notes, note_val);
+        } else {
+            clothing->notes[0] = '\0';
+        }
+        rc = SQLITE_OK; // Found and read successfully
+    } else if (rc == SQLITE_DONE) {
+        fprintf(stderr, "No clothing found with the given data.\n");
+        rc = SQLITE_NOTFOUND;
+    } else {
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc;
 }
