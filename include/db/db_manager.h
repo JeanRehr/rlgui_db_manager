@@ -25,12 +25,14 @@ typedef struct database {
  * @brief Initializes a database connection.
  *
  * Opens an SQLite3 database file. If the file doesn't exist, it will be created.
- * On failure, prints an error message to `stderr`.
  *
  * @param[out] db Pointer to the database structure to initialize.
  * @param[in] filename Path to the SQLite3 database file.
- * @return SQLITE_OK on success, SQLite error code on failure.
+ *
+ * @return SQLITE_OK on success, SQLITE_ERROR on db or filename null, Sqlite error code another failure.
+ *
  * @warning If this fails, `db->db` may be left in an invalid state.
+ *
  */
 int db_init(database *db, const char *filename);
 
@@ -43,10 +45,10 @@ int db_init(database *db, const char *filename);
  * @param[out] db Pointer to the database structure.
  * @param[in] filename Path to the database file.
  * @param[in] create_table Callback function to create tables.
- * @return SQLITE_OK on success, or:
- *   - `ERROR_OPENING_DB` if `db_init()` fails.
- *   - `ERROR_CREATING_TABLE_DB` if `create_table()` fails.
- * @note On `create_table` failure, the database connection is automatically closed.
+ * @return SQLITE_OK on success SQLITE_ERROR if db_init or create_table fails
+ *         or if create_table callback is null
+ *
+ * @note On create_table failure, the database connection is automatically closed.
  */
 int db_init_with_tbl(database *db, const char *filename, int (*create_table)(database *));
 
@@ -54,7 +56,9 @@ int db_init_with_tbl(database *db, const char *filename, int (*create_table)(dat
  * @brief Checks if the database connection is valid.
  *
  * @param[in] db Pointer to the database structure.
- * @return `true` if `db->db` is non-NULL, `false` otherwise.
+ *
+ * @return true if db->db is non-NULL, false otherwise and if db is null.
+ *
  * @note This is a simple NULL check and doesn't verify connection liveliness.
  */
 bool db_is_init(database *db);
@@ -62,10 +66,12 @@ bool db_is_init(database *db);
 /**
  * @brief Closes the database connection and resets the handle.
  *
- * Safely deinitializes the database. If `db->db` is NULL, this is a no-op.
+ * Safely deinitializes the database. If db->db or db is NULL, this is a no-op.
  *
  * @param[in] db Pointer to the database structure.
+ *
  * @warning After calling this, `db->db` will be NULL and must be reinitialized.
+ *
  */
 void db_deinit(database *db);
 
