@@ -16,11 +16,11 @@ int clothes_db_create_table(database *db) {
     const char *sql =
         "CREATE TABLE IF NOT EXISTS Clothes ("
         "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "Type TEXT NOT NULL,"                             // e.g. "t-shirt", "pants", "coat"
-        "Size TEXT,"                                      // e.g. "xs", "s", "m", "l"
-        "Gender TEXT,"                                    // e.g. "other", "male", "female"
-        "Color TEXT,"                                     // e.g. "blue", "black", "red"
-        "Condition TEXT,"                                 // e.g. "new", "good", "worn", "needs repair"
+        "Type INTEGER NOT NULL,"                          // e.g. "t-shirt", "pants", "coat"
+        "Size INTEGER,"                                   // e.g. "xs", "s", "m", "l"
+        "Gender INTEGER,"                                 // e.g. "other", "male", "female"
+        "Color INTEGER,"                                  // e.g. "blue", "black", "red"
+        "Condition INTEGER,"                              // e.g. "new", "good", "worn", "needs repair"
         "Quantity INTEGER NOT NULL DEFAULT 0,"            // Items in stock
         "Notes TEXT,"                                     // For arbitrary tracking (e.g., donor, special handling)
         "UNIQUE(Type, Size, Gender, Color, Condition));"; // Prevents accidental duplicate entries of the same clothes type
@@ -28,7 +28,7 @@ int clothes_db_create_table(database *db) {
 
     char *errMsg = 0;
     int rc = sqlite3_exec(db->db, sql, 0, 0, &errMsg);
-    
+
     if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL error on init Clothes table: %s\n", errMsg);
         sqlite3_free(errMsg);
