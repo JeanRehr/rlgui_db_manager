@@ -181,7 +181,7 @@ struct clothing {
     enum clothing_color color;         ///< Clothing color
     enum clothing_condition condition; ///< Clothing condition
     int quanity;                       ///< Stock quantity
-    const char *notes;                 ///< General notes if needed
+    char notes[MAX_INPUT];             ///< General notes if needed
 };
 
 #endif // CLOTHING_H
