@@ -70,6 +70,150 @@ void teardown_cleanup(void) {
     signal(SIGABRT, SIG_DFL);
 }
 
+// TEST DB MANAGER START
+
+void test_db_init(void) {
+    const char *test_database_filename = "test_database_filename.db";
+    database test_database;
+
+    setup_cleanup(test_database_filename, &test_database);
+
+    printf("Testing initializing a database.\n");
+
+    int rc = db_init(&test_database, test_database_filename);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Initialized database successfully.\n");
+
+    printf("Testing passing null as the database.\n");
+
+    rc = db_init(NULL, test_database_filename);
+
+    assert(rc == SQLITE_ERROR);
+
+    printf("Did not return SQLITE_OK as expected.\n");
+
+    printf("Testing passing null as the filename.\n");
+
+    rc = db_init(&test_database, NULL);
+
+    assert(rc == SQLITE_ERROR);
+
+    printf("Did not work as expected.\n");
+
+    teardown_cleanup();
+
+    printf("db_init passed successfully.\n");
+}
+
+void test_db_init_with_tbl(void) {
+    const char *test_database_filename = "test_database_filename.db";
+    database test_database;
+
+    setup_cleanup(test_database_filename, &test_database);
+
+    printf("Testing passing a null to the callback.\n");
+
+    int rc = db_init_with_tbl(&test_database, test_database_filename, NULL);
+
+    assert(rc != SQLITE_OK);
+
+    printf("Did not return SQLITE_OK as expected.\n");
+
+    printf("Testing passing null as the database.\n");
+
+    rc = db_init_with_tbl(NULL, test_database_filename, NULL);
+
+    assert(rc == SQLITE_ERROR);
+
+    printf("Did not work as expected.\n");
+
+    printf("Testing passing null as the filename.\n");
+
+    rc = db_init_with_tbl(&test_database, NULL, NULL);
+
+    assert(rc == SQLITE_ERROR);
+
+    printf("Did not work as expected.\n");
+
+    teardown_cleanup();
+
+    printf("db_init_with_tbl passed successfully.\n");
+}
+
+void test_db_is_init(void) {
+    const char *test_database_filename = "test_database_filename.db";
+    database test_database;
+
+    setup_cleanup(test_database_filename, &test_database);
+
+    printf("Testing if an uninitialized a database is init.\n");
+
+    bool init = db_is_init(&test_database);
+
+    assert(init == false);
+
+    printf("Uninitialized database is not initialized as expected.\n");
+
+    printf("Testing if an initialized a database is init.\n");
+
+    db_init(&test_database, test_database_filename);
+
+    init = db_is_init(&test_database);
+
+    assert(init == true);
+
+    printf("Initialized database is initialized as expected.\n");
+
+    printf("Passing null to the function, just to check the program didn't crash and returns false.\n");
+
+    init = db_is_init(NULL);
+
+    assert(init == false);
+
+    printf("Passing a null db is a no-op as expected.\n");
+
+    teardown_cleanup();
+
+    printf("db_is_init passed successfully.\n");
+}
+
+void test_db_deinit(void) {
+    const char *test_database_filename = "test_database_filename.db";
+    database test_database;
+
+    setup_cleanup(test_database_filename, &test_database);
+
+    printf("Testing deinitializing a database.\n");
+
+    db_init(&test_database, test_database_filename);
+
+    db_deinit(&test_database);
+
+    assert(test_database.db == NULL);
+
+    printf("Initialized database deinitialized successfully.\n");
+
+    printf("Passing a just deinitialized database to check the program didn't crash.\n");
+
+    db_deinit(&test_database);
+
+    printf("Passing a null db->db is a no-op as expected.\n");
+
+    printf("Passing null to the function, just to check the program didn't crash.\n");
+
+    db_deinit(NULL);
+
+    printf("Passing null is a no-op as expected.\n");
+
+    teardown_cleanup();
+
+    printf("db_deinit passed successfully.\n");
+}
+
+// TEST DB MANAGER END
+
 // TEST DB RESIDENT START
 
 void test_resident_db_insert(void) {
@@ -2438,6 +2582,13 @@ void test_validate_date(void) {
 }
 
 // UTILSFN TESTS END
+
+void test_db_manager_fn(void) {
+    test_db_init();
+    test_db_init_with_tbl();
+    test_db_is_init();
+    test_db_deinit();
+}
 
 void test_resident_db_fn(void) {
     test_resident_db_insert();
