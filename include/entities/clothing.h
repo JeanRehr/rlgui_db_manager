@@ -172,7 +172,10 @@ const char *clothing_condition_str[NUM_CLOTHING_CONDITION] = { "new", "good", "w
 
 /**
  * @struct clothing
+ *
  * @brief Represents a pieace of clothing record in the database
+ *
+ * @note To get a string representation of the enums, use the lookup tables
  */
 struct clothing {
     enum clothing_type type;           ///< Clothing type
