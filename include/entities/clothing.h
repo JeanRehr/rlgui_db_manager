@@ -180,7 +180,7 @@ struct clothing {
     enum clothing_gender gender;       ///< Clothing gender
     enum clothing_color color;         ///< Clothing color
     enum clothing_condition condition; ///< Clothing condition
-    int quanity;                       ///< Stock quantity
+    int quantity;                      ///< Stock quantity
     char notes[MAX_INPUT];             ///< General notes if needed
 };
 
