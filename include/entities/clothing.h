@@ -39,7 +39,7 @@ const char *clothing_type_str =
  * @warning Terminating NUM must always be last to maximize compile-time access safety
  */
 enum clothing_type {
-    TSHIRT = 0,
+    TSHIRTS = 0,
     SHIRTS,
     JEANS,
     PANTS,
@@ -52,9 +52,9 @@ enum clothing_type {
     COATS,
     BLAZERS,
     SOCKS,
-    UNDERWEAR,
-    SWIMWEAR,
-    ACTIVEWEAR, // (e.g., leggings, sports bras)
+    UNDERWEARS,
+    SWIMWEARS,
+    ACTIVEWEARS, // (e.g., leggings, sports bras)
     PAJAMAS,
     HATS,
     SCARVES,
