@@ -169,4 +169,8 @@ int clothes_db_get(
     struct clothing *clothing
 );
 
+char *clothes_db_get_all_format_old(database *db);
+
+int clothes_db_get_all(database *db);
+
 #endif // CLOTHES_DB_H
