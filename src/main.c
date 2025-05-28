@@ -205,13 +205,13 @@ int main(void) {
             ui_food.base.render(&ui_food.base, &app_state, &error, &foodbatch_db);
             break;
         case STATE_REGISTER_MEDICATION:
-            ui_medication.base.render(&ui_medication.base, &app_state, &error, &foodbatch_db);
+            ui_medication.base.render(&ui_medication.base, &app_state, &error, &medication_db);
             break;
         case STATE_REGISTER_CLOTHES:
-            ui_clothes.base.render(&ui_clothes.base, &app_state, &error, &foodbatch_db);
+            ui_clothes.base.render(&ui_clothes.base, &app_state, &error, &clothes_db);
             break;
         case STATE_REGISTER_SUPPLIES:
-            ui_supplies.base.render(&ui_supplies.base, &app_state, &error, &foodbatch_db);
+            ui_supplies.base.render(&ui_supplies.base, &app_state, &error, &supplies_db);
             break;
         case STATE_CREATE_USER:
             ui_create_user.base.render(&ui_create_user.base, &app_state, &error, &user_db);
