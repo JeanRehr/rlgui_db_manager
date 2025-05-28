@@ -2816,19 +2816,19 @@ void test_utils_fn(void) {
 }
 
 int main(void) {
-    //test_db_manager_fn();
+    test_db_manager_fn();
 
-    //test_resident_db_fn();
+    test_resident_db_fn();
 
-    //test_foodbatch_db_fn();
+    test_foodbatch_db_fn();
 
-    //test_user_db_fn();
+    test_user_db_fn();
 
     test_clothes_db_fn();
 
-    //test_hash_fn();
+    test_hash_fn();
 
-    //test_utils_fn();
+    test_utils_fn();
 
     return 0;
 }
