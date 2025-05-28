@@ -85,7 +85,7 @@ enum clothing_size { XXS = 0, XS, S, M, L, XL, XXL, NUM_CLOTHING_SIZE };
  * 
  * @warning Terminating NUM must always be last to maximize compile-time access safety
  */
-enum clothing_gender { UNISSEX = 0, MALE, FEMALE, NUM_CLOTHING_GENDER };
+enum clothing_gender { OTHER = 0, MALE, FEMALE, NUM_CLOTHING_GENDER };
 
 /**
  * @enum clothing_color
