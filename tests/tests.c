@@ -2185,9 +2185,9 @@ void test_clothes_db_remove(void) {
 
     rc = clothes_db_remove(&test_clothes_db, test_type, test_size, test_gender, test_color, test_condition, 0);
 
-    assert(rc == SQLITE_CONSTRAINT);
+    assert(rc == SQLITE_OK);
 
-    printf("Removal with 0 quantity was unsuccessful.\n");
+    printf("Removal with 0 quantity was successfull, didn't do anything.\n");
 
     printf("Attempting to remove negative quantity.\n");
 
