@@ -9,6 +9,8 @@
 #ifndef CLOTHES_DB_H
 #define CLOTHES_DB_H
 
+#include <stddef.h>
+
 #include "db_manager.h"
 
 #include "entities/clothing.h" /* To get the definition of the enums */
@@ -169,8 +171,100 @@ int clothes_db_get(
     struct clothing *clothing
 );
 
+/**
+ * @brief Gets the count of registered clothes in the database
+ * 
+ * @param db Pointer to initialized database structure
+ * @return Total number of clothes on success, -1 on failure
+ */
+int clothes_db_get_count(database *db);
+
+/**
+ * @brief Writes all clothes records as a formatted string into provided buffer
+ *
+ * Executes a database query and formats all clothes records into a human-readable
+ * table structure with borders and aligned columns.
+ *
+ * @param db Pointer to initialized database connection
+ * @param buffer Pointer to buffer where formatted string will be written
+ * @param buffer_size Size of the provided buffer
+ * @return int Number of bytes written (excluding null terminator), or -1 on failure
+ *
+ * @note Header will always needs 370 bytes and each row + separator (Considering max input is 256)
+ *       will need at max 470 with the current table and format
+ *       String format:
+ * +------------------------------------------------------------------------------------------------------------------------+
+ * | ID  | Type       | Size | Gender | Color        | Condition    | Quantity | Notes                                      |
+ * +-----+------------+------+--------+--------------+--------------+----------+--------------------------------------------+
+ * | 10  | tshirt     | l    | female | multicolored | worn         | 10       | zara brand, special donation               |
+ * +-----+------------+------+--------+--------------+--------------+----------+--------------------------------------------+
+ *
+ * @warning Returns -1 if database is not initialized, on query failure, or if buffer is too small
+ * @warning Buffer will be null-terminated if there's space, even on truncation
+ *
+ * Memory Management:
+ * - Caller provides buffer and manages its memory
+ * - Function never allocates memory
+ *
+ * Error Handling:
+ * - Checks database connection state
+ * - Validates SQL preparation
+ * - Reports SQL execution errors
+ * - Handles buffer overflow
+ */
+int clothes_db_get_all_format(database *db, char *buffer, size_t buffer_size);
+
+/**
+ * @deprecated
+ * 
+ * @brief Retrieves all clothes records as a formatted string
+ *
+ * Executes a database query and formats all clothes records into a human-readable
+ * table structure with borders and aligned columns. The returned string is dynamically
+ * allocated and must be freed by the caller.
+ *
+ * This was mostly used to calculate more or less how many bytes each row + header will need at max
+ *
+ * @param db Pointer to initialized database connection
+ * @return char* Formatted table string containing all records, or NULL on failure
+ *
+ * @note Returned string format:
+ * +------------------------------------------------------------------------------------------------------------------------+
+ * | ID  | Type       | Size | Gender | Color        | Condition    | Quantity | Notes                                      |
+ * +-----+------------+------+--------+--------------+--------------+----------+--------------------------------------------+
+ * | 10  | tshirt     | l    | female | multicolored | worn         | 10       | zara brand, special donation               |
+ * +-----+------------+------+--------+--------------+--------------+----------+--------------------------------------------+
+ * 
+ * @note Header will always need 370 bytes and each row + separator will need at max 450 with the current table and format
+ * 
+ * @warning The caller is responsible for freeing the returned string with free()
+ * @warning Returns NULL if database is not initialized or on query failure
+ * @warning This is not safe as it does not adhere to the memory encapsulation principle
+ *
+ * Memory Management:
+ * - Allocates initial 4KB buffer
+ * - Automatically grows buffer as needed
+ * - Returns NULL on allocation failures
+ *
+ * Error Handling:
+ * - Checks database connection state
+ * - Validates SQL preparation
+ * - Handles memory allocation failures
+ * - Reports SQL execution errors
+ *
+ */
 char *clothes_db_get_all_format_old(database *db);
 
+/**
+ * @brief Retrieves and displays all clothes records
+ *
+ * Fetches all records from the Clothes table and displays them in a formatted table.
+ * Primarily intended for debugging and administrative purposes.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @return SQLITE_OK on success, SQLite error code on failure
+ * @note Output is printed directly to stdout in table format
+ */
 int clothes_db_get_all(database *db);
 
 #endif // CLOTHES_DB_H
