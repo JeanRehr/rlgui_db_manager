@@ -178,9 +178,9 @@ static void ui_clothes_render(
 ) {
     struct ui_clothes *ui = (struct ui_clothes *)base;
 
-    listview_draw(&ui->lv_type);
-    listview_draw(&ui->lv_size);
-    listview_draw(&ui->lv_color);
+    listview_draw(&ui->lv_type, false);
+    listview_draw(&ui->lv_size, false);
+    listview_draw(&ui->lv_color, false);
 
     intbox_draw(&ui->ib_quantity);
     textbox_draw(&ui->tb_notes);
