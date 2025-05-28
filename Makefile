@@ -61,10 +61,13 @@ INCLUDE_FLAGS = -I$(INCLUDE_DIR)
 
 # Platform-specific flags
 ifeq ($(UNAME_S),Linux)
-    # Linux static compilation flags
-    LDFLAGS = -L$(LIB_DIR) -l:linuxlibraylib.a -l:linuxlibcrypto.a -lz -lm -lpthread -ldl \
-              -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lXext \
-              -Wl,--no-as-needed -static
+	LDFLAGS = \
+        $(LIB_DIR)/linuxlibraylib.a \
+        $(LIB_DIR)/linuxlibcrypto.a \
+        $(LIB_DIR)/linuxlibssl.a \
+        -lm -lpthread -ldl \
+        -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lXext \
+        -lz
 else
     # Windows flags
     LDFLAGS = -L$(LIB_DIR) -lraylib -lopengl32 -lwinmm -lcrypto -lgdi32 -luser32 -lws2_32 -ladvapi32
