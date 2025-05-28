@@ -347,6 +347,7 @@ static void handle_remove_button(struct ui_clothes *ui, enum error_code *error, 
     } else if (rc != SQLITE_OK) {
         SET_FLAG(&ui->flag, FLAG_CLOTHES_GENERIC_ERROR);
         fprintf(stderr, "An error occurred during database operation.\n");
+        *error = ERROR_DELETE_DB;
         return;
     }
     
