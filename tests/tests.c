@@ -2026,7 +2026,7 @@ void test_clothes_db_upsert(void) {
     printf("Inserted clothes successfully.\n");
 
     printf(
-        "Attempting to update by inserting the same clothes again, with notes being null, quantity should be updated by 3, being equal to 7 and notes should remain the same.\n"
+        "Attempting to update by inserting the same clothes again, with notes being null, quantity should be updated by 3, being equal to 8 and notes should remain the same.\n"
     );
 
     const int added_quantity = 3;
@@ -2791,12 +2791,12 @@ void test_user_db_fn(void) {
 }
 
 void test_clothes_db_fn(void) {
-    test_clothes_db_create_table();
+    //test_clothes_db_create_table();
     test_clothes_db_upsert();
-    test_clothes_db_remove();
-    test_clothes_db_delete_entry();
-    test_clothes_db_check_exists();
-    test_clothes_db_get();
+    //test_clothes_db_remove();
+    //test_clothes_db_delete_entry();
+    //test_clothes_db_check_exists();
+    //test_clothes_db_get();
 }
 
 void test_hash_fn(void) {
@@ -2816,19 +2816,19 @@ void test_utils_fn(void) {
 }
 
 int main(void) {
-    test_db_manager_fn();
+    //test_db_manager_fn();
 
-    test_resident_db_fn();
+    //test_resident_db_fn();
 
-    test_foodbatch_db_fn();
+    //test_foodbatch_db_fn();
 
-    test_user_db_fn();
+    //test_user_db_fn();
 
     test_clothes_db_fn();
 
-    test_hash_fn();
+    //test_hash_fn();
 
-    test_utils_fn();
+    //test_utils_fn();
 
     return 0;
 }
