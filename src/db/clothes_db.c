@@ -152,8 +152,8 @@ int clothes_db_remove(
         return SQLITE_ERROR;
     }
 
-    if (quantity_to_remove <= 0) {
-        fprintf(stderr, "Quantity cannot be less or equal to 0.\n");
+    if (quantity_to_remove < 0) {
+        fprintf(stderr, "Quantity cannot be less than 0.\n");
         return SQLITE_CONSTRAINT;
     }
 
