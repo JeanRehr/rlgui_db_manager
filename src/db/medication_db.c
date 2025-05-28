@@ -25,7 +25,7 @@ int medication_db_create_table(database *db) {
         "ExpirationDate TEXT,"              // Soonest expiration date
         "Notes TEXT,"                       // General notes if needed
         "UNIQUE(Name, Form, Strength));";   // Prevents accidental duplicate entries of the same medication in the same
-                                            // dosage and form e.g. multiple "Paracetamol 500mg Tablet"
+                                            // dosage and form e.g. multiple "Paracetamol Tablet 500mg"
 
     char *errMsg = 0;
     int rc = sqlite3_exec(db->db, sql, 0, 0, &errMsg);
