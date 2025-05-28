@@ -309,6 +309,32 @@ int clothes_db_get(
     return rc;
 }
 
+int clothes_db_get_count(database *db) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return -1;
+    }
+
+    const char *sql = "SELECT COUNT(*) FROM Clothes;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return -1;
+    }
+
+    int count = 0;
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return count;
+}
+
 int clothes_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -438,10 +464,10 @@ char *clothes_db_get_all_format_old(database *db) {
         return NULL;
     }
 
-    // Header will always needs xxx bytes and each row + separator will need at max xxxx with the current table and format
+    // Header will always needs 370 bytes (counting last \n+\o in case no rows) and each row + separator will need at max 450 (counting last \n+\o in case no more rows) with the current table and format
 
     // Initial buffer
-    size_t buffer_size = 1024;
+    size_t buffer_size = 820;
     char *result = malloc(buffer_size);
     if (!result) {
         fprintf(stderr, "Memory allocation failed.\n");
