@@ -86,6 +86,19 @@ bool clothes_db_check_exists(
 );
 
 /**
+ * @brief Checks if a Clothes records exists in the database
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] id ID of the clothes to check
+ *
+ * @return true if the record exists, false otherwise
+ */
+bool clothes_db_check_exists_by_id(
+    database *db,
+    const int id
+);
+
+/**
  * @brief Removes a clothing from the Clothes table by a quantity amount
  *
  * Will not delete the table entry, only removes the quantity
@@ -117,6 +130,26 @@ int clothes_db_remove(
 );
 
 /**
+ * @brief Removes a clothing from the Clothes table by a quantity amount
+ *
+ * Will not delete the table entry, only removes the quantity
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] id ID of the clothes to remove the quantity
+ * @param[in] quantity_to_remove Quantity to remove
+ *
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if the clothing doesn't exist, SQLITE_CONSTRAINT if
+ *         the quantity being removed will make the stock goes below 0 or the quantity to remove passed is below 0
+ *         or other SQLite error code
+ *
+ */
+int clothes_db_remove_by_id(
+    database *db,
+    const int id,
+    const int quantity_to_remove
+);
+
+/**
  * @brief Deletes a clothes record by its UNIQUE data
  *
  * @param[in] db Pointer to initialized database structure
@@ -139,6 +172,21 @@ int clothes_db_delete_entry(
     const enum clothing_gender gender,
     const enum clothing_color color,
     const enum clothing_condition condition
+);
+
+/**
+ * @brief Deletes a clothes record by its ID data
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] id ID of the clothes to remove the quantity
+ * @param[in] quantity_to_remove Quantity to remove
+ *
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
+ *
+ */
+int clothes_db_delete_entry_by_id(
+    database *db,
+    const int id
 );
 
 /**

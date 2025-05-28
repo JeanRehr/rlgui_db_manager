@@ -140,6 +140,45 @@ bool clothes_db_check_exists(
     return exists;
 }
 
+bool clothes_db_check_exists_by_id(
+    database *db,
+    const int id
+) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return false;
+    }
+
+    const char *sql = "SELECT 1 FROM Clothes WHERE ID=?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return false;
+    }
+
+    // Bind params
+    sqlite3_bind_int(stmt, 1, id);
+
+    bool exists = false;
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        exists = true; // A row was found with the given data
+    } else if (rc != SQLITE_DONE) {
+        fprintf(
+            stderr,
+            "Failed to execute statement on function %s, line %d: %s\n",
+            __func__,
+            __LINE__,
+            sqlite3_errmsg(db->db)
+        );
+    }
+
+    sqlite3_finalize(stmt);
+    return exists;
+}
+
 int clothes_db_remove(
     database *db,
     const enum clothing_type type,
@@ -205,6 +244,63 @@ int clothes_db_remove(
     return SQLITE_CONSTRAINT;
 }
 
+int clothes_db_remove_by_id(
+    database *db,
+    const int id,
+    const int quantity_to_remove
+) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (quantity_to_remove < 0) {
+        fprintf(stderr, "Quantity cannot be less than 0.\n");
+        return SQLITE_CONSTRAINT;
+    }
+
+    if (!clothes_db_check_exists_by_id(db, id)) {
+        fprintf(stderr, "Record doesn't exists.\n");
+        return SQLITE_NOTFOUND; // Row not found
+    }
+
+    const char *update_sql =
+        "UPDATE Clothes SET Quantity=Quantity-? "
+        "WHERE ID=? AND Quantity >= ?;";
+
+    sqlite3_stmt *stmt;
+
+    int rc = sqlite3_prepare_v2(db->db, update_sql, -1, &stmt, 0);
+
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Not possible to prepare sql statement: %s.\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    sqlite3_bind_int(stmt, 1, quantity_to_remove);
+    sqlite3_bind_int(stmt, 2, id);
+    sqlite3_bind_int(stmt, 3, quantity_to_remove);
+
+    rc = sqlite3_step(stmt);
+
+    int rows = sqlite3_changes(db->db);
+
+    sqlite3_finalize(stmt);
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Not possible to remove clothes quantity: %s.\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    if (rows > 0) {
+        return SQLITE_OK;
+    }
+
+    // If we get here it means not enough stock
+    fprintf(stderr, "Stock quantity cannot go below 0.\n");
+    return SQLITE_CONSTRAINT;
+}
+
 int clothes_db_delete_entry(
     database *db,
     const enum clothing_type type,
@@ -239,6 +335,44 @@ int clothes_db_delete_entry(
     sqlite3_bind_int(stmt, 3, gender);
     sqlite3_bind_int(stmt, 4, color);
     sqlite3_bind_int(stmt, 5, condition);
+
+    // Execute the DELETE statement
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute delete statement: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    // Finalize the statement
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
+}
+
+int clothes_db_delete_entry_by_id(
+    database *db,
+    const int id
+) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (!clothes_db_check_exists_by_id(db, id)) {
+        fprintf(stderr, "Record not found in the dabatase.\n");
+        return SQLITE_NOTFOUND;
+    }
+
+    // Prepare the SQL delete statement
+    const char *sql = "DELETE FROM Clothes WHERE ID=?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare delete statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    // Bind the parameters
+    sqlite3_bind_int(stmt, 1, id);
 
     // Execute the DELETE statement
     rc = sqlite3_step(stmt);
