@@ -439,18 +439,6 @@ char *clothes_db_get_all_format_old(database *db) {
     }
 
     // Header will always needs xxx bytes and each row + separator will need at max xxxx with the current table and format
-    /*
-            "CREATE TABLE IF NOT EXISTS Clothes ("
-        "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "Type INTEGER NOT NULL,"                          // e.g. "t-shirt", "pants", "coat"
-        "Size INTEGER,"                                   // e.g. "xs", "s", "m", "l"
-        "Gender INTEGER,"                                 // e.g. "other", "male", "female"
-        "Color INTEGER,"                                  // e.g. "blue", "black", "red"
-        "Condition INTEGER,"                              // e.g. "new", "good", "worn", "needs repair"
-        "Quantity INTEGER NOT NULL DEFAULT 0,"            // Items in stock
-        "Notes TEXT,"                                     // For arbitrary tracking (e.g., donor, special handling)
-        "UNIQUE(Type, Size, Gender, Color, Condition));"; // Prevents accidental duplicate entries of the same clothes type
-    */
 
     // Initial buffer
     size_t buffer_size = 1024;
