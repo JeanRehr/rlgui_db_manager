@@ -25,7 +25,10 @@
  * Tracks various states and validation results for the clothes screen.
  */
 enum clothes_screen_flags {
-    FLAG_CLOTHES_OPERATION_DONE = 1 << 0, ///< Operation done
+    FLAG_CLOTHES_OPERATION_DONE = 1 << 0,   ///< Operation done
+    FLAG_CLOTHES_GENERIC_ERROR = 1 << 1,    /// Generic database operation error
+    FLAG_CLOTHES_NOTFOUND = 1 << 2,         ///< Clothing entry not found
+    FLAG_CLOTHES_STOCK_BELOW_ZERO = 1 << 3, ///< Operation will make stock go below 0
 };
 
 /**
