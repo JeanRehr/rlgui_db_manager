@@ -13,28 +13,37 @@
 
 /**
  * @def SET_FLAG(flag, flags)
+ * 
  * @brief Sets specified bits in a flag variable
  * 
  * Performs a bitwise OR operation to set one or more flags.
  * 
  * @param flag Pointer to the flag variable to modify
  * @param flags Bitmask of flags to set
+ * 
  * @note Example: SET_FLAG(&status, STATUS_ACTIVE | STATUS_VISIBLE)
+ * 
  */
+#define SET_FLAG(flag, flags) ((*flag) |= (flags))
 
 /**
  * @def CLEAR_FLAG(flag, flags)
+ * 
  * @brief Clears specified bits in a flag variable
  * 
  * Performs a bitwise AND with the complement to clear one or more flags.
  * 
  * @param flag Pointer to the flag variable to modify
  * @param flags Bitmask of flags to clear
+ * 
  * @note Example: CLEAR_FLAG(&status, STATUS_ACTIVE)
+ * 
  */
+#define CLEAR_FLAG(flag, flags) ((*flag) &= ~(flags))
 
 /**
  * @def IS_FLAG_SET(flag, flags)
+ * 
  * @brief Tests if specified bits are set in a flag variable
  * 
  * Performs a bitwise AND to check if one or more flags are set.
@@ -42,10 +51,10 @@
  * @param flag Pointer to the flag variable to check
  * @param flags Bitmask of flags to test
  * @return true if all specified flags are set, false otherwise
+ * 
  * @note Example: if (IS_FLAG_SET(&status, STATUS_READY)) {...}
+ * 
  */
-#define SET_FLAG(flag, flags) ((*flag) |= (flags))
-#define CLEAR_FLAG(flag, flags) ((*flag) &= ~(flags))
 #define IS_FLAG_SET(flag, flags) (((*flag) & (flags)) != 0)
 
 /**
