@@ -25,10 +25,14 @@
  * Tracks various states and validation results for the clothes screen.
  */
 enum clothes_screen_flags {
-    FLAG_CLOTHES_OPERATION_DONE = 1 << 0,   ///< Operation done
-    FLAG_CLOTHES_GENERIC_ERROR = 1 << 1,    /// Generic database operation error
-    FLAG_CLOTHES_NOTFOUND = 1 << 2,         ///< Clothing entry not found
-    FLAG_CLOTHES_STOCK_BELOW_ZERO = 1 << 3, ///< Operation will make stock go below 0
+    FLAG_CLOTHES_OPERATION_DONE = 1 << 0,         ///< Operation done
+    FLAG_CLOTHES_GENERIC_ERROR = 1 << 1,          ///< Generic database operation error
+    FLAG_CLOTHES_NOTFOUND = 1 << 2,               ///< Clothing entry not found
+    FLAG_CLOTHES_STOCK_BELOW_ZERO = 1 << 3,       ///< Operation will make stock go below 0
+    FLAG_CLOTHES_CONFIRM_REMOVAL = 1 << 4,        ///< Confirm removal of quantity
+    FLAG_CLOTHES_CONFIRM_DELETION = 1 << 5,       ///< Confirm deletion of entry
+    FLAG_CLOTHES_CONFIRM_REMOVAL_BY_ID = 1 << 6,  ///< Confirm removal of quantity by ID
+    FLAG_CLOTHES_CONFIRM_DELETION_BY_ID = 1 << 7, ///< Confirm deletion of entry by ID
 };
 
 /**
@@ -54,11 +58,15 @@ struct ui_clothes {
 
     struct textbox tb_notes; ///< General notes about the item being inserted
 
-    struct button butn_back;         ///< Button to go back to main menu
-    struct button butn_insert;       ///< Button to insert/update into the database
-    struct button butn_remove;       ///< Button to remove a clothing by quantity from the database
-    struct button butn_delete_entry; ///< Button to delete the entry from the database
-    struct button butn_view_all;     ///< Button to get a database view
+    struct intbox ib_clothes_id; ///< ID of the clothes, used for removal/deletion
+
+    struct button butn_back;               ///< Button to go back to main menu
+    struct button butn_insert;             ///< Button to insert/update into the database
+    struct button butn_remove;             ///< Button to remove a clothing by quantity from the database
+    struct button butn_delete_entry;       ///< Button to delete the entry from the database
+    struct button butn_remove_by_id;       ///< Button to remove by Clothes ID
+    struct button butn_delete_entry_by_id; ///< Button to delete entry by Clothes ID
+    struct button butn_view_all;           ///< Button to get a database view
 
     struct scrollpanel sp_table_view; ///< A scrollpanel to view the clothes database
     char *str_table_content;          ///< The content of the clothes database (MUST BE FREED IF ALLOCATED)
