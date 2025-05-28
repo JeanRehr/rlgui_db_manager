@@ -2,6 +2,7 @@
  * @file resident_db.c
  * @brief Resident database operations implementation
  */
+#define _POSIX_C_SOURCE 200112L // For the time localtome_r function
 #include "db/resident_db.h"
 
 #include <stdio.h>
@@ -71,7 +72,7 @@ int resident_db_insert(
 
     struct tm curr_time = { 0 };
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     localtime_s(&curr_time, &now);
 #else
     localtime_r(&now, &curr_time);
