@@ -6,6 +6,7 @@
 
 #include <limits.h> // For INT_MAX
 #include <stddef.h>
+#include <stdlib.h>
 #include <stdio.h> // temporary
 
 #include <external/raylib/raygui.h>
@@ -34,6 +35,10 @@ static void ui_clothes_update_positions(struct ui_base *base);
 
 static void ui_clothes_clear_fields(struct ui_base *base);
 
+static void ui_clothes_cleanup(struct ui_base *base);
+
+static void draw_clothes_table_content(Rectangle bounds, char *data);
+
 static void handle_back_button(enum app_state *state);
 
 static void handle_insert_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db);
@@ -42,7 +47,7 @@ static void handle_remove_button(struct ui_clothes *ui, enum error_code *error, 
 
 static void handle_delete_entry_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db);
 
-static void handle_view_all_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db);
+static void handle_view_all_button(struct ui_clothes *ui, database *clothes_db);
 
 /* ======================= PUBLIC FUNCTIONS ======================= */
 
@@ -54,6 +59,7 @@ void ui_clothes_init(struct ui_clothes *ui) {
     ui->base.handle_buttons = ui_clothes_handle_buttons;
     ui->base.update_positions = ui_clothes_update_positions;
     ui->base.clear_fields = ui_clothes_clear_fields;
+    ui->base.cleanup = ui_clothes_cleanup;
 
     // Initialize ui specific fields
 
@@ -119,7 +125,7 @@ void ui_clothes_init(struct ui_clothes *ui) {
 
     ui->butn_delete_entry = button_init(
         (Rectangle) { ui->butn_remove.bounds.x + ui->butn_remove.bounds.width + 10, window_height - 60, 100, 30 },
-        "Remove"
+        "Delete Entry"
     );
 
     ui->butn_view_all = button_init(
@@ -179,7 +185,7 @@ static void ui_clothes_render(
     intbox_draw(&ui->ib_quantity);
     textbox_draw(&ui->tb_notes);
 
-    scrollpanel_draw(&ui->sp_table_view, NULL, ui->str_table_content);
+    scrollpanel_draw(&ui->sp_table_view, draw_clothes_table_content, ui->str_table_content);
 
     ui->base.handle_buttons(&ui->base, state, error, clothes_db);
 
@@ -236,7 +242,7 @@ static void ui_clothes_handle_buttons(
     }
 
     if (button_draw_updt(&ui->butn_view_all)) {
-        handle_view_all_button(ui, error, clothes_db);
+        handle_view_all_button(ui, clothes_db);
         return;
     }
 }
@@ -257,11 +263,35 @@ static void ui_clothes_clear_fields(struct ui_base *base) {
 
     ui->ib_quantity.input = 0;
     ui->tb_notes.input[0] = '\0';
+    ui->ddb_condition.active_option = 0;
+    ui->ddb_gender.active_option = 0;
+    ui->lv_color.active_option = 0;
+    ui->lv_size.active_option = 0;
+    ui->lv_type.active_option = 0;
 }
 
+static void ui_clothes_cleanup(struct ui_base *base) {
+    struct ui_clothes *ui = (struct ui_clothes *)base;
+
+    if (ui->str_table_content) {
+        free(ui->str_table_content);
+        ui->str_table_content = NULL;
+    }
+}
 /** @} */
 
 /* ======================= INTERNAL HELPERS ======================= */
+
+/**
+ * @internal
+ * @brief Draws the table content of the database
+ * 
+ * @note This is a callback to be used in the scrollpanel_draw
+ * 
+ */
+static void draw_clothes_table_content(Rectangle bounds, char *data) {
+    GuiLabel(bounds, data ? data : "No data");
+}
 
 static void handle_back_button(enum app_state *state) {
     *state = STATE_MAIN_MENU;
@@ -296,10 +326,6 @@ static void handle_insert_button(struct ui_clothes *ui, enum error_code *error, 
 }
 
 static void handle_remove_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db) {
-    (void)ui;
-    (void)error;
-    (void)clothes_db;
-    printf("Remove button not implemented.\n");
     int rc = clothes_db_remove(
         clothes_db,
         ui->lv_type.active_option,
@@ -329,16 +355,36 @@ static void handle_remove_button(struct ui_clothes *ui, enum error_code *error, 
 }
 
 static void handle_delete_entry_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db) {
-    (void)ui;
-    (void)error;
-    (void)clothes_db;
-    printf("Delete entry button not implemented.\n");
+    int rc = clothes_db_delete_entry(
+        clothes_db,
+        ui->lv_type.active_option,
+        ui->lv_size.active_option,
+        ui->ddb_gender.active_option,
+        ui->lv_color.active_option,
+        ui->ddb_condition.active_option
+    );
+
+    if (rc == SQLITE_NOTFOUND) {
+        SET_FLAG(&ui->flag, FLAG_CLOTHES_NOTFOUND);
+        fprintf(stderr, "Clothing entry not found\n");
+        return;
+    } else if (rc != SQLITE_OK) {
+        SET_FLAG(&ui->flag, FLAG_CLOTHES_GENERIC_ERROR);
+        fprintf(stderr, "An error occurred during database operation.\n");
+        return;
+    }
+
+    SET_FLAG(&ui->flag, FLAG_CLOTHES_OPERATION_DONE);
+    *error = NO_ERROR;
 }
 
-static void handle_view_all_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db) {
-    (void)ui;
-    (void)error;
-    (void)clothes_db;
-    printf("View all button not implemented.\n");
-    clothes_db_get_all(clothes_db);
+static void handle_view_all_button(struct ui_clothes *ui, database *clothes_db) {
+    if (ui->str_table_content) {
+        free(ui->str_table_content); // Free old data before getting new data
+        ui->str_table_content = NULL;
+    }
+
+    ui->str_table_content = clothes_db_get_all_format_old(clothes_db);
+
+    clothes_db_get_all(clothes_db); // Print to stdout
 }
