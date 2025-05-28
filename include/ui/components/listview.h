@@ -23,7 +23,10 @@ struct listview {
     const char *title;   ///< Descriptive text shown above the field
     const char *options; ///< Semicolon-delimited (;) option string (e.g. "Option 1;Option 2;Option 3")
     int scrollindex;     ///< Current scroll offset (automatically calculated by RayGui)
-    int active_option;   ///< Index of currently selected option (0-based)
+
+    int active_option; ///< Index of currently selected option (0-based)
+
+    int prev_option; ///< Previous selected index (should not be changed, internal tracking to not allow invalid state)
 };
 
 /**
@@ -55,11 +58,14 @@ struct listview listview_init(Rectangle bounds, const char *title, const char *o
  * - Option selection
  * 
  * @param lv Pointer to initialized listview
+ * @param unselectable Whether the user can unselect an option
  * 
  * @note Call every frame for proper interaction
  * 
  * @warning active_option will be updated automatically on user selection
+ * @warning if unselectable is equals to true, then when a user unselect an
+ *          option and active_option will be -1
  */
-void listview_draw(struct listview *lv);
+void listview_draw(struct listview *lv, bool unselectable);
 
 #endif // LISTVIEW_H

@@ -15,11 +15,18 @@ struct listview listview_init(Rectangle bounds, const char *title, const char *o
     lv.options = options;
     lv.scrollindex = 0;
     lv.active_option = 0;
+    lv.prev_option = 0;
     return lv;
 }
 
-void listview_draw(struct listview *lv) {
+void listview_draw(struct listview *lv, bool unselectable) {
     GuiLabel((Rectangle) { lv->bounds.x, lv->bounds.y - (FONT_SIZE + 5), lv->bounds.width, 20 }, lv->title);
 
     GuiListView(lv->bounds, lv->options, &lv->scrollindex, &lv->active_option);
+
+    if (unselectable == false && lv->active_option == -1) {
+        lv->active_option = lv->prev_option;
+    } else {
+        lv->prev_option = lv->active_option;
+    }
 }
