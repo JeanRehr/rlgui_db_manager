@@ -2791,12 +2791,12 @@ void test_user_db_fn(void) {
 }
 
 void test_clothes_db_fn(void) {
-    //test_clothes_db_create_table();
+    test_clothes_db_create_table();
     test_clothes_db_upsert();
-    //test_clothes_db_remove();
-    //test_clothes_db_delete_entry();
-    //test_clothes_db_check_exists();
-    //test_clothes_db_get();
+    test_clothes_db_remove();
+    test_clothes_db_delete_entry();
+    test_clothes_db_check_exists();
+    test_clothes_db_get();
 }
 
 void test_hash_fn(void) {
