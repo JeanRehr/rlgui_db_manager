@@ -429,7 +429,7 @@ char *clothes_db_get_all_format_old(database *db) {
         return NULL;
     }
 
-    const char *sql = "SELECT Type, Size, Gender, Color, Condition, Quantity, Notes FROM Clothes;";
+    const char *sql = "SELECT ID, Type, Size, Gender, Color, Condition, Quantity, Notes FROM Clothes;";
     sqlite3_stmt *stmt;
 
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
