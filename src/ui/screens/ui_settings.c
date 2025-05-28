@@ -94,7 +94,8 @@ void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
     );
 
     ui->tbi_new_cpf = textboxint_init(
-        (Rectangle) { 20, ui->tbi_new_phone_number.bounds.y + ui->tbi_new_phone_number.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        (Rectangle
+        ) { 20, ui->tbi_new_phone_number.bounds.y + ui->tbi_new_phone_number.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "New CPF:"
     );
 
@@ -262,8 +263,9 @@ static void ui_settings_handle_warning_msg(
     } else if (IS_FLAG_SET(&ui->flag, FLAG_SETTINGS_ADMIN_TEMPER)) {
         message = "Username of default admin can't be\nchanged. Other fields\nhave been changed.";
         flag_to_clear = FLAG_SETTINGS_ADMIN_TEMPER;
-    } else if (*error == ERROR_UPDATE_DB) {
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_SETTINGS_GENERIC_ERROR) || *error == ERROR_UPDATE_DB) {
         message = "Database error. Try Again";
+        flag_to_clear = FLAG_SETTINGS_GENERIC_ERROR;
         *error = NO_ERROR; // Clear error after showing
     }
 
@@ -477,6 +479,7 @@ static void handle_submit_button(struct ui_settings *ui, enum error_code *error,
 
     if (ui->tbi_new_cpf.input[0] != '\0') {
         if (user_db_update_cpf(user_db, ui->current_user->username, ui->tbi_new_cpf.input) != SQLITE_OK) {
+            SET_FLAG(&ui->flag, FLAG_SETTINGS_GENERIC_ERROR);
             *error = ERROR_UPDATE_DB;
             return;
         }
@@ -486,6 +489,7 @@ static void handle_submit_button(struct ui_settings *ui, enum error_code *error,
         if (user_db_update_phone_number(user_db, ui->current_user->username, ui->tbi_new_phone_number.input)
             != SQLITE_OK)
         {
+            SET_FLAG(&ui->flag, FLAG_SETTINGS_GENERIC_ERROR);
             *error = ERROR_UPDATE_DB;
             return;
         }
@@ -500,6 +504,7 @@ static void handle_submit_button(struct ui_settings *ui, enum error_code *error,
         }
 
         if (rc != SQLITE_OK) {
+            SET_FLAG(&ui->flag, FLAG_SETTINGS_GENERIC_ERROR);
             *error = ERROR_INSERT_DB;
             return;
         }
@@ -523,6 +528,7 @@ static void handle_submit_button(struct ui_settings *ui, enum error_code *error,
 
 static void handle_reset_password_button(struct ui_settings *ui, enum error_code *error, database *user_db) {
     if (user_db_set_reset_password(user_db, ui->current_user->username) != SQLITE_OK) {
+        SET_FLAG(&ui->flag, FLAG_SETTINGS_GENERIC_ERROR);
         *error = ERROR_INSERT_DB;
         return;
     }

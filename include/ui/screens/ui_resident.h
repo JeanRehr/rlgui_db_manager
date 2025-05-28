@@ -10,7 +10,6 @@
 #define UI_RESIDENT_H
 
 #include "entities/resident.h"
-#include "ui/screens/ui_base.h"
 #include "ui/components/button.h"
 #include "ui/components/checkbox.h"
 #include "ui/components/dropdownbox.h"
@@ -18,6 +17,7 @@
 #include "ui/components/scrollpanel.h"
 #include "ui/components/textbox.h"
 #include "ui/components/textboxint.h"
+#include "ui/screens/ui_base.h"
 
 /**
  * @enum resident_screen_flags
@@ -28,13 +28,14 @@
  */
 enum resident_screen_flags {
     FLAG_RESIDENT_OPERATION_DONE = 1 << 0, ///< Submission completed successfully
-    FLAG_CONFIRM_RESIDENT_DELETE = 1 << 1, ///< Pending delete confirmation
-    FLAG_CPF_EXISTS = 1 << 2,              ///< CPF already exists in database
-    FLAG_CPF_NOT_FOUND = 1 << 3,           ///< CPF not found in database
-    FLAG_INPUT_CPF_EMPTY = 1 << 4,         ///< CPF input field is empty
-    FLAG_CPF_NOT_VALID = 1 << 5,           ///< CPF input is invalid (not 11 digits)
-    FLAG_SHOW_HEALTH = 1 << 6,             ///< Show full health status popup
-    FLAG_SHOW_NEEDS = 1 << 7               ///< Show full needs description popup
+    FLAG_RESIDENT_GENERIC_ERROR = 1 << 1,  ///< Generic error
+    FLAG_CONFIRM_RESIDENT_DELETE = 1 << 2, ///< Pending delete confirmation
+    FLAG_CPF_EXISTS = 1 << 3,              ///< CPF already exists in database
+    FLAG_CPF_NOT_FOUND = 1 << 4,           ///< CPF not found in database
+    FLAG_INPUT_CPF_EMPTY = 1 << 5,         ///< CPF input field is empty
+    FLAG_CPF_NOT_VALID = 1 << 6,           ///< CPF input is invalid (not 11 digits)
+    FLAG_SHOW_HEALTH = 1 << 7,             ///< Show full health status popup
+    FLAG_SHOW_NEEDS = 1 << 8,              ///< Show full needs description popup
 };
 
 /**

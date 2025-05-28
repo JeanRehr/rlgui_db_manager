@@ -409,8 +409,11 @@ static void ui_food_handle_warning_msg(
         flag_to_clear = FLAG_CONFIRM_FOOD_DELETE;
         action.type = DB_ACTION_DELETE;
         action.delete.batch_id = ui->ib_batch_id.input;
-    } else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_FOOD_GENERIC_ERROR) || *error == ERROR_INSERT_DB
+               || *error == ERROR_UPDATE_DB)
+    {
         message = "Database error. Try again.";
+        flag_to_clear = FLAG_FOOD_GENERIC_ERROR;
         *error = NO_ERROR;
     }
 
@@ -596,6 +599,7 @@ static void handle_submit_button(struct ui_food *ui, enum error_code *error, dat
         )
         != SQLITE_OK)
     {
+        SET_FLAG(&ui->flag, FLAG_FOOD_GENERIC_ERROR);
         *error = ERROR_INSERT_DB;
         fprintf(stderr, "Error submitting to database.\n");
         return;
@@ -691,6 +695,7 @@ static void process_db_action_in_warning(
             )
             != SQLITE_OK)
         {
+            SET_FLAG(&ui->flag, FLAG_FOOD_GENERIC_ERROR);
             *error = ERROR_UPDATE_DB;
             break;
         }
@@ -699,6 +704,7 @@ static void process_db_action_in_warning(
 
     case DB_ACTION_DELETE:
         if (foodbatch_db_delete_by_id(foodbatch_db, action->delete.batch_id) != SQLITE_OK) {
+            SET_FLAG(&ui->flag, FLAG_FOOD_GENERIC_ERROR);
             *error = ERROR_DELETE_DB;
             break;
         }

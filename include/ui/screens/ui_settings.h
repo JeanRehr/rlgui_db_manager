@@ -10,12 +10,12 @@
 #ifndef UI_SETTINGS_H
 #define UI_SETTINGS_H
 
-#include "ui/screens/ui_base.h"
+#include "entities/user.h"
 #include "ui/components/button.h"
 #include "ui/components/dropdownbox.h"
 #include "ui/components/textbox.h"
 #include "ui/components/textboxint.h"
-#include "entities/user.h"
+#include "ui/screens/ui_base.h"
 
 /**
  * @enum settings_screen_flags
@@ -26,11 +26,12 @@
  */
 enum settings_screen_flags {
     FLAG_SETTINGS_OPERATION_DONE = 1 << 0,     ///< Submission completed successfully
-    FLAG_SETTINGS_USERNAME_EXISTS = 1 << 1,    ///< Chosen username already exists
-    FLAG_SETTINGS_CPF_EXISTS = 1 << 2,         ///< Chosen CPF already exists
-    FLAG_SETTINGS_CPF_NOT_VALID = 1 << 3,      ///< CPF not valid format (11 digits)
-    FLAG_SETTINGS_PHONE_NUMBER_WRONG = 1 << 4, ///< Phone number not valid format (13 digits)
-    FLAG_SETTINGS_ADMIN_TEMPER = 1 << 5,       ///< Temper of admin username
+    FLAG_SETTINGS_GENERIC_ERROR = 1 << 2,      ///< Chosen username already exists
+    FLAG_SETTINGS_USERNAME_EXISTS = 1 << 3,    ///< Chosen username already exists
+    FLAG_SETTINGS_CPF_EXISTS = 1 << 4,         ///< Chosen CPF already exists
+    FLAG_SETTINGS_CPF_NOT_VALID = 1 << 5,      ///< CPF not valid format (11 digits)
+    FLAG_SETTINGS_PHONE_NUMBER_WRONG = 1 << 6, ///< Phone number not valid format (13 digits)
+    FLAG_SETTINGS_ADMIN_TEMPER = 1 << 7,       ///< Temper of admin username
 };
 
 /**

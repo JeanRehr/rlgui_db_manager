@@ -220,8 +220,9 @@ static void ui_login_handle_warning_msg(
         action.type = DB_ACTION_UPDT_PASS;
         action.updt_pass.username = ui->tb_username.input;
         action.updt_pass.new_password = ui->tbs_password.input;
-    } else if (*error != NO_ERROR) {
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_LOGIN_GENERIC_ERROR) || *error != NO_ERROR) {
         message = "Database error!";
+        flag_to_clear = FLAG_LOGIN_GENERIC_ERROR;
         *error = NO_ERROR; // Clear error after showing
     }
 
@@ -236,15 +237,6 @@ static void ui_login_handle_warning_msg(
 
         if (result == 1 && action.type != DB_ACTION_NONE) {
             process_db_action_in_warning(ui, state, error, user_db, ui->current_user, &action);
-            if (*error == ERROR_UPDATE_DB) {
-                message = "Failed to update password. Please try again.";
-                GuiMessageBox(
-                    (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
-                    "#191#Warning!",
-                    message,
-                    "OK"
-                );
-            }
         }
 
         if (result >= 0 && flag_to_clear) {
@@ -329,6 +321,7 @@ static void process_db_action_in_warning(
     switch (action->type) {
     case DB_ACTION_UPDT_PASS:
         if (user_db_update_password(user_db, action->updt_pass.username, action->updt_pass.new_password) != SQLITE_OK) {
+            SET_FLAG(&ui->flag, FLAG_LOGIN_GENERIC_ERROR);
             *error = ERROR_UPDATE_DB;
             break;
         }
@@ -415,6 +408,7 @@ static void handle_login_button(
         // warning: a label can only be part of a statement and a declaration is not a statement [-Wpedantic]
         int rc = user_db_get_by_username(user_db, ui->tb_username.input, current_user);
         if (rc != SQLITE_OK && rc != SQLITE_NOTFOUND) {
+            SET_FLAG(&ui->flag, FLAG_LOGIN_GENERIC_ERROR);
             *error = ERROR_DB_STMT;
             break;
         }

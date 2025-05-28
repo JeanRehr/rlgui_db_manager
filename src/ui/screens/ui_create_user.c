@@ -113,7 +113,8 @@ void ui_create_user_init(struct ui_create_user *ui) {
     );
 
     ui->cb_is_admin = checkbox_init(
-        (Rectangle) { 20, ui->tbi_phone_number.bounds.y + ui->tbi_phone_number.bounds.height + (FONT_SIZE * 2), 20, 20 },
+        (Rectangle
+        ) { 20, ui->tbi_phone_number.bounds.y + ui->tbi_phone_number.bounds.height + (FONT_SIZE * 2), 20, 20 },
         "Admin:"
     );
 
@@ -317,8 +318,9 @@ static void ui_create_user_handle_warning_msg(
     } else if (IS_FLAG_SET(&ui->flag, FLAG_CREATE_USER_ADMIN_TEMPER)) {
         message = "Default admin cannot be tempered with.\nCan only reset its password.";
         flag_to_clear = FLAG_CREATE_USER_ADMIN_TEMPER;
-    } else if (*error != NO_ERROR) {
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_CREATE_USER_GENERIC_ERROR) || *error != NO_ERROR) {
         message = "Database error. Try Again";
+        flag_to_clear = FLAG_CREATE_USER_GENERIC_ERROR;
         *error = NO_ERROR; // Clear error after showing
     }
 
@@ -364,8 +366,8 @@ static void ui_create_user_update_positions(struct ui_base *base) {
     ui->butn_update_adm_stat.bounds.y = window_height - 60;
     ui->butn_delete.bounds.y = window_height - 60;
     ui->butn_get_all.bounds.y = window_height - 60;
-    ui->sp_table_view.panel_bounds.width = window_width
-        - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20);
+    ui->sp_table_view.panel_bounds.width =
+        window_width - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20);
     ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
@@ -423,6 +425,7 @@ static void process_db_action_in_warning(
             SET_FLAG(&ui->flag, FLAG_CREATE_USER_ADMIN_TEMPER);
             break;
         } else if (rc != SQLITE_OK) {
+            SET_FLAG(&ui->flag, FLAG_CREATE_USER_GENERIC_ERROR);
             *error = ERROR_DELETE_DB;
             break;
         }
@@ -513,6 +516,7 @@ static void handle_create_user_button(struct ui_create_user *ui, enum error_code
         )
         != SQLITE_OK)
     {
+        SET_FLAG(&ui->flag, FLAG_CREATE_USER_GENERIC_ERROR);
         *error = ERROR_INSERT_DB;
         return;
     }
@@ -535,6 +539,7 @@ static void handle_reset_password_button(struct ui_create_user *ui, enum error_c
     }
 
     if (user_db_set_reset_password(user_db, ui->tb_username.input) != SQLITE_OK) {
+        SET_FLAG(&ui->flag, FLAG_CREATE_USER_GENERIC_ERROR);
         *error = ERROR_INSERT_DB;
         return;
     }
@@ -559,11 +564,12 @@ static void handle_update_admin_status(struct ui_create_user *ui, enum error_cod
     int rc = user_db_update_admin_status(user_db, ui->tb_username.input, ui->cb_is_admin.checked);
 
     if (rc == SQLITE_CONSTRAINT) {
+        fprintf(stderr, "Default admin can't be changed!\n");
         SET_FLAG(&ui->flag, FLAG_CREATE_USER_ADMIN_TEMPER);
         return;
-    }
-
-    if (rc != SQLITE_OK) {
+    } else if (rc != SQLITE_OK) {
+        fprintf(stderr, "Error database.\n");
+        SET_FLAG(&ui->flag, FLAG_CREATE_USER_GENERIC_ERROR);
         *error = ERROR_INSERT_DB;
         return;
     }

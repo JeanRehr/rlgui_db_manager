@@ -348,7 +348,10 @@ static void ui_resident_handle_warning_msg(
         flag_to_clear = FLAG_CONFIRM_RESIDENT_DELETE;
         action.type = DB_ACTION_DELETE;
         action.delete.cpf = ui->tbi_cpf.input;
-    } else if (*error == ERROR_INSERT_DB || *error == ERROR_UPDATE_DB) {
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_RESIDENT_GENERIC_ERROR) || *error == ERROR_INSERT_DB
+               || *error == ERROR_UPDATE_DB)
+    {
+        flag_to_clear = FLAG_RESIDENT_GENERIC_ERROR;
         message = "Database error. Try Again";
         *error = NO_ERROR; // Clear error after showing
     }
@@ -476,6 +479,7 @@ static void process_db_action_in_warning(
             )
             != SQLITE_OK)
         {
+            SET_FLAG(&ui->flag, FLAG_RESIDENT_GENERIC_ERROR);
             *error = ERROR_UPDATE_DB;
             break;
         }
@@ -484,6 +488,7 @@ static void process_db_action_in_warning(
 
     case DB_ACTION_DELETE:
         if (resident_db_delete_by_cpf(resident_db, action->delete.cpf) != SQLITE_OK) {
+            SET_FLAG(&ui->flag, FLAG_RESIDENT_GENERIC_ERROR);
             *error = ERROR_DELETE_DB;
             break;
         }
@@ -659,6 +664,7 @@ static void handle_submit_button(struct ui_resident *ui, enum error_code *error,
         )
         != SQLITE_OK)
     {
+        SET_FLAG(&ui->flag, FLAG_RESIDENT_GENERIC_ERROR);
         *error = ERROR_INSERT_DB;
         return;
     }

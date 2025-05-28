@@ -12,7 +12,12 @@
 
 /* Forward declarations */
 
-static void ui_supplies_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *supplies_db);
+static void ui_supplies_render(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *supplies_db
+);
 
 static void ui_supplies_handle_buttons(
     struct ui_base *base,

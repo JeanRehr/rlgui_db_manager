@@ -18,12 +18,12 @@
 #ifndef UI_CREATE_USER_H
 #define UI_CREATE_USER_H
 
-#include "ui/screens/ui_base.h"
 #include "ui/components/button.h"
 #include "ui/components/checkbox.h"
 #include "ui/components/scrollpanel.h"
 #include "ui/components/textbox.h"
 #include "ui/components/textboxint.h"
+#include "ui/screens/ui_base.h"
 
 /**
  * @enum create_user_screen_flags
@@ -33,15 +33,16 @@
  */
 enum create_user_screen_flags {
     FLAG_CREATE_USER_OPERATION_DONE = 1 << 0,          ///< Operation done
-    FLAG_CREATE_USER_USERNAME_EMPTY = 1 << 1,          ///< Username is empty during user creation
-    FLAG_CREATE_USER_CPF_EMPTY = 1 << 2,               ///< CPF is empty during user creation
-    FLAG_CREATE_USER_CPF_EXISTS = 1 << 3,              ///< CPF already exists during user creation
-    FLAG_CREATE_USER_CPF_NOT_VALID = 1 << 4,           ///< CPF not valid during user creation
-    FLAG_CREATE_USER_PHONE_NUMBER_WRONG = 1 << 5,      ///< Phone number not expected format
-    FLAG_CREATE_USER_USERNAME_ALREADY_EXISTS = 1 << 6, ///< Username already exists
-    FLAG_CREATE_USER_USERNAME_NOT_EXISTS = 1 << 7,     ///< User doesn't exists
-    FLAG_CREATE_USER_CONFIRM_DELETE = 1 << 8,          ///< Confirm user deletion
-    FLAG_CREATE_USER_ADMIN_TEMPER = 1 << 9,            ///< default admin being tempered with
+    FLAG_CREATE_USER_GENERIC_ERROR = 1 << 1,           ///< Generic error
+    FLAG_CREATE_USER_USERNAME_EMPTY = 1 << 2,          ///< Username is empty during user creation
+    FLAG_CREATE_USER_CPF_EMPTY = 1 << 3,               ///< CPF is empty during user creation
+    FLAG_CREATE_USER_CPF_EXISTS = 1 << 4,              ///< CPF already exists during user creation
+    FLAG_CREATE_USER_CPF_NOT_VALID = 1 << 5,           ///< CPF not valid during user creation
+    FLAG_CREATE_USER_PHONE_NUMBER_WRONG = 1 << 6,      ///< Phone number not expected format
+    FLAG_CREATE_USER_USERNAME_ALREADY_EXISTS = 1 << 7, ///< Username already exists
+    FLAG_CREATE_USER_USERNAME_NOT_EXISTS = 1 << 8,     ///< User doesn't exists
+    FLAG_CREATE_USER_CONFIRM_DELETE = 1 << 9,          ///< Confirm user deletion
+    FLAG_CREATE_USER_ADMIN_TEMPER = 1 << 10,           ///< default admin being tempered with
 };
 
 /**

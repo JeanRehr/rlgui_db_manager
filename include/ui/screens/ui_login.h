@@ -12,11 +12,11 @@
 #ifndef UI_LOGIN_H
 #define UI_LOGIN_H
 
-#include "ui/screens/ui_base.h"
+#include "entities/user.h"
 #include "ui/components/button.h"
 #include "ui/components/textbox.h"
 #include "ui/components/textboxsecret.h"
-#include "entities/user.h"
+#include "ui/screens/ui_base.h"
 
 /**
  * @enum login_screen_flags
@@ -26,12 +26,13 @@
  * Used for controlling UI feedback and workflow.
  */
 enum login_screen_flags {
-    FLAG_LOGIN_DONE = 1 << 0,      ///< Authentication completed successfully
-    FLAG_USER_NOT_EXISTS = 1 << 1, ///< Specified username not found
-    FLAG_WRONG_PASSWD = 1 << 2,    ///< Incorrect password provided
-    FLAG_USERNAME_EMPTY = 1 << 3,  ///< Username field empty
-    FLAG_PASSWD_EMPTY = 1 << 4,    ///< Password field empty
-    FLAG_PASSWD_RESET = 1 << 5     ///< Password reset required
+    FLAG_LOGIN_DONE = 1 << 0,          ///< Authentication completed successfully
+    FLAG_LOGIN_GENERIC_ERROR = 1 << 1, ///< Generic error
+    FLAG_USER_NOT_EXISTS = 1 << 2,     ///< Specified username not found
+    FLAG_WRONG_PASSWD = 1 << 3,        ///< Incorrect password provided
+    FLAG_USERNAME_EMPTY = 1 << 4,      ///< Username field empty
+    FLAG_PASSWD_EMPTY = 1 << 5,        ///< Password field empty
+    FLAG_PASSWD_RESET = 1 << 6,        ///< Password reset required
 };
 
 /**
