@@ -385,7 +385,32 @@ static void handle_view_all_button(struct ui_clothes *ui, database *clothes_db) 
         ui->str_table_content = NULL;
     }
 
-    ui->str_table_content = clothes_db_get_all_format_old(clothes_db);
+    int total_clothes = clothes_db_get_count(clothes_db);
+    if (total_clothes == -1) {
+        fprintf(stderr, "Failed to get total count.\n");
+        return;
+    }
+
+    // 512 for header + 512 for each row
+    size_t buffer_size = 512 + 512 * total_clothes;
+
+    ui->str_table_content = malloc(buffer_size);
+    if (!ui->str_table_content) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return;
+    }
+
+    if (clothes_db_get_all_format(clothes_db, ui->str_table_content, buffer_size) == -1) {
+        fprintf(stderr, "Failed to get formatted table.\n");
+        return;
+    }
+
+    // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
+    if (ui->str_table_content) {
+        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
+    }
 
     clothes_db_get_all(clothes_db); // Print to stdout
 }
