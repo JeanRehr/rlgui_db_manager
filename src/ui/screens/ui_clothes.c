@@ -32,11 +32,15 @@ static void ui_clothes_handle_buttons(
 
 static void ui_clothes_update_positions(struct ui_base *base);
 
+static void ui_clothes_clear_fields(struct ui_base *base);
+
 static void handle_back_button(enum app_state *state);
 
 static void handle_insert_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db);
 
 static void handle_remove_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db);
+
+static void handle_delete_entry_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db);
 
 static void handle_view_all_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db);
 
@@ -49,6 +53,7 @@ void ui_clothes_init(struct ui_clothes *ui) {
     ui->base.render = ui_clothes_render;
     ui->base.handle_buttons = ui_clothes_handle_buttons;
     ui->base.update_positions = ui_clothes_update_positions;
+    ui->base.clear_fields = ui_clothes_clear_fields;
 
     // Initialize ui specific fields
 
@@ -72,7 +77,7 @@ void ui_clothes_init(struct ui_clothes *ui) {
 
     ui->ddb_gender = dropdownbox_init(
         (Rectangle) { ui->lv_type.bounds.x + ui->lv_type.bounds.width + 20, 100, 130, 30 },
-        "Unissex;Male;Female",
+        "Other;Male;Female",
         "Gender:"
     );
 
@@ -112,8 +117,14 @@ void ui_clothes_init(struct ui_clothes *ui) {
         "Remove"
     );
 
-    ui->butn_view_all = button_init(
+    ui->butn_delete_entry = button_init(
         (Rectangle) { ui->butn_remove.bounds.x + ui->butn_remove.bounds.width + 10, window_height - 60, 100, 30 },
+        "Remove"
+    );
+
+    ui->butn_view_all = button_init(
+        (Rectangle
+        ) { ui->butn_delete_entry.bounds.x + ui->butn_delete_entry.bounds.width + 10, window_height - 60, 100, 30 },
         "View All"
     );
 
@@ -161,10 +172,6 @@ static void ui_clothes_render(
 ) {
     struct ui_clothes *ui = (struct ui_clothes *)base;
 
-    // Dropdowns needs to be first
-    dropdownbox_draw(&ui->ddb_gender);
-    dropdownbox_draw(&ui->ddb_condition);
-
     listview_draw(&ui->lv_type);
     listview_draw(&ui->lv_size);
     listview_draw(&ui->lv_color);
@@ -175,6 +182,15 @@ static void ui_clothes_render(
     scrollpanel_draw(&ui->sp_table_view, NULL, ui->str_table_content);
 
     ui->base.handle_buttons(&ui->base, state, error, clothes_db);
+
+    // Dropdowns needs to be last in reverse order as they appear
+    dropdownbox_draw(&ui->ddb_condition);
+    dropdownbox_draw(&ui->ddb_gender);
+
+    if (IS_FLAG_SET(&ui->flag, FLAG_CLOTHES_OPERATION_DONE)) {
+        ui->base.clear_fields(&ui->base);
+        CLEAR_FLAG(&ui->flag, FLAG_CLOTHES_OPERATION_DONE);
+    }
 }
 
 /**
@@ -214,6 +230,11 @@ static void ui_clothes_handle_buttons(
         return;
     }
 
+    if (button_draw_updt(&ui->butn_delete_entry)) {
+        handle_delete_entry_button(ui, error, clothes_db);
+        return;
+    }
+
     if (button_draw_updt(&ui->butn_view_all)) {
         handle_view_all_button(ui, error, clothes_db);
         return;
@@ -231,6 +252,13 @@ static void ui_clothes_update_positions(struct ui_base *base) {
     ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
+static void ui_clothes_clear_fields(struct ui_base *base) {
+    struct ui_clothes *ui = (struct ui_clothes *)base;
+
+    ui->ib_quantity.input = 0;
+    ui->tb_notes.input[0] = '\0';
+}
+
 /** @} */
 
 /* ======================= INTERNAL HELPERS ======================= */
@@ -240,10 +268,31 @@ static void handle_back_button(enum app_state *state) {
 }
 
 static void handle_insert_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db) {
-    (void)ui;
-    (void)error;
-    (void)clothes_db;
-    printf("Insert button not implemented.\n");
+    /**
+     * It's impossible to have null/no value on these options (aside from notes) due to how the
+     * app is made, so no input checking is necessary here, even though on table schema
+     * type, size, gender, color and conditions are unique not null
+     */
+    if (clothes_db_upsert(
+            clothes_db,
+            ui->lv_type.active_option,
+            ui->lv_size.active_option,
+            ui->ddb_gender.active_option,
+            ui->lv_color.active_option,
+            ui->ddb_condition.active_option,
+            ui->ib_quantity.input,
+            ui->tb_notes.input
+        )
+        != SQLITE_OK)
+    {
+        SET_FLAG(&ui->flag, FLAG_CLOTHES_GENERIC_ERROR);
+        fprintf(stderr, "An error occurred during database operation.\n");
+        *error = ERROR_INSERT_DB;
+        return;
+    }
+
+    SET_FLAG(&ui->flag, FLAG_CLOTHES_OPERATION_DONE);
+    *error = NO_ERROR;
 }
 
 static void handle_remove_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db) {
@@ -251,6 +300,39 @@ static void handle_remove_button(struct ui_clothes *ui, enum error_code *error, 
     (void)error;
     (void)clothes_db;
     printf("Remove button not implemented.\n");
+    int rc = clothes_db_remove(
+        clothes_db,
+        ui->lv_type.active_option,
+        ui->lv_size.active_option,
+        ui->ddb_gender.active_option,
+        ui->lv_color.active_option,
+        ui->ddb_condition.active_option,
+        ui->ib_quantity.input
+    );
+
+    if (rc == SQLITE_NOTFOUND) {
+        SET_FLAG(&ui->flag, FLAG_CLOTHES_NOTFOUND);
+        fprintf(stderr, "Clothing entry not found\n");
+        return;
+    } else if (rc == SQLITE_CONSTRAINT) {
+        SET_FLAG(&ui->flag, FLAG_CLOTHES_STOCK_BELOW_ZERO);
+        fprintf(stderr, "Cannot remove clothing, stock will go below 0.\n");
+        return;
+    } else if (rc != SQLITE_OK) {
+        SET_FLAG(&ui->flag, FLAG_CLOTHES_GENERIC_ERROR);
+        fprintf(stderr, "An error occurred during database operation.\n");
+        return;
+    }
+    
+    SET_FLAG(&ui->flag, FLAG_CLOTHES_OPERATION_DONE);
+    *error = NO_ERROR;
+}
+
+static void handle_delete_entry_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db) {
+    (void)ui;
+    (void)error;
+    (void)clothes_db;
+    printf("Delete entry button not implemented.\n");
 }
 
 static void handle_view_all_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db) {
@@ -258,4 +340,5 @@ static void handle_view_all_button(struct ui_clothes *ui, enum error_code *error
     (void)error;
     (void)clothes_db;
     printf("View all button not implemented.\n");
+    clothes_db_get_all(clothes_db);
 }
