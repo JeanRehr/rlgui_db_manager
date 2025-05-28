@@ -31,20 +31,28 @@ void wrap_text(const char *input, char *output, const int wrap_width) {
     while (token != NULL) {
         int word_width = MeasureText(token, FONT_SIZE);
 
-        if (text_width + word_width + SPACE_WIDTH > wrap_width) {
+        if (text_width + word_width + SPACE_WIDTH > wrap_width && text_width > 0) {
             output[output_index++] = '\n'; // Insert line break
             text_width = 0;                // Reset line width
         }
 
-        strcpy(&output[output_index], token);
-        output_index += strlen(token);
-        output[output_index++] = ' '; // Add space after word
+        int len = strlen(token);
+        memcpy(&output[output_index], token, len);
 
-        text_width += word_width + SPACE_WIDTH;
-        token = strtok(NULL, " ");
+        output_index += len;
+        text_width += word_width;
+
+        // Peek here if there are more tokens (so it is not last word)
+        char *next = strtok(NULL, " ");
+        if (next != NULL) {
+            output[output_index++] = ' ';
+            text_width += SPACE_WIDTH;
+        }
+
+        token = next;
     }
 
-    output[output_index - 1] = '\0'; // Null-terminate string
+    output[output_index] = '\0'; // Null-terminate string
 }
 
 void filter_integer_input(char *input, const int max_len) {
