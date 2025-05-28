@@ -125,4 +125,3 @@ $(OUT_DIR)/raygui.o: $(SRC_DIR)/external/raylib/raygui.c
 # For test files in tests/
 $(OUT_DIR)/%.o: $(TEST_DIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
-
