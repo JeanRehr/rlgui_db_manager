@@ -1,5 +1,9 @@
 # Compiler
-CC = gcc
+ifeq ($(UNAME_S),Linux)
+	CC = clang
+else
+	CC = gcc
+endif
 
 # Detect OS
 UNAME_S := $(shell uname -s)
