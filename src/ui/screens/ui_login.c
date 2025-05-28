@@ -360,8 +360,7 @@ static void process_db_action_in_warning(
  *       4. Password reset requirement
  *       5. Successful authentication
  *
- * @warning
- * This function modifies multiple state variables:
+ * @warning This function modifies multiple state variables:
  * 
  * - Sets ui->flag for validation/authentication status
  * 
