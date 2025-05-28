@@ -10,16 +10,16 @@ const char *app_state_to_string(const enum app_state *const state) {
         return "Login Menu";
     case STATE_MAIN_MENU:
         return "Main Menu";
-    case STATE_REGISTER_RESIDENT:
-        return "Register Resident";
-    case STATE_REGISTER_FOOD:
-        return "Register Food";
-    case STATE_REGISTER_MEDICATION:
-        return "Register Medication";
-    case STATE_REGISTER_CLOTHES:
-        return "Register Clothes";
-    case STATE_REGISTER_SUPPLIES:
-        return "Register Supplies";
+    case STATE_MANAGE_RESIDENT:
+        return "Manage Resident";
+    case STATE_MANAGE_FOOD:
+        return "Manage Food";
+    case STATE_MANAGE_MEDICATION:
+        return "Manage Medication";
+    case STATE_MANAGE_CLOTHES:
+        return "Manage Clothes";
+    case STATE_MANAGE_SUPPLIES:
+        return "Manage Supplies";
     case STATE_CREATE_USER:
         return "Create User";
     case STATE_SETTINGS:

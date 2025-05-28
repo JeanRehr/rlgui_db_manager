@@ -266,23 +266,23 @@ static void ui_main_menu_update_positions(struct ui_base *base) {
 /* ======================= INTERNAL HELPERS ======================= */
 
 static void handle_manage_resident_button(enum app_state *state) {
-    *state = STATE_REGISTER_RESIDENT;
+    *state = STATE_MANAGE_RESIDENT;
 }
 
 static void handle_manage_food_button(enum app_state *state) {
-    *state = STATE_REGISTER_FOOD;
+    *state = STATE_MANAGE_FOOD;
 }
 
 static void handle_manage_meds_button(enum app_state *state) {
-    *state = STATE_REGISTER_MEDICATION;
+    *state = STATE_MANAGE_MEDICATION;
 }
 
 static void handle_manage_clothes_button(enum app_state *state) {
-    *state = STATE_REGISTER_CLOTHES;
+    *state = STATE_MANAGE_CLOTHES;
 }
 
 static void handle_manage_supplies_button(enum app_state *state) {
-    *state = STATE_REGISTER_SUPPLIES;
+    *state = STATE_MANAGE_SUPPLIES;
 }
 
 static void handle_create_user_button(

@@ -184,7 +184,7 @@ void ui_food_init(struct ui_food *ui) {
 
     memset(&ui->foodbatch_retrieved, 0, sizeof(struct foodbatch));
 
-    // Only set the bounds of the panel, draw everything inside based on it on the draw register food screen function
+    // Only set the bounds of the panel, draw everything inside based on it on the draw foodbatch info panel function
     ui->panel_bounds = (Rectangle) { ui->tb_name.bounds.x + ui->tb_name.bounds.width + 10, 10, 300, 250 };
 
     ui->sp_table_view = scrollpanel_init(

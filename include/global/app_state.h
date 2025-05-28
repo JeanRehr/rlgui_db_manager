@@ -29,10 +29,8 @@ enum app_state {
      * @brief Central hub after authentication
      * 
      * Provides navigation to all major application features.
-     * Transitions to:
-     * - STATE_REGISTER_RESIDENT
-     * - STATE_REGISTER_FOOD
-     * - STATE_LOGIN_MENU on logout
+     * May transitions to all other states.
+     * 
      */
     STATE_MAIN_MENU,
 
@@ -43,7 +41,7 @@ enum app_state {
      * Transitions back to:
      * - STATE_MAIN_MENU on going back
      */
-    STATE_REGISTER_RESIDENT,
+    STATE_MANAGE_RESIDENT,
 
     /**
      * @brief Food inventory registration screen
@@ -52,7 +50,7 @@ enum app_state {
      * Transitions back to:
      * - STATE_MAIN_MENU on going back
      */
-    STATE_REGISTER_FOOD,
+    STATE_MANAGE_FOOD,
 
     /**
      * @brief Medication management screen
@@ -61,7 +59,7 @@ enum app_state {
      * Transitions back to:
      * - STATE_MAIN_MENU on going back
      */
-    STATE_REGISTER_MEDICATION,
+    STATE_MANAGE_MEDICATION,
 
     /**
      * @brief Clothes management screen
@@ -70,7 +68,7 @@ enum app_state {
      * Transitions back to:
      * - STATE_MAIN_MENU on going back
      */
-    STATE_REGISTER_CLOTHES,
+    STATE_MANAGE_CLOTHES,
 
     /**
      * @brief Supplies management screen
@@ -79,7 +77,7 @@ enum app_state {
      * Transitions back to:
      * - STATE_MAIN_MENU on going back
      */
-    STATE_REGISTER_SUPPLIES,
+    STATE_MANAGE_SUPPLIES,
 
     /**
      * @brief Create user screen

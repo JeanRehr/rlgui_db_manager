@@ -198,19 +198,19 @@ int main(void) {
         case STATE_MAIN_MENU:
             ui_main_menu.base.render(&ui_main_menu.base, &app_state, &error, &user_db);
             break;
-        case STATE_REGISTER_RESIDENT:
+        case STATE_MANAGE_RESIDENT:
             ui_resident.base.render(&ui_resident.base, &app_state, &error, &resident_db);
             break;
-        case STATE_REGISTER_FOOD:
+        case STATE_MANAGE_FOOD:
             ui_food.base.render(&ui_food.base, &app_state, &error, &foodbatch_db);
             break;
-        case STATE_REGISTER_MEDICATION:
+        case STATE_MANAGE_MEDICATION:
             ui_medication.base.render(&ui_medication.base, &app_state, &error, &medication_db);
             break;
-        case STATE_REGISTER_CLOTHES:
+        case STATE_MANAGE_CLOTHES:
             ui_clothes.base.render(&ui_clothes.base, &app_state, &error, &clothes_db);
             break;
-        case STATE_REGISTER_SUPPLIES:
+        case STATE_MANAGE_SUPPLIES:
             ui_supplies.base.render(&ui_supplies.base, &app_state, &error, &supplies_db);
             break;
         case STATE_CREATE_USER:

@@ -161,7 +161,7 @@ void ui_resident_init(struct ui_resident *ui) {
         "Retrieve All"
     );
 
-    // Only set the bounds of the panel, draw everything inside based on it on the draw register resident screen function
+    // Only set the bounds of the panel, draw everything inside based on it on the draw resident info function
     ui->panel_bounds = (Rectangle) { ui->tb_name.bounds.x + ui->tb_name.bounds.width + 10, 10, 300, 250 };
 
     memset(&ui->resident_retrieved, 0, sizeof(struct resident));
