@@ -341,6 +341,22 @@ static void ui_clothes_handle_buttons(
     }
 }
 
+/**
+ * @brief Manages clothes-related warning/confirmation dialogs
+ * 
+ * @implements ui_base.handle_warning_msg
+ * 
+ * Shows appropriate warning messages for clothes operations (e.g. removal, deletions),
+ * handles user responses, and triggers follow-up actions.
+ *
+ * @param base Pointer to base UI structure (can be safely cast to ui_food*)
+ * @param state Pointer to application state
+ * @param error Pointer to error tracking variable
+ * @param clothes_db Pointer to food database connection
+ * 
+ * @warning May trigger database operations on confirmation
+ * 
+ */
 static void ui_clothes_handle_warning_msg(
     struct ui_base *base,
     enum app_state *state,
@@ -417,6 +433,19 @@ static void ui_clothes_handle_warning_msg(
     }
 }
 
+/**
+ * @brief Updates clothes UI element positions for window resizing
+ * 
+ * @implements ui_base.update_positions
+ *
+ * @param base Pointer to base UI structure (can be safely cast to ui_clothes*)
+ * 
+ * @note If any ui element is initialized with window_width or window_height
+ *       in their bounds, they must be updated here
+ * 
+ * @warning Should be called on window resize events
+ * 
+ */
 static void ui_clothes_update_positions(struct ui_base *base) {
     struct ui_clothes *ui = (struct ui_clothes *)base;
 
@@ -431,6 +460,16 @@ static void ui_clothes_update_positions(struct ui_base *base) {
     ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
+/**
+ * @brief Clears all clothes-related input fields
+ * 
+ * @implements ui_base.clear_fields
+ *
+ * @param base Pointer to base UI structure (can be safely cast to ui_clothes*)
+ * 
+ * @post All text inputs and selections are reset to defaults
+ * 
+ */
 static void ui_clothes_clear_fields(struct ui_base *base) {
     struct ui_clothes *ui = (struct ui_clothes *)base;
 
@@ -444,6 +483,16 @@ static void ui_clothes_clear_fields(struct ui_base *base) {
     ui->ib_clothes_id.input = 0;
 }
 
+/**
+ * @brief Cleans up clothes screen resources
+ * 
+ * @implements ui_base.cleanup
+ *
+ * @param base Pointer to base UI structure (can be safely cast to ui_food*)
+ * 
+ * @warning Frees any allocated buffers/memory
+ * 
+ */
 static void ui_clothes_cleanup(struct ui_base *base) {
     struct ui_clothes *ui = (struct ui_clothes *)base;
 
@@ -467,7 +516,7 @@ static void ui_clothes_cleanup(struct ui_base *base) {
  * @param error Error code to set if operation fails
  * @param action Database action to perform with parameters
  * @param clothes_db Database connection
- * 
+ *
  */
 static void process_db_action_in_warning(
     struct ui_clothes *ui,
