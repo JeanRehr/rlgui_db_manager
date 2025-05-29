@@ -4,6 +4,8 @@
  */
 #include "ui/screens/ui_medication.h"
 
+#include <limits.h> // For INT_MAX
+
 #include <external/raylib/raygui.h>
 
 #include "db/medication_db.h"
@@ -12,7 +14,12 @@
 
 /* Forward declarations */
 
-static void ui_medication_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *medication_db);
+static void ui_medication_render(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *medication_db
+);
 
 static void ui_medication_handle_buttons(
     struct ui_base *base,
@@ -35,6 +42,70 @@ void ui_medication_init(struct ui_medication *ui) {
     // Initialize ui specific fields
 
     ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
+
+    ui->tb_name = textbox_init(
+        (Rectangle) { 20, ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        "Medication Name:"
+    );
+    ui->tb_generic_name = textbox_init(
+        (Rectangle) { 20, ui->tb_name.bounds.y + ui->tb_name.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        "Generic Name:"
+    );
+    ui->tb_form = textbox_init(
+        (Rectangle) { 20, ui->tb_generic_name.bounds.y + ui->tb_generic_name.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        "Form:"
+    );
+    ui->tb_strength = textbox_init(
+        (Rectangle) { 20, ui->tb_form.bounds.y + ui->tb_form.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        "Strength:"
+    );
+    ui->tb_unit = textbox_init(
+        (Rectangle) { 20, ui->tb_strength.bounds.y + ui->tb_strength.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        "Unit:"
+    );
+    ui->ib_stock = intbox_init(
+        (Rectangle) { 20, ui->tb_unit.bounds.y + ui->tb_unit.bounds.height + (FONT_SIZE * 2), 130, 30 },
+        "Stock:",
+        0,
+        INT_MAX
+    );
+
+    ui->expirationDateText = (Rectangle) { 20,
+                                           ui->ib_stock.bounds.y + ui->ib_stock.bounds.height + (FONT_SIZE * 2),
+                                           MeasureText("Expiration date:", FONT_SIZE),
+                                           20 };
+
+    ui->ib_year = intbox_init(
+        (Rectangle) { 20, ui->expirationDateText.y + ui->expirationDateText.height + (FONT_SIZE * 2), 40, 30 },
+        "Year",
+        0,
+        9999
+    );
+
+    ui->ib_month = intbox_init(
+        (Rectangle) { ui->ib_year.bounds.x + ui->ib_year.bounds.width + 5,
+                      ui->expirationDateText.y + ui->expirationDateText.height + (FONT_SIZE * 2),
+                      35,
+                      30 },
+        "Month",
+        0,
+        12
+    );
+
+    ui->ib_day = intbox_init(
+        (Rectangle) { ui->ib_month.bounds.x + ui->ib_month.bounds.width + 5,
+                      ui->expirationDateText.y + ui->expirationDateText.height + (FONT_SIZE * 2),
+                      35,
+                      30 },
+        "Day",
+        0,
+        31
+    );
+
+    ui->tb_notes = textbox_init(
+        (Rectangle) { 20, ui->ib_year.bounds.y + ui->ib_year.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        "General notes:"
+    );
 
     ui->flag = 0;
 }
@@ -69,7 +140,41 @@ static void ui_medication_render(
 ) {
     struct ui_medication *ui = (struct ui_medication *)base;
 
+    textbox_draw(&ui->tb_name);
+    textbox_draw(&ui->tb_generic_name);
+    textbox_draw(&ui->tb_form);
+    textbox_draw(&ui->tb_strength);
+    textbox_draw(&ui->tb_unit);
+    intbox_draw(&ui->ib_stock);
+
+    GuiLabel(ui->expirationDateText, "Expiration date:");
+
+    intbox_draw(&ui->ib_year);
+    GuiLabel(
+        (Rectangle) { ui->ib_year.bounds.x + ui->ib_year.bounds.width - 1,
+                      ui->ib_year.bounds.y + (ui->ib_year.bounds.height / 2) - 5,
+                      10,
+                      10 },
+        "-"
+    );
+    intbox_draw(&ui->ib_month);
+    GuiLabel(
+        (Rectangle) { ui->ib_month.bounds.x + ui->ib_month.bounds.width - 1,
+                      ui->ib_month.bounds.y + (ui->ib_month.bounds.height / 2) - 5,
+                      10,
+                      10 },
+        "-"
+    );
+    intbox_draw(&ui->ib_day);
+
+    textbox_draw(&ui->tb_notes);
+
     ui->base.handle_buttons(&ui->base, state, error, medication_db);
+
+    if (IS_FLAG_SET(&ui->flag, FLAG_MEDICATION_OPERATION_DONE)) {
+        ui->base.clear_fields(&ui->base);
+        CLEAR_FLAG(&ui->flag, FLAG_MEDICATION_OPERATION_DONE);
+    }
 }
 
 /**
