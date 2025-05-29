@@ -676,6 +676,19 @@ static void handle_retrieve_all_button(struct ui_food *ui, database *foodbatch_d
     return;
 }
 
+/**
+ * @internal
+ * @brief Processes database actions triggered by warning messages
+ * 
+ * Handles food update, deletion and other DB operations that may be requested
+ * through warning message dialogs.
+ * 
+ * @param ui UI context
+ * @param error Error code to set if operation fails
+ * @param action Database action to perform with parameters
+ * @param foodbatch_db Database connection
+ * 
+ */
 static void process_db_action_in_warning(
     struct ui_food *ui,
     enum error_code *error,
