@@ -58,4 +58,16 @@
   */
 #define FONT_SIZE 16
 
+/**
+  * @def DATE_LEN
+  * @brief Length of date for use in all date character arrays
+  *
+  * Defines the length of date to be used consistently
+  * throughout all application screens.
+  *
+  * @note Should be ISO 8601 formatted date (YYYY-MM-DD + null)
+  *
+  */
+#define DATE_LEN 11
+
 #endif // CONSTANTS_H
