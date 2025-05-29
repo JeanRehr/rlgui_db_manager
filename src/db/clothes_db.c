@@ -240,7 +240,7 @@ int clothes_db_remove(
     }
 
     // If we get here it means not enough stock
-    fprintf(stderr, "Stock quantityt cannot go below 0.\n");
+    fprintf(stderr, "Stock quantity cannot go below 0.\n");
     return SQLITE_CONSTRAINT;
 }
 
