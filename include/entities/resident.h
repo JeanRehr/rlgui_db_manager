@@ -33,7 +33,7 @@ struct resident {
     char needs[MAX_INPUT];         ///< Special needs or requirements
     bool medical_assistance;       ///< Whether medical assistance is required
     enum gender gender;            ///< Gender (0=Other, 1=Male, 2=Female)
-    char entry_date[11];           ///< ISO 8601 formatted date (YYYY-MM-DD + null)
+    char entry_date[DATE_LEN];     ///< ISO 8601 formatted date (YYYY-MM-DD + null)
 };
 
 #endif // RESIDENT_H
