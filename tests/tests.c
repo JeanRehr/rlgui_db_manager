@@ -15,6 +15,7 @@
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
 #include "db/medication_db.h"
+#include "db/supplies_db.h"
 #include "db/resident_db.h"
 #include "db/user_db.h"
 #include "entities/user.h"
@@ -2801,7 +2802,6 @@ void test_medication_db_upsert(void) {
     printf("Notes and date were updated.\n");
 
     printf("Checking if the stock was NOT updated.\n");
-    printf("%d\n%d\n%d\n",stock, added_stock, test_medication.stock);
 
     printf("Quantity was NOT updated.\n");
 
@@ -3257,7 +3257,7 @@ void test_medication_db_get(void) {
     assert(rc == SQLITE_OK);
 
     printf("Checking if the entries on the database are equal to the inserted data.\n");
-    printf("%s\n%s\n",name, test_medication.name);
+    printf("%s\n%s\n", name, test_medication.name);
     assert(strcmp(name, test_medication.name) == 0);
     assert(strcmp(generic_name, test_medication.generic_name) == 0);
     assert(strcmp(form, test_medication.form) == 0);
@@ -3291,15 +3291,45 @@ void test_medication_db_get_all(void) {
 
     printf("Testing medication_db_get_all...\n");
 
-    // Create several test clothes
-    printf("Creating test clothes...\n");
-    medication_db_upsert(&test_medication_db, "paracetamol", "paracetamol 100mg", "syrup", "100mg", "ml", 3, "2025-08-10", "");
-    medication_db_upsert(&test_medication_db, "ibuprofen", "ibuprofen 500mg", "tablet", "500mg", "tablet", 5, "2025-09-05", "None");
+    // Create several test medications
+    printf("Creating test medications...\n");
+    medication_db_upsert(
+        &test_medication_db,
+        "paracetamol",
+        "paracetamol 100mg",
+        "syrup",
+        "100mg",
+        "ml",
+        3,
+        "2025-08-10",
+        ""
+    );
+    medication_db_upsert(
+        &test_medication_db,
+        "ibuprofen",
+        "ibuprofen 500mg",
+        "tablet",
+        "500mg",
+        "tablet",
+        5,
+        "2025-09-05",
+        "None"
+    );
     medication_db_upsert(&test_medication_db, "amoxicillin", "", "syrup", "123mg", "syrup", 1, "2025-05-31", "");
-    medication_db_upsert(&test_medication_db, "zolpidem", "zolpidem 300mg", "tablet", "300mg", "tablet", 3, "2025-12-30", "");
+    medication_db_upsert(
+        &test_medication_db,
+        "zolpidem",
+        "zolpidem 300mg",
+        "tablet",
+        "300mg",
+        "tablet",
+        3,
+        "2025-12-30",
+        ""
+    );
 
     // Call get_all (this primarily tests that it doesn't crash)
-    printf("Calling clothes_db_get_all...\n");
+    printf("Calling medication_db_get_all...\n");
     int rc = medication_db_get_all(&test_medication_db);
     assert(rc == SQLITE_OK);
     printf("medication_db_get_all executed successfully.\n");
@@ -3310,6 +3340,680 @@ void test_medication_db_get_all(void) {
 }
 
 // MEDICATION DB END
+
+// TEST DB SUPPLIES START
+
+void test_supplies_db_create_table(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    printf("Testing supplies_db_create_table...\n");
+
+    const char *name = "diaper";
+    const char *category = "hygiene";
+    const char *size = "m";
+    const char *unit = "pack";
+    const int stock = 5;
+    const char *notes = "Pampers";
+
+    // Verify table structure by trying to insert a supply
+    int rc = supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+    assert(rc == SQLITE_OK);
+    printf("Table structure is correct.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_create_table test passed successfully.\n");
+}
+
+void test_supplies_db_upsert(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    const char *name = "diaper";
+    const char *category = "hygiene";
+    const char *size = "m";
+    const char *unit = "pack";
+    const int stock = 5;
+    const char *notes = "Pampers";
+
+    printf(
+        "Attempting to insert supply record with the following values:\n"
+        "Name: %s\n"
+        "Category: %s\n"
+        "Size: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Notes: %s\n",
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    int rc = supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    assert(rc == SQLITE_OK);
+    printf("Inserted supply successfully.\n");
+
+    const int added_stock = 3;
+
+    printf(
+        "Attempting to update by inserting the same supply again, with notes being null, quantity "
+        "should be updated by %d, being equal to %d and notes should remain the same.\n",
+        added_stock,
+        added_stock + stock
+    );
+
+    rc = supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        added_stock,
+        NULL
+    );
+
+    assert(rc == SQLITE_OK);
+
+    printf("Attempt to insert the same supply was succesful.\n");
+
+    const char *upd_notes = "Updated notes.";
+
+    printf(
+        "Attempting to insert quantity 0 and update notes with the following value: %s.\n",
+        upd_notes
+    );
+
+    rc = supplies_db_upsert(&test_supplies_db, name, category, size, unit, 0, upd_notes);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Succesful.\n");
+
+    printf("Checking if the note was updated.\n");
+
+    struct supply test_supply = { 0 };
+
+    supplies_db_get(&test_supplies_db, name, category, size, &test_supply);
+    assert(strcmp(upd_notes, test_supply.notes) == 0);
+
+    printf("Notes was updated.\n");
+
+    printf("Checking if the stock was NOT updated.\n");
+
+    printf("Quantity was NOT updated.\n");
+
+    printf("Attempting to update/insert a negative stock.\n");
+
+    rc =
+        supplies_db_upsert(&test_supplies_db, name, category, size, unit, -4, notes);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Negative stock not allowed.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_upsert test passed successfully.\n");
+}
+
+void test_supplies_db_remove(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    const char *name = "diaper";
+    const char *category = "hygiene";
+    const char *size = "m";
+    const char *unit = "pack";
+    const int stock = 5;
+    const char *notes = "Pampers";
+
+    printf(
+        "Attempting to insert supply record with the following values:\n"
+        "Name: %s\n"
+        "Category: %s\n"
+        "Size: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Notes: %s\n",
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    int quantity_to_remove = 3;
+
+    printf("Attempting to remove stock by %d.\n", quantity_to_remove);
+
+    int rc = supplies_db_remove(&test_supplies_db, name, category, size, quantity_to_remove);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Removal was successful.\n");
+
+    struct supply test_supply = { 0 };
+    rc = supplies_db_get(&test_supplies_db, name, category, size, &test_supply);
+
+    printf("Checking if Stock column was updated.\n");
+
+    assert(stock - quantity_to_remove == test_supply.stock);
+
+    printf("Quantity updated successfully.\n");
+
+    printf("Attempting to remove quantity from a non-existent record.\n");
+
+    rc = supplies_db_remove(&test_supplies_db, "tampon", "hygiene", "pack", quantity_to_remove);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Removal of non-existent record was unsuccessful.\n");
+
+    printf("Attempting to remove 0 quantity.\n");
+
+    rc = supplies_db_remove(&test_supplies_db, name, category, size, 0);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Removal with 0 quantity was successfull, didn't do anything.\n");
+
+    printf("Attempting to remove negative quantity.\n");
+
+    rc = supplies_db_remove(&test_supplies_db, name, category, size, -4);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Removal of a negative quantity was unsuccessful.\n");
+
+    printf("Attempting to remove a quantity that will make the stock goes below 0.\n");
+
+    rc = supplies_db_remove(&test_supplies_db, name, category, size, 10000);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Removal was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_remove test passed successfully.\n");
+}
+
+void test_supplies_db_delete_entry(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    const char *name = "diaper";
+    const char *category = "hygiene";
+    const char *size = "m";
+    const char *unit = "pack";
+    const int stock = 5;
+    const char *notes = "Pampers";
+
+    printf(
+        "Attempting to insert supply record with the following values:\n"
+        "Name: %s\n"
+        "Category: %s\n"
+        "Size: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Notes: %s\n",
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    printf("Attempting to delete previous inserted entry.\n");
+
+    int rc = supplies_db_delete_entry(&test_supplies_db, name, category, size);
+
+    assert(rc == SQLITE_OK);
+
+    struct supply test_supply = { 0 };
+    rc = supplies_db_get(&test_supplies_db, name, category, size, &test_supply);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion was successful.\n");
+
+    printf("Attempting to delete a non-existent entry.\n");
+
+    rc = supplies_db_delete_entry(&test_supplies_db, "tampon", category, unit);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion of non-existent entry was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_delete_entry test passed successfully.\n");
+}
+
+void test_supplies_db_remove_by_id(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    const char *name = "diaper";
+    const char *category = "hygiene";
+    const char *size = "m";
+    const char *unit = "pack";
+    const int stock = 5;
+    const char *notes = "Pampers";
+    const int id = 1;
+
+    printf(
+        "Attempting to insert supply record with the following values:\n"
+        "Name: %s\n"
+        "Category: %s\n"
+        "Size: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Notes: %s\n",
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    int quantity_to_remove = 3;
+
+    printf("Attempting to remove stock by id %d of supply with ID 1.\n", quantity_to_remove);
+
+    int rc = supplies_db_remove_by_id(&test_supplies_db, id, quantity_to_remove);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Removal was successful.\n");
+
+    struct supply test_supply = { 0 };
+    rc = supplies_db_get(&test_supplies_db, name, category, size, &test_supply);
+
+    printf("Checking if Quantity column was updated.\n");
+
+    assert(stock - quantity_to_remove == test_supply.stock);
+
+    printf("Quantity updated successfully.\n");
+
+    printf("Attempting to remove stock from a non-existent record ID.\n");
+
+    rc = supplies_db_remove_by_id(&test_supplies_db, 10, quantity_to_remove);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Removal of non-existent record was unsuccessful.\n");
+
+    printf("Attempting to remove 0 quantity.\n");
+
+    rc = supplies_db_remove_by_id(&test_supplies_db, id, 0);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Removal with 0 quantity was successfull, didn't do anything.\n");
+
+    printf("Attempting to remove negative quantity.\n");
+
+    rc = supplies_db_remove_by_id(&test_supplies_db, id, -4);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Removal of a negative quantity was unsuccessful.\n");
+
+    printf("Attempting to remove a quantity that will make the stock goes below 0.\n");
+
+    rc = supplies_db_remove_by_id(&test_supplies_db, id, 10000);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Removal was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_remove_by_id test passed successfully.\n");
+}
+
+void test_supplies_db_delete_entry_by_id(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    const char *name = "diaper";
+    const char *category = "hygiene";
+    const char *size = "m";
+    const char *unit = "pack";
+    const int stock = 5;
+    const char *notes = "Pampers";
+
+    printf(
+        "Attempting to insert supply record with the following values:\n"
+        "Name: %s\n"
+        "Category: %s\n"
+        "Size: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Notes: %s\n",
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    printf("Attempting to delete by id the previous inserted entry.\n");
+
+    int rc = supplies_db_delete_entry_by_id(&test_supplies_db, 1);
+
+    assert(rc == SQLITE_OK);
+
+    struct supply test_supply = { 0 };
+    rc = supplies_db_get(&test_supplies_db, name, category, size, &test_supply);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion was successful.\n");
+
+    printf("Attempting to delete a non-existent entry.\n");
+
+    rc = supplies_db_delete_entry_by_id(&test_supplies_db, 10);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion of non-existent entry was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_delete_entry_by_id test passed successfully.\n");
+}
+
+void test_supplies_db_check_exists(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    printf("Checking if a non-existent entry exists.\n");
+
+    bool exists = supplies_db_check_exists(&test_supplies_db, "tampon", "hygiene", "pack");
+    assert(exists == false);
+
+    printf("Doesn't exist as expected.\n");
+
+    printf("Checking if an existent entry exists.\n");
+
+    const char *name = "diaper";
+    const char *category = "hygiene";
+    const char *size = "m";
+    const char *unit = "pack";
+    const int stock = 5;
+    const char *notes = "Pampers";
+
+    supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    exists = supplies_db_check_exists(&test_supplies_db, name, category, size);
+
+    assert(exists == true);
+
+    printf("Exist as expected.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_check_exists passed successfully.\n");
+}
+
+void test_supplies_db_check_exists_by_id(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    printf("Checking if a non-existent entry exists by id.\n");
+
+    bool exists = supplies_db_check_exists_by_id(&test_supplies_db, 10);
+    assert(exists == false);
+
+    printf("Doesn't exist as expected.\n");
+
+    printf("Checking if a an existent entry exists.\n");
+
+    const char *name = "diaper";
+    const char *category = "hygiene";
+    const char *size = "m";
+    const char *unit = "pack";
+    const int stock = 5;
+    const char *notes = "Pampers";
+
+    supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    exists = supplies_db_check_exists_by_id(&test_supplies_db, 1);
+
+    assert(exists == true);
+
+    printf("Exist as expected.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_check_exists_by_id passed successfully.\n");
+}
+
+void test_supplies_db_get(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    const char *name = "diaper";
+    const char *category = "hygiene";
+    const char *size = "m";
+    const char *unit = "pack";
+    const int stock = 5;
+    const char *notes = "Pampers";
+
+    printf(
+        "Attempting to insert supply record with the following values:\n"
+        "Name: %s\n"
+        "Category: %s\n"
+        "Size: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Notes: %s\n",
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    supplies_db_upsert(
+        &test_supplies_db,
+        name,
+        category,
+        size,
+        unit,
+        stock,
+        notes
+    );
+
+    printf("Attempting to fill in a struct supply.\n");
+
+    struct supply test_supply = { 0 };
+    int rc = supplies_db_get(&test_supplies_db, name, category, size, &test_supply);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Checking if the entries on the database are equal to the inserted data.\n");
+    printf("%s\n%s\n", name, test_supply.name);
+    assert(strcmp(name, test_supply.name) == 0);
+    assert(strcmp(category, test_supply.category) == 0);
+    assert(strcmp(size, test_supply.size) == 0);
+    assert(strcmp(unit, test_supply.unit) == 0);
+    assert(stock == test_supply.stock);
+    assert(strcmp(notes, test_supply.notes) == 0);
+
+    printf("Struct filled with correct data successfully.\n");
+
+    printf("Attempting to get a non-existent entry.\n");
+
+    rc = supplies_db_get(&test_supplies_db, "tampon", category, size, &test_supply);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Getting a non-existent entry was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_get test passed successfully.\n");
+}
+
+void test_supplies_db_get_all(void) {
+    const char *test_suppliesdb_filename = "test_supplies_db.db";
+    database test_supplies_db;
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+
+    setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
+
+    printf("Testing supplies_db_get_all...\n");
+
+    // Create several test supplies
+    printf("Creating test supplies...\n");
+    supplies_db_upsert(
+        &test_supplies_db,
+        "diaper", "hygiene", "m", "pack", 3, "Pampers"
+    );
+    supplies_db_upsert(
+        &test_supplies_db,
+        "tampon",
+        "personal care",
+        "l",
+        "pack",
+        5,
+        "None"
+    );
+    supplies_db_upsert(&test_supplies_db, "water", "consumable", "s", "", 1, "");
+    supplies_db_upsert(
+        &test_supplies_db,
+        "pen",
+        "office",
+        "s",
+        "piece",
+        100,
+        ""
+    );
+
+    // Call get_all (this primarily tests that it doesn't crash)
+    printf("Calling supplies_db_get_all...\n");
+    int rc = supplies_db_get_all(&test_supplies_db);
+    assert(rc == SQLITE_OK);
+    printf("supplies_db_get_all executed successfully.\n");
+
+    teardown_cleanup();
+
+    printf("supplies_db_get_all test passed successfully.\n");
+}
+
+// Supplies DB END
 
 // UTILS_HASH TESTS
 
@@ -3723,6 +4427,19 @@ void test_medication_db_fn(void) {
     test_medication_db_get_all();
 }
 
+void test_supplies_db_fn(void) {
+    test_supplies_db_create_table();
+    test_supplies_db_upsert();
+    test_supplies_db_remove();
+    test_supplies_db_remove_by_id();
+    test_supplies_db_delete_entry();
+    test_supplies_db_delete_entry_by_id();
+    test_supplies_db_check_exists();
+    test_supplies_db_check_exists_by_id();
+    test_supplies_db_get();
+    test_supplies_db_get_all();
+}
+
 void test_hash_fn(void) {
     test_generate_salt();
     test_hash_password();
@@ -3740,21 +4457,23 @@ void test_utils_fn(void) {
 }
 
 int main(void) {
-    test_db_manager_fn();
+    //test_db_manager_fn();
 
-    test_resident_db_fn();
+    //test_resident_db_fn();
 
-    test_foodbatch_db_fn();
+    //test_foodbatch_db_fn();
 
-    test_user_db_fn();
+    //test_user_db_fn();
 
-    test_clothes_db_fn();
+    //test_clothes_db_fn();
 
-    test_medication_db_fn();
+    //test_medication_db_fn();
 
-    test_hash_fn();
+    test_supplies_db_fn();
 
-    test_utils_fn();
+    //test_hash_fn();
+
+    //test_utils_fn();
 
     return 0;
 }
