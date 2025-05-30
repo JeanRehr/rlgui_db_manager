@@ -5,7 +5,9 @@
 
 #include "db/medication_db.h"
 
+#include <inttypes.h> // For PRIu64 (compatibility for both windows and linux)
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 int medication_db_create_table(database *db) {
@@ -96,7 +98,7 @@ int medication_db_upsert(
     sqlite3_bind_text(stmt, 5, unit, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 6, stock);
 
-    if (expiration_date) {// Only substitute expiration date if it is not null
+    if (expiration_date) { // Only substitute expiration date if it is not null
         sqlite3_bind_text(stmt, 7, expiration_date, -1, SQLITE_STATIC);
     } else {
         sqlite3_bind_null(stmt, 7);
@@ -414,16 +416,16 @@ int medication_db_get(
         strcpy(medication->form, (const char *)sqlite3_column_text(stmt, 2));
 
         strcpy(medication->strength, (const char *)sqlite3_column_text(stmt, 3));
-        
+
         const char *unit_val = (const char *)sqlite3_column_text(stmt, 4);
         if (unit_val) {
             strcpy(medication->unit, unit_val);
         } else {
             medication->unit[0] = '\0';
         }
-        
+
         medication->stock = sqlite3_column_int(stmt, 5);
-        
+
         const char *expiration_date_val = (const char *)sqlite3_column_text(stmt, 6);
         if (expiration_date_val) {
             strcpy(medication->expiration_date, expiration_date_val);
@@ -476,6 +478,254 @@ int medication_db_get_count(database *db) {
     return count;
 }
 
+int medication_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return -1;
+    }
+
+    if (!buffer || buffer_size == 0) {
+        fprintf(stderr, "Invalid buffer provided.\n");
+        return -1;
+    }
+
+    const char *sql = "SELECT * FROM Medications;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return -1;
+    }
+
+    // Initialize buffer with empty string
+    buffer[0] = '\0';
+    size_t written = 0;
+
+    // Format header
+    const char *header =
+        "+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n"
+        "| ID  | Name                     | GenericName              | Form             | Strength         | Unit                     | Stock | ExpirationDate | Notes                    |\n"
+        "+-----+--------------------------+--------------------------+------------------+------------------+--------------------------+-------+----------------+--------------------------+\n";
+
+    // Write header if there's space
+    size_t header_len = strlen(header);
+    if (written + header_len < buffer_size) {
+        strcpy(buffer + written, header);
+        written += header_len;
+    } else {
+        // Truncate but ensure null termination
+        if (buffer_size > 0) {
+            strncpy(buffer, header, buffer_size - 1);
+            buffer[buffer_size - 1] = '\0';
+        }
+        sqlite3_finalize(stmt);
+        fprintf(stderr, "Header truncated\n");
+        return -1;
+    }
+
+    // Process each row
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        int id = sqlite3_column_int(stmt, 0);
+        const char *name = (const char *)sqlite3_column_text(stmt, 1);
+        const char *generic_name = (const char *)sqlite3_column_text(stmt, 2);
+        const char *form = (const char *)sqlite3_column_text(stmt, 3);
+        const char *strength = (const char *)sqlite3_column_text(stmt, 4);
+        const char *unit = (const char *)sqlite3_column_text(stmt, 5);
+        int stock = sqlite3_column_int(stmt, 6);
+        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 7);
+        const char *notes = (const char *)sqlite3_column_text(stmt, 8);
+
+        // Format the row
+        char row[4096];
+        snprintf(
+            row,
+            sizeof(row),
+            "| %-3d | %-24s | %-24s | %-16s | %-16s | %-24s | %-5d | %-14s | %-24s |\n",
+            id,
+            name,
+            generic_name,
+            form,
+            strength,
+            unit,
+            stock,
+            expiration_date,
+            notes
+        );
+
+        size_t row_len = strlen(row);
+        if (written + row_len < buffer_size) {
+            strcpy(buffer + written, row);
+            written += row_len;
+        } else {
+            // Truncate but ensure null termination
+            if (buffer_size > 0) {
+                strncpy(buffer, row, buffer_size - 1);
+                buffer[buffer_size - 1] = '\0';
+            }
+            sqlite3_finalize(stmt);
+            fprintf(stderr, "Row truncated\n");
+            return -1;
+        }
+
+        // Add separator line
+        const char *separator =
+            "+-----+--------------------------+--------------------------+------------------+------------------+--------------------------+-------+----------------+--------------------------+\n";
+
+        size_t separator_len = strlen(separator);
+        if (written + separator_len < buffer_size) {
+            strcpy(buffer + written, separator);
+            written += separator_len;
+        } else {
+            // Truncate but ensure null termination
+            if (buffer_size > 0) {
+                strncpy(buffer, separator, buffer_size - 1);
+                buffer[buffer_size - 1] = '\0';
+            }
+            sqlite3_finalize(stmt);
+            fprintf(stderr, "Separator truncated\n");
+            return -1;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute query: %s\n", sqlite3_errmsg(db->db));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    return written;
+}
+
+char *medication_db_get_all_format_old(database *db) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return NULL;
+    }
+
+    const char *sql = "SELECT * FROM Medications;";
+    sqlite3_stmt *stmt;
+
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return NULL;
+    }
+
+    // Initial buffer
+    size_t buffer_size = 4096;
+    char *result = malloc(buffer_size);
+    if (!result) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+    result[0] = '\0';                     // Initialize empty string
+    size_t total_allocated = buffer_size; // Track total bytes allocated
+
+    // Append header to the result string
+    const char *header =
+        "+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n"
+        "| ID  | Name                     | GenericName              | Form             | Strength         | Unit                     | Stock | ExpirationDate | Notes                    |\n"
+        "+-----+--------------------------+--------------------------+------------------+------------------+--------------------------+-------+----------------+--------------------------+\n";
+
+    // Check if buffer is large enough for the header
+    if (strlen(header) + 1 > buffer_size) {
+        buffer_size = strlen(header) + 1;
+        result = realloc(result, buffer_size);
+        printf("REALLOC CALLED DURING HEADER!\n");
+        if (!result) {
+            fprintf(stderr, "Memory reallocation failed.\n");
+            sqlite3_finalize(stmt);
+            return NULL;
+        }
+        total_allocated += (buffer_size - total_allocated); // Update total allocated
+    }
+    strcpy(result, header);
+
+    // Process each row
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        int id = sqlite3_column_int(stmt, 0);
+        const char *name = (const char *)sqlite3_column_text(stmt, 1);
+        const char *generic_name = (const char *)sqlite3_column_text(stmt, 2);
+        const char *form = (const char *)sqlite3_column_text(stmt, 3);
+        const char *strength = (const char *)sqlite3_column_text(stmt, 4);
+        const char *unit = (const char *)sqlite3_column_text(stmt, 5);
+        int stock = sqlite3_column_int(stmt, 6);
+        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 7);
+        const char *notes = (const char *)sqlite3_column_text(stmt, 8);
+
+        // Format the row
+        char row[5192];
+        snprintf(
+            row,
+            sizeof(row),
+            "| %-3d | %-24s | %-24s | %-16s | %-16s | %-24s | %-5d | %-14s | %-24s |\n",
+            id,
+            name,
+            generic_name,
+            form,
+            strength,
+            unit,
+            stock,
+            expiration_date,
+            notes
+        );
+
+        // Check if buffer needs to grow
+        size_t required_size = strlen(result) + strlen(row) + 1;
+        if (required_size > buffer_size) {
+            size_t old_size = buffer_size;
+            buffer_size = required_size * 2; // Double the buffer to reduce realloc calls
+            char *new_result = realloc(result, buffer_size);
+            printf("REALLOC CALLED DURING ROW FORMATTING!\n");
+            if (!new_result) {
+                fprintf(stderr, "Memory reallocation failed.\n");
+                free(result);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            result = new_result;
+            total_allocated += (buffer_size - old_size); // Update total allocated
+        }
+
+        // Append the row to the result
+        strcat(result, row);
+
+        // Add separator line
+        const char *separator =
+            "+-----+--------------------------+--------------------------+------------------+------------------+--------------------------+-------+----------------+--------------------------+\n";
+
+        required_size = strlen(result) + strlen(separator) + 1;
+        if (required_size > buffer_size) {
+            size_t old_size = buffer_size;
+            buffer_size = required_size * 2;
+            char *new_result = realloc(result, buffer_size);
+            printf("REALLOC CALLED DURING SEPARATOR!\n");
+            if (!new_result) {
+                fprintf(stderr, "Memory reallocation failed.\n");
+                free(result);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            result = new_result;
+            total_allocated += (buffer_size - old_size); // Update total allocated
+        }
+        strcat(result, separator);
+    }
+
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute query: %s\n", sqlite3_errmsg(db->db));
+        free(result);
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+
+    sqlite3_finalize(stmt);
+    printf("Total bytes allocated: %" PRIu64 "\n", total_allocated);
+    return result; // Caller must free() this memory!
+}
+
 int medication_db_get_all(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -522,7 +772,7 @@ int medication_db_get_all(database *db) {
             notes
         );
         printf(
-        "+-----+--------------------------+--------------------------+------------------+------------------+--------------------------+-------+----------------+--------------------------+\n"
+            "+-----+--------------------------+--------------------------+------------------+------------------+--------------------------+-------+----------------+--------------------------+\n"
         );
     }
 
