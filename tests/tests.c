@@ -14,6 +14,7 @@
 #include "db/clothes_db.h"
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
+#include "db/medication_db.h"
 #include "db/resident_db.h"
 #include "db/user_db.h"
 #include "entities/user.h"
@@ -758,7 +759,7 @@ void test_resident_db_get_all(void) {
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
-    printf("Testing foodbatch_db_get_all...\n");
+    printf("Testing resident_db_get_all...\n");
 
     // Create several test residents
     printf("Creating test residents...\n");
@@ -2330,11 +2331,7 @@ void test_clothes_db_remove_by_id(void) {
 
     printf("Attempting to remove quantity by id %d of clothes with ID 1.\n", quantity_to_remove);
 
-    int rc = clothes_db_remove_by_id(
-        &test_clothes_db,
-        id,
-        quantity_to_remove
-    );
+    int rc = clothes_db_remove_by_id(&test_clothes_db, id, quantity_to_remove);
 
     assert(rc == SQLITE_OK);
 
@@ -2352,11 +2349,7 @@ void test_clothes_db_remove_by_id(void) {
 
     printf("Attempting to remove quantity from a non-existent record ID.\n");
 
-    rc = clothes_db_remove_by_id(
-        &test_clothes_db,
-        10,
-        quantity_to_remove
-    );
+    rc = clothes_db_remove_by_id(&test_clothes_db, 10, quantity_to_remove);
 
     assert(rc == SQLITE_NOTFOUND);
 
@@ -2629,7 +2622,694 @@ void test_clothes_db_get(void) {
     printf("clothes_db_get test passed successfully.\n");
 }
 
+void test_clothes_db_get_all(void) {
+    const char *test_clothesdb_filename = "test_clothes_db.db";
+    database test_clothes_db;
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+
+    setup_cleanup(test_clothesdb_filename, &test_clothes_db);
+
+    printf("Testing clothes_db_get_all...\n");
+
+    // Create several test clothes
+    printf("Creating test clothes...\n");
+    clothes_db_upsert(&test_clothes_db, COATS, XL, FEMALE, CL_BLACK, NEW, 10, "None");
+    clothes_db_upsert(&test_clothes_db, SHIRTS, S, MALE, CL_RED, NEEDS_REPAIR, 1, "Zara brand");
+    clothes_db_upsert(&test_clothes_db, SWIMWEARS, XS, FEMALE, CL_WHITE, WORN, 2, NULL);
+    clothes_db_upsert(&test_clothes_db, BOOTS, M, OTHER, CL_BROWN, NEW, 3, "");
+
+    // Call get_all (this primarily tests that it doesn't crash)
+    printf("Calling clothes_db_get_all...\n");
+    int rc = clothes_db_get_all(&test_clothes_db);
+    assert(rc == SQLITE_OK);
+    printf("clothes_db_get_all executed successfully.\n");
+
+    teardown_cleanup();
+
+    printf("clothes_db_get_all test passed successfully.\n");
+}
+
 // TEST DB CLOTHES END
+
+// TEST DB MEDICATION START
+
+void test_medication_db_create_table(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+
+    printf("Testing medication_db_create_table...\n");
+
+    const char *name = "paracetamol";
+    const char *generic_name = "paracetamol 500mg";
+    const char *form = "tablet";
+    const char *strength = "500mg";
+    const char *unit = "tablet";
+    const int stock = 3;
+    const char *expiration_date = "2025-12-10";
+    const char *notes = "None";
+
+    // Verify table structure by trying to insert a clothing
+    int rc = medication_db_upsert(
+        &test_medication_db,
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        stock,
+        expiration_date,
+        notes
+    );
+    assert(rc == SQLITE_OK);
+    printf("Table structure is correct.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_create_table test passed successfully.\n");
+}
+
+void test_medication_db_upsert(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+
+    const char *name = "paracetamol";
+    const char *generic_name = "paracetamol 500mg";
+    const char *form = "tablet";
+    const char *strength = "500mg";
+    const char *unit = "tablet";
+    const int stock = 5;
+    const char *expiration_date = "2025-12-10";
+    const char *notes = "None";
+
+    printf(
+        "Attempting to insert medication record with the following values:\n"
+        "Name: %s\n"
+        "Generic Name: %s\n"
+        "Form: %s\n"
+        "Strength: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Expiration Date: %s\n"
+        "Notes: %s\n",
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        stock,
+        expiration_date,
+        notes
+    );
+
+    int rc = medication_db_upsert(
+        &test_medication_db,
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        stock,
+        expiration_date,
+        notes
+    );
+
+    assert(rc == SQLITE_OK);
+    printf("Inserted medication successfully.\n");
+
+    const int added_stock = 3;
+
+    printf(
+        "Attempting to update by inserting the same medication again, with notes being null, quantity "
+        "should be updated by %d, being equal to %d and notes should remain the same.\n",
+        added_stock,
+        added_stock + stock
+    );
+
+    rc = medication_db_upsert(
+        &test_medication_db,
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        added_stock,
+        expiration_date,
+        NULL
+    );
+
+    assert(rc == SQLITE_OK);
+
+    printf("Attempt to insert the same clothing was succesful.\n");
+
+    printf("Attempting to insert a NULL date.\n");
+
+    rc = medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, 0, NULL, NULL);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Attempt to insert the same clothing with NULL date was succesful.\n");
+
+    const char *upd_notes = "Updated notes.";
+    const char *upd_date = "2000-01-01";
+
+    printf(
+        "Attempting to insert quantity 0 and update notes and date with the following values: %s and %s.\n",
+        upd_notes,
+        upd_date
+    );
+
+    rc = medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, 0, upd_date, upd_notes);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Succesful.\n");
+
+    printf("Checking if the note and date entry was updated.\n");
+
+    struct medication test_medication = { 0 };
+
+    medication_db_get(&test_medication_db, name, form, strength, &test_medication);
+    assert(strcmp(upd_notes, test_medication.notes) == 0);
+    assert(strcmp(upd_date, test_medication.expiration_date) == 0);
+
+    printf("Notes and date were updated.\n");
+
+    printf("Checking if the stock was NOT updated.\n");
+    printf("%d\n%d\n%d\n",stock, added_stock, test_medication.stock);
+
+    printf("Quantity was NOT updated.\n");
+
+    printf("Attempting to update/insert a negative stock.\n");
+
+    rc =
+        medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, -4, expiration_date, notes);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Negative stock not allowed.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_upsert test passed successfully.\n");
+}
+
+void test_medication_db_remove(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+    const char *name = "paracetamol";
+    const char *generic_name = "paracetamol 500mg";
+    const char *form = "tablet";
+    const char *strength = "500mg";
+    const char *unit = "tablet";
+    const int stock = 10;
+    const char *expiration_date = "2025-12-10";
+    const char *notes = "None";
+
+    printf(
+        "Attempting to insert medication record with the following values:\n"
+        "Name: %s\n"
+        "Generic Name: %s\n"
+        "Form: %s\n"
+        "Strength: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Expiration Date: %s\n"
+        "Notes: %s\n",
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        stock,
+        expiration_date,
+        notes
+    );
+
+    medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, stock, expiration_date, notes);
+
+    int quantity_to_remove = 3;
+
+    printf("Attempting to remove stock by %d.\n", quantity_to_remove);
+
+    int rc = medication_db_remove(&test_medication_db, name, form, strength, quantity_to_remove);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Removal was successful.\n");
+
+    struct medication test_medication = { 0 };
+    rc = medication_db_get(&test_medication_db, name, form, strength, &test_medication);
+
+    printf("Checking if Stock column was updated.\n");
+
+    assert(stock - quantity_to_remove == test_medication.stock);
+
+    printf("Quantity updated successfully.\n");
+
+    printf("Attempting to remove quantity from a non-existent record.\n");
+
+    rc = medication_db_remove(&test_medication_db, "ritalin", "syrup", "1000mg", quantity_to_remove);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Removal of non-existent record was unsuccessful.\n");
+
+    printf("Attempting to remove 0 quantity.\n");
+
+    rc = medication_db_remove(&test_medication_db, name, form, strength, 0);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Removal with 0 quantity was successfull, didn't do anything.\n");
+
+    printf("Attempting to remove negative quantity.\n");
+
+    rc = medication_db_remove(&test_medication_db, name, form, strength, -4);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Removal of a negative quantity was unsuccessful.\n");
+
+    printf("Attempting to remove a quantity that will make the stock goes below 0.\n");
+
+    rc = medication_db_remove(&test_medication_db, name, form, strength, 10000);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Removal was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_remove test passed successfully.\n");
+}
+
+void test_medication_db_delete_entry(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+
+    const char *name = "paracetamol";
+    const char *generic_name = "paracetamol 500mg";
+    const char *form = "tablet";
+    const char *strength = "500mg";
+    const char *unit = "tablet";
+    const int stock = 10;
+    const char *expiration_date = "2025-12-10";
+    const char *notes = "None";
+
+    printf(
+        "Attempting to insert medication record with the following values:\n"
+        "Name: %s\n"
+        "Generic Name: %s\n"
+        "Form: %s\n"
+        "Strength: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Expiration Date: %s\n"
+        "Notes: %s\n",
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        stock,
+        expiration_date,
+        notes
+    );
+
+    medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, stock, expiration_date, notes);
+
+    printf("Attempting to delete previous inserted entry.\n");
+
+    int rc = medication_db_delete_entry(&test_medication_db, name, form, strength);
+
+    assert(rc == SQLITE_OK);
+
+    struct medication test_medication = { 0 };
+    rc = medication_db_get(&test_medication_db, name, form, strength, &test_medication);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion was successful.\n");
+
+    printf("Attempting to delete a non-existent entry.\n");
+
+    rc = medication_db_delete_entry(&test_medication_db, "ritalin", form, strength);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion of non-existent entry was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_delete_entry test passed successfully.\n");
+}
+
+void test_medication_db_remove_by_id(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+
+    const char *name = "paracetamol";
+    const char *generic_name = "paracetamol 500mg";
+    const char *form = "tablet";
+    const char *strength = "500mg";
+    const char *unit = "tablet";
+    const int stock = 10;
+    const char *expiration_date = "2025-12-10";
+    const char *notes = "None";
+    const int id = 1;
+
+    printf(
+        "Attempting to insert medication record with the following values:\n"
+        "Name: %s\n"
+        "Generic Name: %s\n"
+        "Form: %s\n"
+        "Strength: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Expiration Date: %s\n"
+        "Notes: %s\n",
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        stock,
+        expiration_date,
+        notes
+    );
+
+    medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, stock, expiration_date, notes);
+
+    int quantity_to_remove = 3;
+
+    printf("Attempting to remove stock by id %d of medication with ID 1.\n", quantity_to_remove);
+
+    int rc = medication_db_remove_by_id(&test_medication_db, id, quantity_to_remove);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Removal was successful.\n");
+
+    struct medication test_medication = { 0 };
+    rc = medication_db_get(&test_medication_db, name, form, strength, &test_medication);
+
+    printf("Checking if Quantity column was updated.\n");
+
+    assert(stock - quantity_to_remove == test_medication.stock);
+
+    printf("Quantity updated successfully.\n");
+
+    printf("Attempting to remove stock from a non-existent record ID.\n");
+
+    rc = medication_db_remove_by_id(&test_medication_db, 10, quantity_to_remove);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Removal of non-existent record was unsuccessful.\n");
+
+    printf("Attempting to remove 0 quantity.\n");
+
+    rc = medication_db_remove_by_id(&test_medication_db, id, 0);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Removal with 0 quantity was successfull, didn't do anything.\n");
+
+    printf("Attempting to remove negative quantity.\n");
+
+    rc = medication_db_remove_by_id(&test_medication_db, id, -4);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Removal of a negative quantity was unsuccessful.\n");
+
+    printf("Attempting to remove a quantity that will make the stock goes below 0.\n");
+
+    rc = medication_db_remove_by_id(&test_medication_db, id, 10000);
+
+    assert(rc == SQLITE_CONSTRAINT);
+
+    printf("Removal was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_remove_by_id test passed successfully.\n");
+}
+
+void test_medication_db_delete_entry_by_id(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+
+    const char *name = "paracetamol";
+    const char *generic_name = "paracetamol 500mg";
+    const char *form = "tablet";
+    const char *strength = "500mg";
+    const char *unit = "tablet";
+    const int stock = 10;
+    const char *expiration_date = "2025-12-10";
+    const char *notes = "None";
+
+    printf(
+        "Attempting to insert medication record with the following values:\n"
+        "Name: %s\n"
+        "Generic Name: %s\n"
+        "Form: %s\n"
+        "Strength: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Expiration Date: %s\n"
+        "Notes: %s\n",
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        stock,
+        expiration_date,
+        notes
+    );
+
+    medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, stock, expiration_date, notes);
+
+    printf("Attempting to delete by id the previous inserted entry.\n");
+
+    int rc = medication_db_delete_entry_by_id(&test_medication_db, 1);
+
+    assert(rc == SQLITE_OK);
+
+    struct medication test_medication = { 0 };
+    rc = medication_db_get(&test_medication_db, name, form, strength, &test_medication);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion was successful.\n");
+
+    printf("Attempting to delete a non-existent entry.\n");
+
+    rc = medication_db_delete_entry_by_id(&test_medication_db, 10);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Deletion of non-existent entry was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_delete_entry_by_id test passed successfully.\n");
+}
+
+void test_medication_db_check_exists(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+
+    printf("Checking if a non-existent entry exists.\n");
+
+    bool exists = medication_db_check_exists(&test_medication_db, "ritalin", "syrup", "1ug");
+    assert(exists == false);
+
+    printf("Doesn't exist as expected.\n");
+
+    printf("Checking if an existent entry exists.\n");
+
+    const char *name = "paracetamol";
+    const char *generic_name = "paracetamol 500mg";
+    const char *form = "tablet";
+    const char *strength = "500mg";
+    const char *unit = "tablet";
+    const int stock = 10;
+    const char *expiration_date = "2025-12-10";
+    const char *notes = "None";
+
+    medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, stock, expiration_date, notes);
+
+    exists = medication_db_check_exists(&test_medication_db, name, form, strength);
+
+    assert(exists == true);
+
+    printf("Exist as expected.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_check_exists passed successfully.\n");
+}
+
+void test_medication_db_check_exists_by_id(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+
+    printf("Checking if a non-existent entry exists by id.\n");
+
+    bool exists = medication_db_check_exists_by_id(&test_medication_db, 10);
+    assert(exists == false);
+
+    printf("Doesn't exist as expected.\n");
+
+    printf("Checking if a an existent entry exists.\n");
+
+    const char *name = "paracetamol";
+    const char *generic_name = "paracetamol 500mg";
+    const char *form = "tablet";
+    const char *strength = "500mg";
+    const char *unit = "tablet";
+    const int stock = 10;
+    const char *expiration_date = "2025-12-10";
+    const char *notes = "None";
+
+    medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, stock, expiration_date, notes);
+
+    exists = medication_db_check_exists_by_id(&test_medication_db, 1);
+
+    assert(exists == true);
+
+    printf("Exist as expected.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_check_exists_by_id passed successfully.\n");
+}
+
+void test_medication_db_get(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+
+    const char *name = "paracetamol";
+    const char *generic_name = "paracetamol 500mg";
+    const char *form = "tablet";
+    const char *strength = "500mg";
+    const char *unit = "tablet";
+    const int stock = 10;
+    const char *expiration_date = "2025-12-10";
+    const char *notes = "None";
+
+    printf(
+        "Attempting to insert medication record with the following values:\n"
+        "Name: %s\n"
+        "Generic Name: %s\n"
+        "Form: %s\n"
+        "Strength: %s\n"
+        "Unit: %s\n"
+        "Stock: %d\n"
+        "Expiration Date: %s\n"
+        "Notes: %s\n",
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        stock,
+        expiration_date,
+        notes
+    );
+
+    medication_db_upsert(&test_medication_db, name, generic_name, form, strength, unit, stock, expiration_date, notes);
+
+    printf("Attempting to fill in a struct medication.\n");
+
+    struct medication test_medication = { 0 };
+    int rc = medication_db_get(&test_medication_db, name, form, strength, &test_medication);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Checking if the entries on the database are equal to the inserted data.\n");
+    printf("%s\n%s\n",name, test_medication.name);
+    assert(strcmp(name, test_medication.name) == 0);
+    assert(strcmp(generic_name, test_medication.generic_name) == 0);
+    assert(strcmp(form, test_medication.form) == 0);
+    assert(strcmp(strength, test_medication.strength) == 0);
+    assert(strcmp(unit, test_medication.unit) == 0);
+    assert(stock == test_medication.stock);
+    assert(strcmp(expiration_date, test_medication.expiration_date) == 0);
+    assert(strcmp(notes, test_medication.notes) == 0);
+
+    printf("Struct filled with correct data successfully.\n");
+
+    printf("Attempting to get a non-existent entry.\n");
+
+    rc = medication_db_get(&test_medication_db, "ritalin", form, strength, &test_medication);
+
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("Getting a non-existent entry was unsuccessful.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_get test passed successfully.\n");
+}
+
+void test_medication_db_get_all(void) {
+    const char *test_medicationdb_filename = "test_medication_db.db";
+    database test_medication_db;
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+
+    setup_cleanup(test_medicationdb_filename, &test_medication_db);
+
+    printf("Testing medication_db_get_all...\n");
+
+    // Create several test clothes
+    printf("Creating test clothes...\n");
+    medication_db_upsert(&test_medication_db, "paracetamol", "paracetamol 100mg", "syrup", "100mg", "ml", 3, "2025-08-10", "");
+    medication_db_upsert(&test_medication_db, "ibuprofen", "ibuprofen 500mg", "tablet", "500mg", "tablet", 5, "2025-09-05", "None");
+    medication_db_upsert(&test_medication_db, "amoxicillin", "", "syrup", "123mg", "syrup", 1, "2025-05-31", "");
+    medication_db_upsert(&test_medication_db, "zolpidem", "zolpidem 300mg", "tablet", "300mg", "tablet", 3, "2025-12-30", "");
+
+    // Call get_all (this primarily tests that it doesn't crash)
+    printf("Calling clothes_db_get_all...\n");
+    int rc = medication_db_get_all(&test_medication_db);
+    assert(rc == SQLITE_OK);
+    printf("medication_db_get_all executed successfully.\n");
+
+    teardown_cleanup();
+
+    printf("medication_db_get_all test passed successfully.\n");
+}
+
+// MEDICATION DB END
 
 // UTILS_HASH TESTS
 
@@ -3027,6 +3707,20 @@ void test_clothes_db_fn(void) {
     test_clothes_db_check_exists();
     test_clothes_db_check_exists_by_id();
     test_clothes_db_get();
+    test_clothes_db_get_all();
+}
+
+void test_medication_db_fn(void) {
+    test_medication_db_create_table();
+    test_medication_db_upsert();
+    test_medication_db_remove();
+    test_medication_db_remove_by_id();
+    test_medication_db_delete_entry();
+    test_medication_db_delete_entry_by_id();
+    test_medication_db_check_exists();
+    test_medication_db_check_exists_by_id();
+    test_medication_db_get();
+    test_medication_db_get_all();
 }
 
 void test_hash_fn(void) {
@@ -3055,6 +3749,8 @@ int main(void) {
     test_user_db_fn();
 
     test_clothes_db_fn();
+
+    test_medication_db_fn();
 
     test_hash_fn();
 
