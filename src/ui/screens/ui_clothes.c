@@ -124,8 +124,11 @@ void ui_clothes_init(struct ui_clothes *ui) {
 
     // Initialize ui specific fields
 
+    ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
+
+
     ui->lv_type = listview_init(
-        (Rectangle) { 20, 100, 130, 155 },
+        (Rectangle) { 20, ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2), 130, 155 },
         "Clothing type:",
         "Tshirt;Shirts;Jeans;Pants;Shorts;Skirts;Dresses;Sweaters;Hoodies;Jackets;Coats;Blazers;Socks;Underwear;Swimwear;Activewear;Pajamas;Hats;Scarves;Gloves;Suits;Vests;Boots;Sneakers;Sandals;Other type"
     );
@@ -143,7 +146,7 @@ void ui_clothes_init(struct ui_clothes *ui) {
     );
 
     ui->ddb_gender = dropdownbox_init(
-        (Rectangle) { ui->lv_type.bounds.x + ui->lv_type.bounds.width + 20, 100, 130, 30 },
+        (Rectangle) { ui->lv_type.bounds.x + ui->lv_type.bounds.width + 20, ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2), 130, 30 },
         "Other;Male;Female",
         "Gender:"
     );
@@ -182,8 +185,6 @@ void ui_clothes_init(struct ui_clothes *ui) {
         0,
         INT_MAX
     );
-
-    ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
 
     ui->butn_insert = button_init((Rectangle) { 20, window_height - 60, 100, 30 }, "Insert");
 
@@ -371,6 +372,8 @@ static void ui_clothes_handle_warning_msg(
     enum clothes_screen_flags flag_to_clear = 0;
     struct ui_clothes_db_action_info action = { 0 };
     action.type = DB_ACTION_NONE;
+
+    SET_FLAG(&ui->flag, FLAG_CLOTHES_NOTFOUND);
 
     if (IS_FLAG_SET(&ui->flag, FLAG_CLOTHES_NOTFOUND)) {
         message = "Clothing not found.";

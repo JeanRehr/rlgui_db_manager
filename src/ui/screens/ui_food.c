@@ -577,7 +577,7 @@ static void handle_submit_button(struct ui_food *ui, enum error_code *error, dat
         return;
     }
 
-    char date_string[11] = { 0 }; // YYYY-MM-DD + null terminator
+    char date_string[DATE_LEN] = { 0 };
 
     snprintf(
         date_string,
