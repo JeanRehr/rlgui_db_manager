@@ -10,7 +10,7 @@
 /** 
  * @struct medication
  *
- * @brief Represents a pieace of medication record in the database
+ * @brief Represents a piece of medication record in the database
  *
  */
 struct medication {
