@@ -64,7 +64,7 @@ int supplies_db_upsert(
  *
  * @return true if the record exists, false otherwise
  */
-bool supplies_db_check_exists(database *db, const char *name, const char *category, const char *unit);
+bool supplies_db_check_exists(database *db, const char *name, const char *category, const char *size);
 
 /**
  * @brief Checks if a Supplies records exists in the database
@@ -127,7 +127,7 @@ int supplies_db_remove_by_id(database *db, const int id, const int quantity_to_r
  * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
  *
  */
-int supplies_db_delete_entry(database *db, const char *name, const char *category, const char *unit);
+int supplies_db_delete_entry(database *db, const char *name, const char *category, const char *size);
 
 /**
  * @brief Deletes a supply record by its ID data
@@ -156,7 +156,7 @@ int supplies_db_delete_entry_by_id(database *db, const int id);
  * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
  *
  */
-int supplies_db_get(database *db, const char *name, const char *category, const char *unit, struct supply *out_supply);
+int supplies_db_get(database *db, const char *name, const char *category, const char *size, struct supply *out_supply);
 
 /**
  * @brief Gets the count of registered supplies in the database

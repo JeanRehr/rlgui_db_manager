@@ -88,13 +88,13 @@ int supplies_db_upsert(
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
 }
 
-bool supplies_db_check_exists(database *db, const char *name, const char *category, const char *unit) {
+bool supplies_db_check_exists(database *db, const char *name, const char *category, const char *size) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return false;
     }
 
-    const char *sql = "SELECT 1 FROM Supplies WHERE Name=? AND Category=? AND Unit=?;";
+    const char *sql = "SELECT 1 FROM Supplies WHERE Name=? AND Category=? AND Size=?;";
 
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
@@ -106,7 +106,7 @@ bool supplies_db_check_exists(database *db, const char *name, const char *catego
     // Bind params
     sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, category, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, unit, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, size, -1, SQLITE_STATIC);
 
     bool exists = false;
     rc = sqlite3_step(stmt);
@@ -166,7 +166,7 @@ int supplies_db_remove(
     database *db,
     const char *name,
     const char *category,
-    const char *unit,
+    const char *size,
     const int quantity_to_remove
 ) {
     if (!db_is_init(db)) {
@@ -179,14 +179,14 @@ int supplies_db_remove(
         return SQLITE_CONSTRAINT;
     }
 
-    if (!supplies_db_check_exists(db, name, category, unit)) {
+    if (!supplies_db_check_exists(db, name, category, size)) {
         fprintf(stderr, "Record doesn't exists.\n");
         return SQLITE_NOTFOUND; // Row not found
     }
 
     const char *update_sql =
         "UPDATE Supplies SET Stock=Stock-? "
-        "WHERE Name=? AND Category=? AND Unit=? AND Stock >= ?;";
+        "WHERE Name=? AND Category=? AND Size=? AND Stock >= ?;";
 
     sqlite3_stmt *stmt;
 
@@ -200,7 +200,7 @@ int supplies_db_remove(
     sqlite3_bind_int(stmt, 1, quantity_to_remove);
     sqlite3_bind_text(stmt, 2, name, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 3, category, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 4, unit, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, size, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 5, quantity_to_remove);
 
     rc = sqlite3_step(stmt);
@@ -276,19 +276,19 @@ int supplies_db_remove_by_id(database *db, const int id, const int quantity_to_r
     return SQLITE_CONSTRAINT;
 }
 
-int supplies_db_delete_entry(database *db, const char *name, const char *category, const char *unit) {
+int supplies_db_delete_entry(database *db, const char *name, const char *category, const char *size) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
     }
 
-    if (!supplies_db_check_exists(db, name, category, unit)) {
+    if (!supplies_db_check_exists(db, name, category, size)) {
         fprintf(stderr, "Record not found in the dabatase.\n");
         return SQLITE_NOTFOUND;
     }
 
     // Prepare the SQL delete statement
-    const char *sql = "DELETE FROM Supplies WHERE Name=? AND Category=? AND Unit=?;";
+    const char *sql = "DELETE FROM Supplies WHERE Name=? AND Category=? AND Size=?;";
 
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
@@ -300,7 +300,7 @@ int supplies_db_delete_entry(database *db, const char *name, const char *categor
     // Bind the parameters
     sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, category, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, unit, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, size, -1, SQLITE_STATIC);
 
     // Execute the DELETE statement
     rc = sqlite3_step(stmt);
@@ -348,14 +348,14 @@ int supplies_db_delete_entry_by_id(database *db, const int id) {
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
-int supplies_db_get(database *db, const char *name, const char *category, const char *unit, struct supply *out_supply) {
+int supplies_db_get(database *db, const char *name, const char *category, const char *size, struct supply *out_supply) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
     }
 
     const char *sql =
-        "SELECT Name, Category, Size, Unit, Stock, Notes FROM Supplies WHERE Name=? AND Category=? AND Unit=?;";
+        "SELECT Name, Category, Size, Unit, Stock, Notes FROM Supplies WHERE Name=? AND Category=? AND Size=?;";
 
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
@@ -367,7 +367,7 @@ int supplies_db_get(database *db, const char *name, const char *category, const 
     // Bind the parameters
     sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, category, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, unit, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, size, -1, SQLITE_STATIC);
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
