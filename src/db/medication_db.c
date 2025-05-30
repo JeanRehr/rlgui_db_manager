@@ -17,16 +17,29 @@ int medication_db_create_table(database *db) {
     const char *sql =
         "CREATE TABLE IF NOT EXISTS Medications ("
         "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "Name TEXT NOT NULL,"               // e.g. "Paracetamol 500g"
-        "GenericName TEXT,"                 // e.g. "Paracetamol"
-        "Form TEXT,"                        // e.g. "Tablet", "Syrup", "Injection"
-        "Strength TEXT,"                    // e.g. "500mg", "5mg/ml"
-        "Unit TEXT,"                        // e.g. "Tablet", "ml", "vial"
-        "Stock INTEGER NOT NULL DEFAULT 0," // Current count in inventory
-        "ExpirationDate TEXT,"              // Soonest expiration date
-        "Notes TEXT,"                       // General notes if needed
-        "UNIQUE(Name, Form, Strength));";   // Prevents accidental duplicate entries of the same medication in the same
-                                            // dosage and form e.g. multiple "Paracetamol Tablet 500mg"
+        "Name TEXT NOT NULL,"
+        "GenericName TEXT,"
+        "Form TEXT NOT NULL,"
+        "Strength TEXT NOT NULL,"
+        "Unit TEXT,"
+        "Stock INTEGER NOT NULL DEFAULT 0,"
+        "ExpirationDate TEXT,"
+        "Notes TEXT,"
+        "UNIQUE(Name, Form, Strength)"
+        ");";
+
+    /**
+     * e.g. "Paracetamol 500g"
+     * e.g. "Paracetamol"
+     * e.g. "Tablet", "Syrup", "Injection"
+     * e.g. "500mg", "5mg/ml"
+     * e.g. "Tablet", "ml", "vial"
+     * Current count in inventory
+     * Soonest expiration date
+     * General notes if needed
+     * Prevents accidental duplicate entries of the same medication in the same
+     * dosage and form e.g. multiple "Paracetamol Tablet 500mg"
+     */
 
     char *errMsg = 0;
     int rc = sqlite3_exec(db->db, sql, 0, 0, &errMsg);
@@ -55,7 +68,6 @@ int medication_db_upsert(
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
     }
-
     if (stock < 0) {
         fprintf(stderr, "Stock cannot be less than 0.\n");
         return SQLITE_CONSTRAINT;
@@ -63,11 +75,11 @@ int medication_db_upsert(
 
     const char *sql =
         "INSERT INTO Medications "
-        "(Name, GenericaName, Form, Strength, Unit, Stock, ExpirationDate, Notes) "
+        "(Name, GenericName, Form, Strength, Unit, Stock, ExpirationDate, Notes) "
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
         "ON CONFLICT(Name, Form, Strength) DO UPDATE SET "
         "Stock = Stock + excluded.Stock, "
-        "ExpirationDate = COALESCE(excluded.EpirationDate, Medications.ExpirationDate)"
+        "ExpirationDate = COALESCE(excluded.ExpirationDate, Medications.ExpirationDate), "
         "Notes = COALESCE(excluded.Notes, Medications.Notes);";
 
     sqlite3_stmt *stmt;
@@ -77,7 +89,6 @@ int medication_db_upsert(
         return rc;
     }
 
-    // Bind params
     sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, generic_name, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 3, form, -1, SQLITE_STATIC);
@@ -85,7 +96,7 @@ int medication_db_upsert(
     sqlite3_bind_text(stmt, 5, unit, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 6, stock);
 
-    if (expiration_date) { // Only substitute expiration_date if it is not null
+    if (expiration_date) {// Only substitute expiration date if it is not null
         sqlite3_bind_text(stmt, 7, expiration_date, -1, SQLITE_STATIC);
     } else {
         sqlite3_bind_null(stmt, 7);
@@ -189,7 +200,7 @@ int medication_db_remove(
     }
 
     if (quantity_to_remove < 0) {
-        fprintf(stderr, "Quantity cannot be less than 0.\n");
+        fprintf(stderr, "Stock cannot be less than 0.\n");
         return SQLITE_CONSTRAINT;
     }
 
@@ -199,8 +210,8 @@ int medication_db_remove(
     }
 
     const char *update_sql =
-        "UPDATE Medications SET Quantity=Quantity-? "
-        "WHERE Name=? AND Form=? AND Strength=? AND Quantity >= ?;";
+        "UPDATE Medications SET Stock=Stock-? "
+        "WHERE Name=? AND Form=? AND Strength=? AND Stock >= ?;";
 
     sqlite3_stmt *stmt;
 
@@ -244,7 +255,7 @@ int medication_db_remove_by_id(database *db, const int id, const int quantity_to
     }
 
     if (quantity_to_remove < 0) {
-        fprintf(stderr, "Quantity cannot be less than 0.\n");
+        fprintf(stderr, "Stock cannot be less than 0.\n");
         return SQLITE_CONSTRAINT;
     }
 
@@ -254,8 +265,8 @@ int medication_db_remove_by_id(database *db, const int id, const int quantity_to
     }
 
     const char *update_sql =
-        "UPDATE Medications SET Quantity=Quantity-? "
-        "WHERE ID=? AND Quantity >= ?;";
+        "UPDATE Medications SET Stock=Stock-? "
+        "WHERE ID=? AND Stock >= ?;";
 
     sqlite3_stmt *stmt;
 
@@ -375,7 +386,7 @@ int medication_db_get(
     }
 
     const char *sql =
-        "SELECT Name, GenericName, Form, Strength, Unit, Stock, ExpirationDate, Notes FROM Medication WHERE Name=? AND Form=? AND Strength=?;";
+        "SELECT Name, GenericName, Form, Strength, Unit, Stock, ExpirationDate, Notes FROM Medications WHERE Name=? AND Form=? AND Strength=?;";
 
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
@@ -391,12 +402,28 @@ int medication_db_get(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        medication->name = (char *)sqlite3_column_text(stmt, 0);
-        medication->generic_name = (char *)sqlite3_column_text(stmt, 1);
-        medication->form = (char *)sqlite3_column_text(stmt, 2);
-        medication->strength = (char *)sqlite3_column_text(stmt, 3);
-        medication->unit = (char *)sqlite3_column_text(stmt, 4);
+        strcpy(medication->name, (const char *)sqlite3_column_text(stmt, 0));
+
+        const char *generic_name_val = (const char *)sqlite3_column_text(stmt, 1);
+        if (generic_name_val) {
+            strcpy(medication->generic_name, generic_name_val);
+        } else {
+            medication->generic_name[0] = '\0';
+        }
+
+        strcpy(medication->form, (const char *)sqlite3_column_text(stmt, 2));
+
+        strcpy(medication->strength, (const char *)sqlite3_column_text(stmt, 3));
+        
+        const char *unit_val = (const char *)sqlite3_column_text(stmt, 4);
+        if (unit_val) {
+            strcpy(medication->unit, unit_val);
+        } else {
+            medication->unit[0] = '\0';
+        }
+        
         medication->stock = sqlite3_column_int(stmt, 5);
+        
         const char *expiration_date_val = (const char *)sqlite3_column_text(stmt, 6);
         if (expiration_date_val) {
             strcpy(medication->expiration_date, expiration_date_val);
@@ -466,9 +493,9 @@ int medication_db_get_all(database *db) {
     }
 
     printf(
-        "+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n"
-        "| ID  | Name                             | GenericName                      | Form                             | Strength                         | Unit                             | Stock | ExpirationDate | Notes                            |\n"
-        "+-----+----------------------------------+----------------------------------+----------------------------------+----------------------------------+----------------------------------+-------+----------------+----------------------------------+\n"
+        "+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n"
+        "| ID  | Name                     | GenericName              | Form             | Strength         | Unit                     | Stock | ExpirationDate | Notes                    |\n"
+        "+-----+--------------------------+--------------------------+------------------+------------------+--------------------------+-------+----------------+--------------------------+\n"
     );
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
@@ -483,7 +510,7 @@ int medication_db_get_all(database *db) {
         const char *notes = (const char *)sqlite3_column_text(stmt, 8);
 
         printf(
-            "| %-3d | %-32s | %-32s | %-32s | %-32s | %-32s | %-5d | %-11s | %-32s |\n",
+            "| %-3d | %-24s | %-24s | %-16s | %-16s | %-24s | %-5d | %-14s | %-24s |\n",
             id,
             name,
             generic_name,
@@ -495,7 +522,7 @@ int medication_db_get_all(database *db) {
             notes
         );
         printf(
-            "+-----+----------------------------------+----------------------------------+----------------------------------+----------------------------------+----------------------------------+-------+----------------+----------------------------------+\n"
+        "+-----+--------------------------+--------------------------+------------------+------------------+--------------------------+-------+----------------+--------------------------+\n"
         );
     }
 
