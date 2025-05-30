@@ -662,6 +662,8 @@ static void handle_retrieve_all_button(struct ui_food *ui, database *foodbatch_d
 
     if (foodbatch_db_get_all_format(foodbatch_db, ui->str_table_content, buffer_size) == -1) {
         fprintf(stderr, "Failed to get formatted table.\n");
+        free(ui->str_table_content);
+        ui->str_table_content = NULL;
         return;
     }
 

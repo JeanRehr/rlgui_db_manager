@@ -620,6 +620,8 @@ static void handle_get_all_button(struct ui_create_user *ui, database *user_db) 
 
     if (user_db_get_all_format(user_db, ui->str_table_content, buffer_size) == -1) {
         fprintf(stderr, "Failed to get formatted table.\n");
+        free(ui->str_table_content);
+        ui->str_table_content = NULL;
         return;
     }
 

@@ -715,6 +715,8 @@ static void handle_view_all_button(struct ui_clothes *ui, database *clothes_db) 
 
     if (clothes_db_get_all_format(clothes_db, ui->str_table_content, buffer_size) == -1) {
         fprintf(stderr, "Failed to get formatted table.\n");
+        free(ui->str_table_content);
+        ui->str_table_content = NULL;
         return;
     }
 
