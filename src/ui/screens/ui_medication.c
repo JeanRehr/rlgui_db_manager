@@ -681,7 +681,7 @@ static void handle_insert_button(struct ui_medication *ui, enum error_code *erro
     CLEAR_FLAG(
         &ui->flag,
         FLAG_MEDICATION_NAME_EMPTY | FLAG_MEDICATION_FORM_EMPTY | FLAG_MEDICATION_STRENGTH_EMPTY
-            | FLAG_MEDICATION_INVALID_DATE | FLAG_MEDICATION_GENERIC_ERROR
+            | FLAG_MEDICATION_INVALID_DATE | FLAG_MEDICATION_GENERIC_ERROR | FLAG_MEDICATION_OPERATION_DONE
     );
 
     // Validate inputs
@@ -780,6 +780,35 @@ static void handle_view_all_button(struct ui_medication *ui, database *medicatio
     if (ui->str_table_content) {
         free(ui->str_table_content); // Free old data before getting new data
         ui->str_table_content = NULL;
+    }
+
+    int total_medication = medication_db_get_count(medication_db);
+    if (total_medication == -1) {
+        fprintf(stderr, "Failed to get total count.\n");
+        return;
+    }
+
+    // 1024 for header + 2048 for each row
+    size_t buffer_size = 1024 + 2048 * total_medication;
+
+    ui->str_table_content = malloc(buffer_size);
+    if (!ui->str_table_content) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return;
+    }
+
+    if (medication_db_get_all_format(medication_db, ui->str_table_content, buffer_size) == -1) {
+        fprintf(stderr, "Failed to get formatted table.\n");
+        free(ui->str_table_content);
+        ui->str_table_content = NULL;
+        return;
+    }
+
+    // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
+    if (ui->str_table_content) {
+        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
     }
 
     medication_db_get_all(medication_db);
