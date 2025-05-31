@@ -58,7 +58,7 @@ static void detect_styler_changes(struct ui_settings *ui);
 
 static void draw_current_user_info_panel(struct ui_settings *ui);
 
-static void handle_back_button(enum app_state *state);
+static void handle_back_button(struct ui_settings *ui, enum app_state *state);
 
 static void handle_submit_button(struct ui_settings *ui, enum error_code *error, database *user_db);
 
@@ -94,7 +94,8 @@ void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
     );
 
     ui->tbi_new_cpf = textboxint_init(
-        (Rectangle
+        (
+            Rectangle
         ) { 20, ui->tbi_new_phone_number.bounds.y + ui->tbi_new_phone_number.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "New CPF:"
     );
@@ -202,7 +203,7 @@ static void ui_settings_handle_buttons(
     struct ui_settings *ui = (struct ui_settings *)base;
 
     if (button_draw_updt(&ui->butn_back)) {
-        handle_back_button(state);
+        handle_back_button(ui, state);
         return;
     }
 
@@ -432,7 +433,8 @@ static void draw_current_user_info_panel(struct ui_settings *ui) {
     );
 }
 
-static void handle_back_button(enum app_state *state) {
+static void handle_back_button(struct ui_settings *ui, enum app_state *state) {
+    ui->base.cleanup(&ui->base);
     *state = STATE_MAIN_MENU;
     return;
 }

@@ -91,7 +91,7 @@ static void process_db_action_in_warning(
 
 static void draw_medication_table_content(Rectangle bounds, char *data);
 
-static void handle_back_button(enum app_state *state);
+static void handle_back_button(struct ui_medication *ui, enum app_state *state);
 
 static void handle_insert_button(struct ui_medication *ui, enum error_code *error, database *medication_db);
 
@@ -333,7 +333,7 @@ static void ui_medication_handle_buttons(
     struct ui_medication *ui = (struct ui_medication *)base;
 
     if (button_draw_updt(&ui->butn_back)) {
-        handle_back_button(state);
+        handle_back_button(ui, state);
         return;
     }
 
@@ -673,7 +673,8 @@ static void draw_medication_table_content(Rectangle bounds, char *data) {
     GuiLabel(bounds, data ? data : "No data");
 }
 
-static void handle_back_button(enum app_state *state) {
+static void handle_back_button(struct ui_medication *ui, enum app_state *state) {
+    ui->base.cleanup(&ui->base);
     *state = STATE_MAIN_MENU;
 }
 

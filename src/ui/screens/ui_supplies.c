@@ -26,7 +26,7 @@ static void ui_supplies_handle_buttons(
     database *supplies_db
 );
 
-static void handle_back_button(enum app_state *state);
+static void handle_back_button(struct ui_supplies *ui, enum app_state *state);
 
 /* ======================= PUBLIC FUNCTIONS ======================= */
 
@@ -101,7 +101,7 @@ static void ui_supplies_handle_buttons(
     struct ui_supplies *ui = (struct ui_supplies *)base;
 
     if (button_draw_updt(&ui->butn_back)) {
-        handle_back_button(state);
+        handle_back_button(ui, state);
         return;
     }
 }
@@ -109,6 +109,7 @@ static void ui_supplies_handle_buttons(
 
 /* ======================= INTERNAL HELPERS ======================= */
 
-static void handle_back_button(enum app_state *state) {
+static void handle_back_button(struct ui_supplies *ui, enum app_state *state) {
+    ui->base.cleanup(&ui->base);
     *state = STATE_MAIN_MENU;
 }

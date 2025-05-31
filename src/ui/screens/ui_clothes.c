@@ -95,7 +95,7 @@ static void process_db_action_in_warning(
 
 static void draw_clothes_table_content(Rectangle bounds, char *data);
 
-static void handle_back_button(enum app_state *state);
+static void handle_back_button(struct ui_clothes *ui, enum app_state *state);
 
 static void handle_insert_button(struct ui_clothes *ui, enum error_code *error, database *clothes_db);
 
@@ -307,7 +307,7 @@ static void ui_clothes_handle_buttons(
     struct ui_clothes *ui = (struct ui_clothes *)base;
 
     if (button_draw_updt(&ui->butn_back)) {
-        handle_back_button(state);
+        handle_back_button(ui, state);
         return;
     }
 
@@ -372,8 +372,6 @@ static void ui_clothes_handle_warning_msg(
     enum clothes_screen_flags flag_to_clear = 0;
     struct ui_clothes_db_action_info action = { 0 };
     action.type = DB_ACTION_NONE;
-
-    SET_FLAG(&ui->flag, FLAG_CLOTHES_NOTFOUND);
 
     if (IS_FLAG_SET(&ui->flag, FLAG_CLOTHES_NOTFOUND)) {
         message = "Clothing not found.";
@@ -636,7 +634,8 @@ static void draw_clothes_table_content(Rectangle bounds, char *data) {
     GuiLabel(bounds, data ? data : "No data");
 }
 
-static void handle_back_button(enum app_state *state) {
+static void handle_back_button(struct ui_clothes *ui, enum app_state *state) {
+    ui->base.cleanup(&ui->base);
     *state = STATE_MAIN_MENU;
 }
 
