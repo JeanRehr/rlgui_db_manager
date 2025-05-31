@@ -125,8 +125,8 @@ int main(void) {
     }
 
     // Application state tracking
-    struct user current_user = { 0 };            ///< Currently logged in user
-    enum error_code error = NO_ERROR;            ///< Application error state
+    struct user current_user = { 0 };                   ///< Currently logged in user
+    enum error_code error = NO_ERROR;                   ///< Application error state
     enum app_state app_state = STATE_MANAGE_MEDICATION; ///< Current application screen
 
     // Initialize UI systems
@@ -260,6 +260,18 @@ cleanup:
     if (db_is_init(&supplies_db)) {
         db_deinit(&supplies_db);
     }
+
+    // Invoke cleanup code on all ui screens
+    // OS will free all of this automatically anyway, so there is no need for this but just for good practice
+    ui_login.base.cleanup(&ui_login.base);
+    ui_main_menu.base.cleanup(&ui_main_menu.base);
+    ui_resident.base.cleanup(&ui_resident.base);
+    ui_food.base.cleanup(&ui_food.base);
+    ui_medication.base.cleanup(&ui_medication.base);
+    ui_clothes.base.cleanup(&ui_clothes.base);
+    ui_supplies.base.cleanup(&ui_supplies.base);
+    ui_create_user.base.cleanup(&ui_create_user.base);
+    ui_settings.base.cleanup(&ui_settings.base);
 
     // Close graphics window
     CloseWindow();
