@@ -126,7 +126,6 @@ void ui_clothes_init(struct ui_clothes *ui) {
 
     ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
 
-
     ui->lv_type = listview_init(
         (Rectangle) { 20, ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2), 130, 155 },
         "Clothing type:",
@@ -146,7 +145,10 @@ void ui_clothes_init(struct ui_clothes *ui) {
     );
 
     ui->ddb_gender = dropdownbox_init(
-        (Rectangle) { ui->lv_type.bounds.x + ui->lv_type.bounds.width + 20, ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2), 130, 30 },
+        (Rectangle) { ui->lv_type.bounds.x + ui->lv_type.bounds.width + 20,
+                      ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2),
+                      130,
+                      30 },
         "Other;Male;Female",
         "Gender:"
     );
@@ -179,7 +181,8 @@ void ui_clothes_init(struct ui_clothes *ui) {
     );
 
     ui->ib_clothes_id = intbox_init(
-        (Rectangle
+        (
+            Rectangle
         ) { ui->tb_notes.bounds.x, ui->tb_notes.bounds.y + ui->tb_notes.bounds.height + (FONT_SIZE * 2), 130, 30 },
         "ID:",
         0,
@@ -199,13 +202,15 @@ void ui_clothes_init(struct ui_clothes *ui) {
     );
 
     ui->butn_remove_by_id = button_init(
-        (Rectangle
+        (
+            Rectangle
         ) { ui->butn_delete_entry.bounds.x + ui->butn_delete_entry.bounds.width + 10, window_height - 60, 100, 30 },
         "Remove Quantity by ID"
     );
 
     ui->butn_delete_entry_by_id = button_init(
-        (Rectangle
+        (
+            Rectangle
         ) { ui->butn_remove_by_id.bounds.x + ui->butn_remove_by_id.bounds.width + 10, window_height - 60, 100, 30 },
         "Delete Entry by ID"
     );
@@ -274,7 +279,9 @@ static void ui_clothes_render(
     scrollpanel_draw(&ui->sp_table_view, draw_clothes_table_content, ui->str_table_content);
 
     ui->base.handle_buttons(&ui->base, state, error, clothes_db);
-    ui->base.handle_warning_msg(&ui->base, state, error, clothes_db);
+    if (ui->flag != 0) {
+        ui->base.handle_warning_msg(&ui->base, state, error, clothes_db);
+    }
 
     // Dropdowns needs to be last in reverse order as they appear
     dropdownbox_draw(&ui->ddb_condition);

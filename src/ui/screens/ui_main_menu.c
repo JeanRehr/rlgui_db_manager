@@ -96,11 +96,7 @@ void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
         "Create User"
     );
 
-
-    ui->settings_butn = button_init(
-        (Rectangle) { window_width - 250, 50, 200, 50 },
-        "Settings"
-    );
+    ui->settings_butn = button_init((Rectangle) { window_width - 250, 50, 200, 50 }, "Settings");
 
     ui->logout_butn = button_init((Rectangle) { window_width - 100, window_height - 60, 0, 30 }, "Log Out");
 
@@ -138,8 +134,10 @@ static void ui_main_menu_render(
     struct ui_main_menu *ui = (struct ui_main_menu *)base;
 
     ui->base.handle_buttons(&ui->base, state, error, user_db);
-
-    ui->base.handle_warning_msg(&ui->base, state, error, user_db);
+    // Start show warning/error boxes (only if there is a flag set)
+    if (ui->flag != 0) {
+        ui->base.handle_warning_msg(&ui->base, state, error, user_db);
+    }
 }
 
 /**

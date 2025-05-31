@@ -113,7 +113,8 @@ void ui_create_user_init(struct ui_create_user *ui) {
     );
 
     ui->cb_is_admin = checkbox_init(
-        (Rectangle
+        (
+            Rectangle
         ) { 20, ui->tbi_phone_number.bounds.y + ui->tbi_phone_number.bounds.height + (FONT_SIZE * 2), 20, 20 },
         "Admin:"
     );
@@ -121,13 +122,15 @@ void ui_create_user_init(struct ui_create_user *ui) {
     ui->butn_create_user = button_init((Rectangle) { 20, window_height - 60, 100, 30 }, "Create User");
 
     ui->butn_reset_password = button_init(
-        (Rectangle
+        (
+            Rectangle
         ) { ui->butn_create_user.bounds.x + ui->butn_create_user.bounds.width + 10, window_height - 60, 100, 30 },
         "Reset Password"
     );
 
     ui->butn_update_adm_stat = button_init(
-        (Rectangle
+        (
+            Rectangle
         ) { ui->butn_reset_password.bounds.x + ui->butn_reset_password.bounds.width + 10, window_height - 60, 100, 30 },
         "Update Admin Status"
     );
@@ -195,8 +198,9 @@ static void ui_create_user_render(
     scrollpanel_draw(&ui->sp_table_view, draw_user_table_content, ui->str_table_content);
 
     ui->base.handle_buttons(&ui->base, state, error, user_db);
-
-    ui->base.handle_warning_msg(&ui->base, state, error, user_db);
+    if (ui->flag != 0) {
+        ui->base.handle_warning_msg(&ui->base, state, error, user_db);
+    }
 
     if (IS_FLAG_SET(&ui->flag, FLAG_CREATE_USER_OPERATION_DONE)) {
         ui->base.clear_fields(&ui->base);

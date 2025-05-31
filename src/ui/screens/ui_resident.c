@@ -233,8 +233,10 @@ static void ui_resident_render(
     // Handle button actions
     ui->base.handle_buttons(&ui->base, state, error, resident_db);
 
-    // Show warning/error messages
-    ui->base.handle_warning_msg(&ui->base, state, error, resident_db);
+    // Start show warning/error boxes (only if there is a flag set)
+    if (ui->flag != 0) {
+        ui->base.handle_warning_msg(&ui->base, state, error, resident_db);
+    }
 
     // Clear fields after successful operation
     if (IS_FLAG_SET(&ui->flag, FLAG_RESIDENT_OPERATION_DONE)) {

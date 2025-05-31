@@ -303,8 +303,9 @@ static void ui_medication_render(
     scrollpanel_draw(&ui->sp_table_view, draw_medication_table_content, ui->str_table_content);
 
     ui->base.handle_buttons(&ui->base, state, error, medication_db);
-
-    ui->base.handle_warning_msg(&ui->base, state, error, medication_db);
+    if (ui->flag != 0) {
+        ui->base.handle_warning_msg(&ui->base, state, error, medication_db);
+    }
 
     if (IS_FLAG_SET(&ui->flag, FLAG_MEDICATION_OPERATION_DONE)) {
         ui->base.clear_fields(&ui->base);

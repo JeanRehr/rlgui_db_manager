@@ -2,7 +2,7 @@
  * @file resident_db.c
  * @brief Resident database operations implementation
  */
-#define _POSIX_C_SOURCE 200112L // For the time localtome_r function
+#define _POSIX_C_SOURCE 200112L // For the time localtime_r function
 #include "db/resident_db.h"
 
 #include <stdio.h>

@@ -171,8 +171,10 @@ static void ui_settings_render(struct ui_base *base, enum app_state *state, enum
     // Handle button actions
     ui->base.handle_buttons(&ui->base, state, error, user_db);
 
-    // Show warning/error messages
-    ui->base.handle_warning_msg(&ui->base, state, error, user_db);
+    // Start show warning/error boxes (only if there is a flag set)
+    if (ui->flag != 0) {
+        ui->base.handle_warning_msg(&ui->base, state, error, user_db);
+    }
 
     // Clear fields after successful operation
     if (IS_FLAG_SET(&ui->flag, FLAG_SETTINGS_OPERATION_DONE)) {

@@ -89,8 +89,10 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
         textbox_init((Rectangle) { window_width / 2 - 150, window_height / 2 - 15, 300, 30 }, "Username:");
 
     ui->tbs_password = textboxsecret_init(
-        (Rectangle
-        ) { ui->tb_username.bounds.x, ui->tb_username.bounds.y + ui->tb_username.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        (Rectangle) { ui->tb_username.bounds.x,
+                      ui->tb_username.bounds.y + ui->tb_username.bounds.height + (FONT_SIZE * 2),
+                      300,
+                      30 },
         "Password:"
     );
 
@@ -142,7 +144,10 @@ static void ui_login_render(struct ui_base *base, enum app_state *state, enum er
     // Handle and draw buttons
     ui->base.handle_buttons(&ui->base, state, error, user_db);
 
-    ui->base.handle_warning_msg(&ui->base, state, error, user_db);
+    // Start show warning/error boxes (only if there is a flag set)
+    if (ui->flag != 0) {
+        ui->base.handle_warning_msg(&ui->base, state, error, user_db);
+    }
 
     if (IS_FLAG_SET(&ui->flag, FLAG_LOGIN_DONE)) {
         ui->base.clear_fields(&ui->base);

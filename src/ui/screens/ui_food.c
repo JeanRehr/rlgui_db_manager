@@ -173,7 +173,8 @@ void ui_food_init(struct ui_food *ui) {
         "Retrieve"
     );
     ui->butn_delete = button_init(
-        (Rectangle
+        (
+            Rectangle
         ) { ui->butn_retrieve.bounds.x + ui->butn_retrieve.bounds.width + 10, ui->butn_submit.bounds.y, 100, 30 },
         "Delete"
     );
@@ -287,8 +288,10 @@ static void ui_food_render(
     // Start button actions
     ui->base.handle_buttons(&ui->base, state, error, foodbatch_db);
 
-    // Start show warning/error boxes
-    ui->base.handle_warning_msg(&ui->base, state, error, foodbatch_db);
+    // Start show warning/error boxes (only if there is a flag set)
+    if (ui->flag != 0) {
+        ui->base.handle_warning_msg(&ui->base, state, error, foodbatch_db);
+    }
 
     // Clear the text buffer only after a successful operation
     if (IS_FLAG_SET(&ui->flag, FLAG_FOOD_OPERATION_DONE)) {
