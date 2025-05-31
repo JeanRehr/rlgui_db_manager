@@ -11,6 +11,8 @@
 
 #include "db_manager.h"
 
+#include <stddef.h>
+
 #include "entities/supply.h"
 
 /**
@@ -165,6 +167,85 @@ int supplies_db_get(database *db, const char *name, const char *category, const 
  * @return Total number of supplies on success, -1 on failure
  */
 int supplies_db_get_count(database *db);
+
+/**
+ * @brief Writes all supplies records as a formatted string into provided buffer
+ *
+ * Executes a database query and formats all supplies records into a human-readable
+ * table structure with borders and aligned columns.
+ *
+ * @param db Pointer to initialized database connection
+ * @param buffer Pointer to buffer where formatted string will be written
+ * @param buffer_size Size of the provided buffer
+ * @return int Number of bytes written (excluding null terminator), or -1 on failure
+ *
+ * 
+    // Header will always needs 405 (406 (\0) if no other row) bytes and each row + separator will need at max 1450 with the current table and format
+ * 
+ * @note Header will always needs 405 (406 (+\0) if no other row) bytes and each row + separator
+ *       (Considering max input is 256) will need at max 1450 with the current table and format
+ *       String format:
+ * +------------------------------------------------------------------------------------------------------------------------------------+
+ * | ID  | Name                     | Category                 | Size             | Unit             | Stock | Notes                    |
+ * +-----+--------------------------+--------------------------+------------------+------------------+-------+--------------------------+
+ * | 1   | Diaper                   | Personal Care            | M                | Pack             | 5     | Pampers                  |
+ * +-----+--------------------------+--------------------------+------------------+------------------+-------+--------------------------+
+ *
+ * @warning Returns -1 if database is not initialized, on query failure, or if buffer is too small
+ * @warning Buffer will be null-terminated if there's space, even on truncation
+ *
+ * Memory Management:
+ * - Caller provides buffer and manages its memory
+ * - Function never allocates memory
+ *
+ * Error Handling:
+ * - Checks database connection state
+ * - Validates SQL preparation
+ * - Reports SQL execution errors
+ * - Handles buffer overflow
+ */
+int supplies_db_get_all_format(database *db, char *buffer, size_t buffer_size);
+
+/**
+ * @deprecated
+ * 
+ * @brief Retrieves all supplies records as a formatted string
+ *
+ * Executes a database query and formats all supplies records into a human-readable
+ * table structure with borders and aligned columns. The returned string is dynamically
+ * allocated and must be freed by the caller.
+ *
+ * This was mostly used to calculate more or less how many bytes each row + header will need at max
+ *
+ * @param db Pointer to initialized database connection
+ * @return char* Formatted table string containing all records, or NULL on failure
+ *
+ * @note Returned string format:
+ * +------------------------------------------------------------------------------------------------------------------------------------+
+ * | ID  | Name                     | Category                 | Size             | Unit             | Stock | Notes                    |
+ * +-----+--------------------------+--------------------------+------------------+------------------+-------+--------------------------+
+ * | 1   | Diaper                   | Personal Care            | M                | Pack             | 5     | Pampers                  |
+ * +-----+--------------------------+--------------------------+------------------+------------------+-------+--------------------------+
+ *
+ * @note Header will always needs 601 bytes and each row + separator (201) will need at max 1040 with the current table and format
+ * 
+ * @warning The caller is responsible for freeing the returned string with free()
+ * @warning Returns NULL if database is not initialized or on query failure
+ * @warning This is not safe as it does not adhere to the memory encapsulation principle
+ *
+ * Memory Management:
+ * - Allocates initial 4KB buffer
+ * - Automatically grows buffer as needed
+ * - Returns NULL on allocation failures
+ *
+ * Error Handling:
+ * - Checks database connection state
+ * - Validates SQL preparation
+ * - Handles memory allocation failures
+ * - Reports SQL execution errors
+ *
+ */
+char *supplies_db_get_all_format_old(database *db);
 
 /**
  * @brief Retrieves and displays all Supplies records
