@@ -70,6 +70,7 @@ int medication_db_upsert(
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
     }
+
     if (stock < 0) {
         fprintf(stderr, "Stock cannot be less than 0.\n");
         return SQLITE_CONSTRAINT;
