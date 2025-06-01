@@ -34,22 +34,23 @@ int foodbatch_db_create_table(database *db);
  * All parameters are required and must be valid.
  *
  * @param[in] db Pointer to initialized database structure
- * @param[in] batch_id Unique identifier for the new batch
  * @param[in] name Name/description of the food batch
- * @param[in] quantity Quantity of items in the batch
- * @param[in] isPerishable Whether the batch is perishable (true/false)
- * @param[in] expirationDate Expiration date string (YYYY-MM-DD format)
- * @param[in] dailyConsumptionRate Expected daily consumption rate
+ * @param[in] quantity For both weight and count
+ * @param[in] unit e.g. "L", "KG", "Piece", "cans", "lbs"
+ * @param[in] is_perishable Whether the batch is perishable (true/false)
+ * @param[in] arrival_date Arrival date string (YYYY-MM-DD format)
+ * @param[in] expiration_date Expiration date string (YYYY-MM-DD format) may be null
+ * 
  * @return SQLITE_OK on success, SQLite error code on failure
  */
 int foodbatch_db_insert(
     database *db,
-    int batch_id,
     const char *name,
-    int quantity,
-    bool isPerishable,
-    const char *expirationDate,
-    float dailyConsumptionRate
+    const float quantity,
+    const char *unit,
+    const bool is_perishable,
+    const char *arrival_date,
+    const char *expiration_date
 );
 
 /**
@@ -62,19 +63,21 @@ int foodbatch_db_insert(
  * @param[in] batch_id ID of the batch to update
  * @param[in] name_input New name (empty string preserves current)
  * @param[in] quantity_input New quantity (<= 0 preserves current)
+ * @param[in] unit_input New quantity (<= 0 preserves current)
  * @param[in] is_perishable_input New perishable status (-1 preserves current)
- * @param[in] expiration_date_input New expiration date (empty string preserves current)
- * @param[in] daily_consumption_rate_input New consumption rate (< 0 preserves current)
+ * @param[in] arrival_date_input New expiration date (empty string preserves current)
+ * @param[in] expiration_date_input New consumption rate (< 0 preserves current)
  * @return SQLITE_OK on success, SQLite error code on failure
  */
 int foodbatch_db_update(
     database *db,
-    int batch_id,
+    const int batch_id,
     const char *name_input,
-    int quantity_input,
-    bool is_perishable_input,
-    const char *expiration_date_input,
-    float daily_consumption_rate_input
+    const float quantity_input,
+    const char *unit_input,
+    const bool is_perishable_input,
+    const char *arrival_date_input,
+    const char *expiration_date_input
 );
 
 /**
@@ -130,14 +133,14 @@ int foodbatch_db_get_count(database *db);
  * @param buffer_size Size of the provided buffer
  * @return int Number of bytes written (excluding null terminator), or -1 on failure
  *
- * @note Header will always needs 307 bytes and each row + separator (Considering max input is 256)
- *       will need at max 455 with the current table and format
+ * @note Header will always needs 277 bytes and each row + separator (Considering max input is 256)
+ *       will need at max 687 with the current table and format
  *       String format:
- * +---------------------------------------------------------------------------------------------------+
- * | BatchId | Name                             | Quantity | Perishable | Expiration date | Daily Rate |
- * +---------+----------------------------------+----------+------------+-----------------+------------+
- * |       1 | Milk                             | 10       | True       | 2000-01-30      | 2.00       |
- * +---------+----------------------------------+----------+------------+-----------------+------------+
+ * +-----------------------------------------------------------------------------------------+
+ * | ID  | Name             | Quantity | Unit  | Perishable | Arrival Date | Expiration date |
+ * +-----+------------------+----------+-------+------------+--------------+-----------------+
+ * |   1 | Milk             | 10       | piece | true       | 2000-01-30   | 2000-02-30      |
+ * +-----+------------------+----------+-------+------------+--------------+-----------------+
  * 
  * @warning Returns -1 if database is not initialized, on query failure, or if buffer is too small
  * @warning Buffer will be null-terminated if there's space, even on truncation
@@ -155,6 +158,8 @@ int foodbatch_db_get_count(database *db);
 int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size);
 
 /**
+ * @deprecated
+ * 
  * @brief Retrieves all foodbatch records as a formatted string
  *
  * Executes a database query and formats all foodbatch records into a human-readable
@@ -167,13 +172,13 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * @return char* Formatted table string containing all records, or NULL on failure
  *
  * @note Returned string format:
- * +---------------------------------------------------------------------------------------------------+
- * | BatchId | Name                             | Quantity | Perishable | Expiration date | Daily Rate |
- * +---------+----------------------------------+----------+------------+-----------------+------------+
- * |       1 | Milk                             | 10       | True       | 2000-01-30      | 2.00       |
- * +---------+----------------------------------+----------+------------+-----------------+------------+
+ * +-----------------------------------------------------------------------------------------+
+ * | ID  | Name             | Quantity | Unit  | Perishable | Arrival Date | Expiration date |
+ * +-----+------------------+----------+-------+------------+--------------+-----------------+
+ * |   1 | Milk             | 10       | piece | true       | 2000-01-30   | 2000-02-30      |
+ * +-----+------------------+----------+-------+------------+--------------+-----------------+
  * 
- * @note Header will always needs 307 bytes and each row + separator (103 bytes) will need at max 455 with the current table and format
+ * @note Header will always needs 277 bytes and each row + separator will need at max 687 with the current table and format
  *
  * @warning The caller is responsible for freeing the returned string with free()
  * @warning Returns NULL if database is not initialized or on query failure
@@ -190,7 +195,6 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * - Handles memory allocation failures
  * - Reports SQL execution errors
  *
- * @deprecated
  */
 char *foodbatch_db_get_all_format_old(database *db);
 

@@ -18,12 +18,13 @@ int foodbatch_db_create_table(database *db) {
 
     const char *sql =
         "CREATE TABLE IF NOT EXISTS FoodBatch ("
-        "BatchId INTEGER PRIMARY KEY,"
-        "Name TEXT,"
-        "Quantity INTEGER NOT NULL,"
-        "IsPerishable INTEGER NOT NULL,"
-        "ExpirationDate TEXT,"
-        "DailyConsumptionRate REAL);";
+        "BatchId INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "Name TEXT NOT NULL,"            // Name of the food e.g. "Banana"
+        "Quantity REAL NOT NULL,"        // For both weight and count
+        "Unit TEXT NOT NULL,"            // e.g. "L", "KG", "Piece", "cans", "lbs"
+        "IsPerishable INTEGER NOT NULL," // 0 or 1
+        "ArrivalDate TEXT NOT NULL,"     // ISO format 2000-12-21
+        "ExpirationDate TEXT);";         // Nullable, ISO format 2000-12-21
 
     char *errMsg = 0;
     int rc = sqlite3_exec(db->db, sql, 0, 0, &errMsg);
@@ -38,21 +39,27 @@ int foodbatch_db_create_table(database *db) {
 
 int foodbatch_db_insert(
     database *db,
-    int batch_id,
     const char *name,
-    int quantity,
-    bool isPerishable,
-    const char *expirationDate,
-    float dailyConsumptionRate
+    const float quantity,
+    const char *unit,
+    const bool is_perishable,
+    const char *arrival_date,
+    const char *expiration_date
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
     }
 
+    if (quantity < 0) {
+        fprintf(stderr, "Quantity cannot be less than 0.\n");
+        return SQLITE_CONSTRAINT;
+    }
+
     // SQL query to insert a new food batch
     const char *sql =
-        "INSERT INTO FoodBatch (BatchId, Name, Quantity, IsPerishable, ExpirationDate, DailyConsumptionRate) "
+        "INSERT INTO FoodBatch "
+        "(Name, Quantity, Unit, IsPerishable, ArrivalDate, ExpirationDate) "
         "VALUES (?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt *stmt;
@@ -63,12 +70,12 @@ int foodbatch_db_insert(
     }
 
     // Bind values to the prepared statement
-    sqlite3_bind_int(stmt, 1, batch_id);
-    sqlite3_bind_text(stmt, 2, name, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 3, quantity);
-    sqlite3_bind_int(stmt, 4, isPerishable ? 1 : 0);
-    sqlite3_bind_text(stmt, 5, expirationDate, -1, SQLITE_STATIC);
-    sqlite3_bind_double(stmt, 6, dailyConsumptionRate);
+    sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
+    sqlite3_bind_double(stmt, 2, quantity);
+    sqlite3_bind_text(stmt, 3, unit, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 4, is_perishable ? 1 : 0);
+    sqlite3_bind_text(stmt, 5, arrival_date, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 6, expiration_date, -1, SQLITE_STATIC);
 
     // Execute the SQL statement
     rc = sqlite3_step(stmt);
@@ -89,12 +96,13 @@ int foodbatch_db_insert(
 
 int foodbatch_db_update(
     database *db,
-    int batch_id,
+    const int batch_id,
     const char *name_input,
-    int quantity_input,
-    bool is_perishable_input,
-    const char *expiration_date_input,
-    float daily_consumption_rate_input
+    const float quantity_input,
+    const char *unit_input,
+    const bool is_perishable_input,
+    const char *arrival_date_input,
+    const char *expiration_date_input
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -118,16 +126,16 @@ int foodbatch_db_update(
 
     // Decide which fields to use for update based on inputs
     const char *name = (name_input[0] != '\0') ? name_input : foodbatch.name;
-    int quantity = (quantity_input > 0) ? quantity_input : foodbatch.quantity;
+    float quantity = (quantity_input > 0) ? quantity_input : foodbatch.quantity;
+    const char *unit = (unit_input[0] != '\0') ? unit_input : foodbatch.unit;
     int is_perishable = (is_perishable_input > 0) ? is_perishable_input : foodbatch.is_perishable;
+    const char *arrival_date = (arrival_date_input[0] != '\0') ? arrival_date_input : foodbatch.arrival_date;
     const char *expiration_date =
         (expiration_date_input[0] != '\0') ? expiration_date_input : foodbatch.expiration_date;
-    float daily_consumption_rate =
-        (daily_consumption_rate_input >= 0) ? daily_consumption_rate_input : foodbatch.daily_consumption_rate;
 
     const char *sql =
-        "UPDATE FoodBatch SET Name = ?, Quantity = ?, IsPerishable = ?, ExpirationDate = ?, "
-        "DailyConsumptionRate = ? WHERE BatchId = ?;";
+        "UPDATE FoodBatch SET Name = ?, Quantity = ?, Unit = ?, IsPerishable = ?, ArrivalDate = ?, ExpirationDate = ? "
+        "WHERE BatchId = ?;";
 
     sqlite3_stmt *stmt;
     rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
@@ -137,11 +145,12 @@ int foodbatch_db_update(
     }
 
     sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 2, quantity);
-    sqlite3_bind_int(stmt, 3, is_perishable);
-    sqlite3_bind_text(stmt, 4, expiration_date, -1, SQLITE_STATIC);
-    sqlite3_bind_double(stmt, 5, daily_consumption_rate);
-    sqlite3_bind_int(stmt, 6, batch_id);
+    sqlite3_bind_double(stmt, 2, quantity);
+    sqlite3_bind_text(stmt, 3, unit, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 4, is_perishable);
+    sqlite3_bind_text(stmt, 5, arrival_date, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 6, expiration_date, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 7, batch_id);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -193,14 +202,14 @@ int foodbatch_db_delete_by_id(database *db, int batch_id) {
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
-int foodbatch_db_get_by_batchid(database *db, int batch_id, struct foodbatch *foodbatch) {
+int foodbatch_db_get_by_batchid(database *db, int batch_id, struct foodbatch *out_foodbatch) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
     }
 
     const char *sql =
-        "SELECT BatchId, Name, Quantity, IsPerishable, ExpirationDate, DailyConsumptionRate FROM "
+        "SELECT BatchId, Name, Quantity, Unit, IsPerishable, ArrivalDate, ExpirationDate FROM "
         "FoodBatch WHERE BatchId = ?;";
 
     sqlite3_stmt *stmt;
@@ -214,12 +223,13 @@ int foodbatch_db_get_by_batchid(database *db, int batch_id, struct foodbatch *fo
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        foodbatch->batch_id = sqlite3_column_int(stmt, 0);
-        strcpy(foodbatch->name, (const char *)sqlite3_column_text(stmt, 1));
-        foodbatch->quantity = sqlite3_column_int(stmt, 2);
-        foodbatch->is_perishable = sqlite3_column_int(stmt, 3);
-        strcpy(foodbatch->expiration_date, (const char *)sqlite3_column_text(stmt, 4));
-        foodbatch->daily_consumption_rate = (float)sqlite3_column_double(stmt, 5);
+        out_foodbatch->batch_id = sqlite3_column_int(stmt, 0);
+        strcpy(out_foodbatch->name, (const char *)sqlite3_column_text(stmt, 1));
+        out_foodbatch->quantity = (float)sqlite3_column_double(stmt, 2);
+        strcpy(out_foodbatch->unit, (const char *)sqlite3_column_text(stmt, 3));
+        out_foodbatch->is_perishable = sqlite3_column_int(stmt, 4);
+        strcpy(out_foodbatch->arrival_date, (const char *)sqlite3_column_text(stmt, 5));
+        strcpy(out_foodbatch->expiration_date, (const char *)sqlite3_column_text(stmt, 6));
         rc = SQLITE_OK; // Found and read successfully
     } else if (rc == SQLITE_DONE) {
         fprintf(stderr, "No FoodBatch found with BatchId: %d\n", batch_id);
@@ -319,9 +329,9 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size) 
 
     // Format header
     const char *header =
-        "+---------------------------------------------------------------------------------------------------+\n"
-        "| BatchId | Name                             | Quantity | Perishable | Expiration date | Daily Rate |\n"
-        "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+        "+-----------------------------------------------------------------------------------------+\n"
+        "| ID  | Name             | Quantity | Unit  | Perishable | Arrival date | Expiration date |\n"
+        "+-----+------------------+----------+-------+------------+--------------+-----------------+\n";
 
     // Write header if there's space
     size_t header_len = strlen(header);
@@ -343,23 +353,25 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size) 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int batch_id = sqlite3_column_int(stmt, 0);
         const char *name = (const char *)sqlite3_column_text(stmt, 1);
-        int quantity = sqlite3_column_int(stmt, 2);
-        int is_perishable = sqlite3_column_int(stmt, 3);
-        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 4);
-        float daily_consumption_rate = (float)sqlite3_column_double(stmt, 5);
+        float quantity = (float)sqlite3_column_double(stmt, 2);
+        const char *unit = (const char *)sqlite3_column_text(stmt, 3);
+        int is_perishable = sqlite3_column_int(stmt, 4);
+        const char *arrival_date = (const char *)sqlite3_column_text(stmt, 5);
+        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 6);
 
         // Format the row
         char row[1024];
         snprintf(
             row,
             sizeof(row),
-            "| %7d | %-32s | %-8d | %-10s | %-15s | %-10.2f |\n",
+            "| %-3d | %-16s | %-8.2f | %-5s | %-10s | %-12s | %-15s |\n",
             batch_id,
             name,
             quantity,
+            unit,
             (is_perishable == 0 ? "False" : "True"),
-            expiration_date,
-            daily_consumption_rate
+            arrival_date,
+            expiration_date
         );
 
         size_t row_len = strlen(row);
@@ -379,7 +391,7 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size) 
 
         // Add separator line
         const char *separator =
-            "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+            "+-----+------------------+----------+-------+------------+--------------+-----------------+\n";
 
         size_t separator_len = strlen(separator);
         if (written + separator_len < buffer_size) {
@@ -422,8 +434,10 @@ char *foodbatch_db_get_all_format_old(database *db) {
         return NULL;
     }
 
+    //Header requires 277 (counting null terminator if no row) and each row will need at max 687
+
     // Initial buffer
-    size_t buffer_size = 1024;
+    size_t buffer_size = 4096;
     char *result = malloc(buffer_size);
     if (!result) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -435,9 +449,10 @@ char *foodbatch_db_get_all_format_old(database *db) {
 
     // Append header to the result string
     const char *header =
-        "+---------------------------------------------------------------------------------------------------+\n"
-        "| BatchId | Name                             | Quantity | Perishable | Expiration date | Daily Rate |\n"
-        "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+        "+-----------------------------------------------------------------------------------------+\n"
+        "| ID  | Name             | Quantity | Unit  | Perishable | Arrival date | Expiration date |\n"
+        "+-----+------------------+----------+-------+------------+--------------+-----------------+\n";
+
 
     // Check if buffer is large enough for the header
     if (strlen(header) + 1 > buffer_size) {
@@ -457,23 +472,25 @@ char *foodbatch_db_get_all_format_old(database *db) {
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int batch_id = sqlite3_column_int(stmt, 0);
         const char *name = (const char *)sqlite3_column_text(stmt, 1);
-        int quantity = sqlite3_column_int(stmt, 2);
-        int is_perishable = sqlite3_column_int(stmt, 3);
-        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 4);
-        float daily_consumption_rate = (float)sqlite3_column_double(stmt, 5);
+        float quantity = (float)sqlite3_column_double(stmt, 2);
+        const char *unit = (const char *)sqlite3_column_text(stmt, 3);
+        int is_perishable = sqlite3_column_int(stmt, 4);
+        const char *arrival_date = (const char *)sqlite3_column_text(stmt, 5);
+        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 6);
 
         // Format the row
         char row[1024];
         snprintf(
             row,
             sizeof(row),
-            "| %7d | %-32s | %-8d | %-10s | %-15s | %-10.2f |\n",
+            "| %-3d | %-16s | %-8.2f | %-5s | %-10s | %-12s | %-15s |\n",
             batch_id,
             name,
             quantity,
+            unit,
             (is_perishable == 0 ? "False" : "True"),
-            expiration_date,
-            daily_consumption_rate
+            arrival_date,
+            expiration_date
         );
 
         // Check if buffer needs to grow
@@ -498,7 +515,7 @@ char *foodbatch_db_get_all_format_old(database *db) {
 
         // Add separator line
         const char *separator =
-            "+---------+----------------------------------+----------+------------+-----------------+------------+\n";
+            "+-----+------------------+----------+-------+------------+--------------+-----------------+\n";
 
         required_size = strlen(result) + strlen(separator) + 1;
         if (required_size > buffer_size) {
@@ -546,30 +563,30 @@ int foodbatch_db_get_all(database *db) {
         return rc;
     }
 
-    printf("+---------------------------------------------------------------------------------------------------+\n");
-    printf("| BatchId | Name                             | Quantity | Perishable | Expiration date | Daily Rate |\n");
-    printf("+---------+----------------------------------+----------+------------+-----------------+------------+\n");
+    printf("+-----------------------------------------------------------------------------------------+\n");
+    printf("| ID  | Name             | Quantity | Unit  | Perishable | Arrival date | Expiration date |\n");
+    printf("+-----+------------------+----------+-------+------------+--------------+-----------------+\n");
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int batch_id = sqlite3_column_int(stmt, 0);
         const char *name = (const char *)sqlite3_column_text(stmt, 1);
-        int quantity = sqlite3_column_int(stmt, 2);
-        int is_perishable = sqlite3_column_int(stmt, 3);
-        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 4);
-        float daily_consumption_rate = (float)sqlite3_column_double(stmt, 5);
+        float quantity = (float)sqlite3_column_double(stmt, 2);
+        const char *unit = (const char *)sqlite3_column_text(stmt, 3);
+        int is_perishable = sqlite3_column_int(stmt, 4);
+        const char *arrival_date = (const char *)sqlite3_column_text(stmt, 5);
+        const char *expiration_date = (const char *)sqlite3_column_text(stmt, 6);
 
         printf(
-            "| %7d | %-32s | %-8d | %-10s | %-15s | %-10.2f |\n",
+            "| %-3d | %-16s | %-8.2f | %-5s | %-10s | %-12s | %-15s |\n",
             batch_id,
             name,
             quantity,
+            unit,
             (is_perishable == 0 ? "False" : "True"),
-            expiration_date,
-            daily_consumption_rate
+            arrival_date,
+            expiration_date
         );
-        printf(
-            "+---------+----------------------------------+----------+------------+-----------------+------------+\n"
-        );
+        printf("+-----+------------------+----------+-------+------------+--------------+-----------------+\n");
     }
 
     if (rc != SQLITE_DONE) {

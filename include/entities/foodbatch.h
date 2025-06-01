@@ -11,15 +11,18 @@
 
 /**
  * @struct foodbatch
+ * 
  * @brief Represents a food batch record in the database
+ * 
  */
 struct foodbatch {
-    int batch_id;                 ///< Unique identifier for the batch
-    char name[MAX_INPUT];         ///< Name/description of the food batch
-    int quantity;                 ///< Quantity of items in the batch
-    bool is_perishable;           ///< Whether the batch is perishable
-    char expiration_date[11];     ///< ISO 8601 formatted date (YYYY-MM-DD + null)
-    float daily_consumption_rate; ///< Expected daily consumption rate
+    int batch_id;                   ///< Unique identifier for the batch
+    char name[MAX_INPUT];           ///< Name/description of the food batch
+    float quantity;                 ///< For both weight and count
+    char unit[MAX_INPUT];           ///< e.g. "L", "KG", "Piece", "cans", "lbs"
+    bool is_perishable;             ///< Whether the batch is perishable
+    char arrival_date[DATE_LEN];    ///< ISO 8601 formatted date (YYYY-MM-DD + null)
+    char expiration_date[DATE_LEN]; ///< ISO 8601 formatted date (YYYY-MM-DD + null)
 };
 
 #endif // FOODBATCH_H

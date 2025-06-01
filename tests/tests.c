@@ -791,56 +791,56 @@ void test_foodbatch_db_insert(void) {
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
-    int test_batch_id = 1;
     char *test_name = "Test Food";
-    int test_quantity = 100;
+    float test_quantity = 100;
+    char *test_unit = "piece";
     bool test_is_perishable = true;
+    char *test_arrival_date = "2023-11-31";
     char *test_expiration_date = "2023-12-31";
-    float test_daily_consumption_rate = 5.0;
 
     printf(
         "Attempting to insert a food batch with the following values:\n"
-        "Batch ID: %d\n"
         "Name: %s\n"
-        "Quantity: %d\n"
+        "Quantity: %f\n"
+        "Unit: %s\n"
         "Is Perishable: %s\n"
-        "Expiration Date: %s\n"
-        "Daily Consumption Rate: %.2f\n",
-        test_batch_id,
+        "Arrival Date: %s\n"
+        "Expiration Date: %s\n",
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable ? "True" : "False",
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     int rc = foodbatch_db_insert(
         &test_foodbatch_db,
-        test_batch_id,
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable,
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     assert(rc == SQLITE_OK);
     printf("Inserted food batch successfully.\n");
 
-    printf("Attempting to insert the same food batch again with the same Batch ID.\n");
+    printf("Attempting to insert the same food batch again, a new batch will be created.\n");
 
     rc = foodbatch_db_insert(
         &test_foodbatch_db,
-        test_batch_id,
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable,
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
-    assert(rc != SQLITE_OK);
-    printf("Attempt to insert the same food batch was unsuccessful.\n");
+    assert(rc == SQLITE_OK);
+    printf("Attempt to insert the same food in another batch was successful.\n");
 
     teardown_cleanup();
 
@@ -854,52 +854,53 @@ void test_foodbatch_db_retrieve(void) {
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
-    int test_batch_id = 1;
     char *test_name = "Test Food";
-    int test_quantity = 100;
+    float test_quantity = 100;
+    char *test_unit = "kg";
     bool test_is_perishable = true;
+    char *test_arrival_date = "2023-10-31";
     char *test_expiration_date = "2023-12-31";
-    float test_daily_consumption_rate = 5.0;
 
     printf(
-        "Inserting a food batch with the following values:\n"
-        "Batch ID: %d\n"
+        "Attempting to insert a food batch with the following values:\n"
         "Name: %s\n"
-        "Quantity: %d\n"
+        "Quantity: %f\n"
+        "Unit: %s\n"
         "Is Perishable: %s\n"
-        "Expiration Date: %s\n"
-        "Daily Consumption Rate: %.2f\n",
-        test_batch_id,
+        "Arrival Date: %s\n"
+        "Expiration Date: %s\n",
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable ? "True" : "False",
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     int rc = foodbatch_db_insert(
         &test_foodbatch_db,
-        test_batch_id,
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable,
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     struct foodbatch test_foodbatch = { 0 };
 
     printf("Attempting to retrieve the above food batch and insert it into a foodbatch structure\n");
 
-    rc = foodbatch_db_get_by_batchid(&test_foodbatch_db, test_batch_id, &test_foodbatch);
+    rc = foodbatch_db_get_by_batchid(&test_foodbatch_db, 1, &test_foodbatch);
 
     assert(rc == SQLITE_OK);
-    assert(test_foodbatch.batch_id == test_batch_id);
+    assert(test_foodbatch.batch_id == 1);
     assert(strcmp(test_foodbatch.name, test_name) == 0);
     assert(test_foodbatch.quantity == test_quantity);
+    assert(strcmp(test_foodbatch.unit, test_unit) == 0);
     assert(test_foodbatch.is_perishable == test_is_perishable);
     assert(strcmp(test_foodbatch.expiration_date, test_expiration_date) == 0);
-    assert(test_foodbatch.daily_consumption_rate == test_daily_consumption_rate);
+    assert(strcmp(test_foodbatch.arrival_date, test_arrival_date) == 0);
 
     printf("Retrieve successful\n");
 
@@ -915,22 +916,23 @@ void test_foodbatch_db_update(void) {
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
-    int test_batch_id = 1;
     char *test_name = "Test Food";
-    int test_quantity = 100;
+    float test_quantity = 100;
+    char *test_unit = "unit";
     bool test_is_perishable = true;
+    char *test_arrival_date = "2023-09-31";
     char *test_expiration_date = "2023-12-31";
-    float test_daily_consumption_rate = 5.0;
 
     printf("Attempting to update a non-existent food batch.\n");
     int rc = foodbatch_db_update(
         &test_foodbatch_db,
-        test_batch_id,
+        100,
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable,
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     assert(rc != SQLITE_OK);
@@ -938,41 +940,42 @@ void test_foodbatch_db_update(void) {
 
     printf(
         "Inserting a food batch with the following values:\n"
-        "Batch ID: %d\n"
         "Name: %s\n"
-        "Quantity: %d\n"
+        "Quantity: %f\n"
+        "Unit: %s\n"
         "Is Perishable: %s\n"
-        "Expiration Date: %s\n"
-        "Daily Consumption Rate: %.2f\n",
-        test_batch_id,
+        "Arrival Date: %s\n"
+        "Expiration Date: %s\n",
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable ? "True" : "False",
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     rc = foodbatch_db_insert(
         &test_foodbatch_db,
-        test_batch_id,
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable,
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     char *updated_name = "UPDATED FOOD";
-    int updated_quantity = 200;
-    printf("Updating the name of the food batch to %s and quantity to %d\n", updated_name, updated_quantity);
+    float updated_quantity = 200;
+    printf("Updating the name of the food batch to %s and quantity to %f\n", updated_name, updated_quantity);
     rc = foodbatch_db_update(
         &test_foodbatch_db,
-        test_batch_id,
+        1,
         updated_name,
         updated_quantity,
+        "\0",
         test_is_perishable,
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     assert(rc == SQLITE_OK);
@@ -981,10 +984,14 @@ void test_foodbatch_db_update(void) {
     printf("Retrieving the food batch to test the changes.\n");
 
     struct foodbatch test_foodbatch = { 0 };
-    foodbatch_db_get_by_batchid(&test_foodbatch_db, test_batch_id, &test_foodbatch);
+    foodbatch_db_get_by_batchid(&test_foodbatch_db, 1, &test_foodbatch);
 
     assert(strcmp(test_foodbatch.name, updated_name) == 0);
     assert(test_foodbatch.quantity == updated_quantity);
+    assert(strcmp(test_foodbatch.unit, test_unit) == 0);
+    assert(test_foodbatch.is_perishable == test_is_perishable);
+    assert(strcmp(test_foodbatch.expiration_date, test_expiration_date) == 0);
+    assert(strcmp(test_foodbatch.arrival_date, test_arrival_date) == 0);
     printf("Retrieved food batch has the updated values.\n");
 
     teardown_cleanup();
@@ -999,49 +1006,49 @@ void test_foodbatch_db_check_batchid_exists(void) {
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
-    int test_batch_id = 1;
     char *test_name = "Test Food";
-    int test_quantity = 100;
+    float test_quantity = 100;
+    char *test_unit = "unit";
     bool test_is_perishable = true;
+    char *test_arrival_date = "2023-09-31";
     char *test_expiration_date = "2023-12-31";
-    float test_daily_consumption_rate = 5.0;
 
     printf("Attempting to check if a non-existent food batch exists.\n");
 
-    bool exists = foodbatch_db_check_batchid_exists(&test_foodbatch_db, test_batch_id);
+    bool exists = foodbatch_db_check_batchid_exists(&test_foodbatch_db, 100);
 
     assert(exists == false);
     printf("Doesn't exist.\n");
 
     printf(
         "Inserting a food batch with the following values:\n"
-        "Batch ID: %d\n"
         "Name: %s\n"
-        "Quantity: %d\n"
+        "Quantity: %f\n"
+        "Unit: %s\n"
         "Is Perishable: %s\n"
-        "Expiration Date: %s\n"
-        "Daily Consumption Rate: %.2f\n",
-        test_batch_id,
+        "Arrival Date: %s\n"
+        "Expiration Date: %s\n",
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable ? "True" : "False",
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     foodbatch_db_insert(
         &test_foodbatch_db,
-        test_batch_id,
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable,
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     printf("Attempting to check if the inserted food batch exists.\n");
 
-    exists = foodbatch_db_check_batchid_exists(&test_foodbatch_db, test_batch_id);
+    exists = foodbatch_db_check_batchid_exists(&test_foodbatch_db, 1);
 
     assert(exists == true);
     printf("Exists.\n");
@@ -1058,56 +1065,56 @@ void test_foodbatch_db_delete_by_id(void) {
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
-    int test_batch_id = 1;
     char *test_name = "Test Food";
-    int test_quantity = 100;
+    float test_quantity = 100;
+    char *test_unit = "unit";
     bool test_is_perishable = true;
+    char *test_arrival_date = "2023-09-31";
     char *test_expiration_date = "2023-12-31";
-    float test_daily_consumption_rate = 5.0;
 
     printf(
         "Inserting a food batch with the following values:\n"
-        "Batch ID: %d\n"
         "Name: %s\n"
-        "Quantity: %d\n"
+        "Quantity: %f\n"
+        "Unit: %s\n"
         "Is Perishable: %s\n"
-        "Expiration Date: %s\n"
-        "Daily Consumption Rate: %.2f\n",
-        test_batch_id,
+        "Arrival Date: %s\n"
+        "Expiration Date: %s\n",
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable ? "True" : "False",
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     foodbatch_db_insert(
         &test_foodbatch_db,
-        test_batch_id,
         test_name,
         test_quantity,
+        test_unit,
         test_is_perishable,
-        test_expiration_date,
-        test_daily_consumption_rate
+        test_arrival_date,
+        test_expiration_date
     );
 
     printf("Attempting to delete the inserted food batch.\n");
 
-    int rc = foodbatch_db_delete_by_id(&test_foodbatch_db, test_batch_id);
+    int rc = foodbatch_db_delete_by_id(&test_foodbatch_db, 1);
 
     assert(rc == SQLITE_OK);
     printf("Operation successful.\n");
 
     printf("Check if the removed food batch still exists.\n");
 
-    bool exists = foodbatch_db_check_batchid_exists(&test_foodbatch_db, test_batch_id);
+    bool exists = foodbatch_db_check_batchid_exists(&test_foodbatch_db, 1);
 
     assert(exists == false);
     printf("Operation successful.\n");
 
     printf("Attempting to delete a non-existent foodbatch.\n");
 
-    rc = foodbatch_db_delete_by_id(&test_foodbatch_db, test_batch_id);
+    rc = foodbatch_db_delete_by_id(&test_foodbatch_db, 1);
 
     assert(rc == SQLITE_NOTFOUND);
 
@@ -1129,10 +1136,10 @@ void test_foodbatch_db_get_all(void) {
 
     // Create several test foodbatches
     printf("Creating test foodbatches...\n");
-    foodbatch_db_insert(&test_foodbatch_db, 0, "Milk", 10, true, "2025-12-20", 2);
-    foodbatch_db_insert(&test_foodbatch_db, 1, "Rice", 5, false, "0001-01-01", 3);
-    foodbatch_db_insert(&test_foodbatch_db, 2, "Beans", 10, false, "0001-01-01", 1);
-    foodbatch_db_insert(&test_foodbatch_db, 3, "Tomatoes", 20, true, "2025-05-10", 1);
+    foodbatch_db_insert(&test_foodbatch_db, "Milk", 10, "pack", true, "2025-12-20", "2026-01-20");
+    foodbatch_db_insert(&test_foodbatch_db, "Rice", 5, "piece", false, "2025-12-12", NULL);
+    foodbatch_db_insert(&test_foodbatch_db, "Beans", 10, "piece", false, "2025-12-30", NULL);
+    foodbatch_db_insert(&test_foodbatch_db, "Tomatoes", 20, "kg", true, "2025-12-09", "2026-01-09");
 
     // Call get_all (this primarily tests that it doesn't crash)
     printf("Calling foodbatch_db_get_all...\n");
@@ -1160,7 +1167,7 @@ void test_foodbatch_db_get_count(void) {
 
     // Add one food batch
     printf("Adding one food batch...\n");
-    int rc = foodbatch_db_insert(&test_foodbatch_db, 1, "Milk", 10, true, "2023-12-31", 2.0);
+    int rc = foodbatch_db_insert(&test_foodbatch_db, "Milk", 10, "pack", true, "2025-12-20", "2026-01-20");
     assert(rc == SQLITE_OK);
 
     // Verify count is now 1
@@ -1171,8 +1178,8 @@ void test_foodbatch_db_get_count(void) {
 
     // Add multiple batches
     printf("Adding multiple food batches...\n");
-    foodbatch_db_insert(&test_foodbatch_db, 2, "Bread", 5, true, "2023-11-30", 1.0);
-    foodbatch_db_insert(&test_foodbatch_db, 3, "Rice", 20, false, "2024-12-31", 0.5);
+    foodbatch_db_insert(&test_foodbatch_db, "Rice", 5, "piece", false, "2025-12-12", NULL);
+    foodbatch_db_insert(&test_foodbatch_db, "Beans", 10, "piece", false, "2025-12-30", NULL);
 
     // Verify count is now 3
     printf("Verifying count after multiple insertions...\n");
@@ -1201,33 +1208,45 @@ void test_foodbatch_db_get_all_format(void) {
 
     // Test empty database
     printf("Testing format on empty database...\n");
-    char buffer[4096];
-    int written = foodbatch_db_get_all_format(&test_foodbatch_db, buffer, sizeof(buffer));
+    int count = foodbatch_db_get_count(&test_foodbatch_db);
+    size_t buffer_size = 512 + 1024 * count;
+
+    char *str_content = malloc(buffer_size);
+    assert(str_content);
+    printf("%d\n%zu\n", count, buffer_size);
+    int written = foodbatch_db_get_all_format(&test_foodbatch_db, str_content, buffer_size);
     assert(written > 0);
-    printf("Empty database format output:\n%s\n", buffer);
+    printf("Empty database format output:\n%s\n", str_content);
 
     // Add test data
     printf("Adding test food batches...\n");
-    foodbatch_db_insert(&test_foodbatch_db, 1, "Milk", 10, true, "2023-12-31", 2.0);
-    foodbatch_db_insert(&test_foodbatch_db, 2, "Bread", 5, true, "2023-11-30", 1.0);
-    foodbatch_db_insert(&test_foodbatch_db, 3, "Rice", 20, false, "2024-12-31", 0.5);
+    foodbatch_db_insert(&test_foodbatch_db, "Milk", 10, "pack", true, "2025-12-20", "2026-01-20");
+    foodbatch_db_insert(&test_foodbatch_db, "Rice", 5, "piece", false, "2025-12-12", NULL);
+    foodbatch_db_insert(&test_foodbatch_db, "Beans", 10, "piece", false, "2025-12-30", NULL);
+
+    count = foodbatch_db_get_count(&test_foodbatch_db);
+
+    buffer_size += 1024 * count;
+
+    str_content = realloc(str_content, buffer_size);
 
     // Test with sufficient buffer
     printf("Testing format with sufficient buffer...\n");
-    written = foodbatch_db_get_all_format(&test_foodbatch_db, buffer, sizeof(buffer));
+    written = foodbatch_db_get_all_format(&test_foodbatch_db, str_content, buffer_size);
     int exact_bytes = written;
-    printf("Formatted output with sufficient buffer:\n%s\n", buffer);
+    printf("Formatted output with sufficient buffer:\n%s\n", str_content);
 
     // Verify the format contains expected elements
-    assert(strstr(buffer, "BatchId") != NULL);
-    assert(strstr(buffer, "Name") != NULL);
-    assert(strstr(buffer, "Quantity") != NULL);
-    assert(strstr(buffer, "Perishable") != NULL);
-    assert(strstr(buffer, "Expiration date") != NULL);
-    assert(strstr(buffer, "Daily Rate") != NULL);
-    assert(strstr(buffer, "Milk") != NULL);
-    assert(strstr(buffer, "Bread") != NULL);
-    assert(strstr(buffer, "Rice") != NULL);
+    assert(strstr(str_content, "ID") != NULL);
+    assert(strstr(str_content, "Name") != NULL);
+    assert(strstr(str_content, "Quantity") != NULL);
+    assert(strstr(str_content, "Unit") != NULL);
+    assert(strstr(str_content, "Perishable") != NULL);
+    assert(strstr(str_content, "Arrival date") != NULL);
+    assert(strstr(str_content, "Expiration date") != NULL);
+    assert(strstr(str_content, "Milk") != NULL);
+    assert(strstr(str_content, "Beans") != NULL);
+    assert(strstr(str_content, "Rice") != NULL);
     printf("Format contains all expected elements.\n");
 
     // Test with small buffer (should truncate)
@@ -1246,11 +1265,13 @@ void test_foodbatch_db_get_all_format(void) {
     // Test with exact buffer size
     printf("Testing format with exact buffer size...\n");
     written = exact_bytes;
-    written = foodbatch_db_get_all_format(&test_foodbatch_db, buffer, written + 1);
+    written = foodbatch_db_get_all_format(&test_foodbatch_db, str_content, written + 1);
     assert(written > 0);
     printf("Format with exact buffer size successful.\n");
 
     teardown_cleanup();
+
+    free(str_content);
 
     printf("foodbatch_db_get_all_format test passed successfully.\n");
 }
@@ -1271,11 +1292,10 @@ void test_foodbatch_db_get_all_format_old(void) {
 
     // Add test data
     printf("Adding test food batches...\n");
-    foodbatch_db_insert(&test_foodbatch_db, 1, "Milk", 10, true, "2023-12-31", 2.0);
-    foodbatch_db_insert(&test_foodbatch_db, 2, "Bread", 5, true, "2023-11-30", 1.0);
-    foodbatch_db_insert(&test_foodbatch_db, 3, "Rice", 20, false, "2024-12-31", 0.5);
-    foodbatch_db_insert(&test_foodbatch_db, 4, "Pasta", 15, false, "2025-01-31", 0.3);
-    foodbatch_db_insert(&test_foodbatch_db, 5, "Cheese", 8, true, "2023-10-15", 0.8);
+    foodbatch_db_insert(&test_foodbatch_db, "Milk", 10, "pack", true, "2025-12-20", "2026-01-20");
+    foodbatch_db_insert(&test_foodbatch_db, "Rice", 5, "piece", false, "2025-12-12", NULL);
+    foodbatch_db_insert(&test_foodbatch_db, "Beans", 10, "piece", false, "2025-12-30", NULL);
+    foodbatch_db_insert(&test_foodbatch_db, "Tomatoes", 20, "kg", true, "2025-12-09", "2026-01-09");
 
     // Test with multiple records
     printf("Testing format with multiple records...\n");
@@ -1284,17 +1304,16 @@ void test_foodbatch_db_get_all_format_old(void) {
     printf("Formatted output with multiple records:\n%s\n", result);
 
     // Verify the format contains expected elements
-    assert(strstr(result, "BatchId") != NULL);
+    assert(strstr(result, "ID") != NULL);
     assert(strstr(result, "Name") != NULL);
     assert(strstr(result, "Quantity") != NULL);
+    assert(strstr(result, "Unit") != NULL);
     assert(strstr(result, "Perishable") != NULL);
+    assert(strstr(result, "Arrival date") != NULL);
     assert(strstr(result, "Expiration date") != NULL);
-    assert(strstr(result, "Daily Rate") != NULL);
     assert(strstr(result, "Milk") != NULL);
-    assert(strstr(result, "Bread") != NULL);
     assert(strstr(result, "Rice") != NULL);
-    assert(strstr(result, "Pasta") != NULL);
-    assert(strstr(result, "Cheese") != NULL);
+    assert(strstr(result, "Tomatoes") != NULL);
     printf("Format contains all expected elements.\n");
 
     free(result);
@@ -4358,6 +4377,7 @@ void test_db_manager_fn(void) {
     test_db_init_with_tbl();
     test_db_is_init();
     test_db_deinit();
+    printf("All database manager operations tests passed successfully!\n");
 }
 
 void test_resident_db_fn(void) {
@@ -4370,6 +4390,7 @@ void test_resident_db_fn(void) {
     test_resident_db_get_all_format();
     test_resident_db_get_all_format_old();
     test_resident_db_get_all();
+    printf("All resident database operations tests passed successfully!\n");
 }
 
 void test_foodbatch_db_fn(void) {
@@ -4382,6 +4403,7 @@ void test_foodbatch_db_fn(void) {
     test_foodbatch_db_get_all_format();
     test_foodbatch_db_get_all_format_old();
     test_foodbatch_db_get_all();
+    printf("All foodbatch database operations tests passed successfully!\n");
 }
 
 void test_user_db_fn(void) {
@@ -4399,6 +4421,7 @@ void test_user_db_fn(void) {
     test_user_db_set_password_reset();
     test_user_db_get_count();
     test_user_db_get_all();
+    printf("All user database operations tests passed successfully!\n");
 }
 
 void test_clothes_db_fn(void) {
@@ -4412,6 +4435,7 @@ void test_clothes_db_fn(void) {
     test_clothes_db_check_exists_by_id();
     test_clothes_db_get();
     test_clothes_db_get_all();
+    printf("All clothes database operations tests passed successfully!\n");
 }
 
 void test_medication_db_fn(void) {
@@ -4425,6 +4449,7 @@ void test_medication_db_fn(void) {
     test_medication_db_check_exists_by_id();
     test_medication_db_get();
     test_medication_db_get_all();
+    printf("All medication database operations tests passed successfully!\n");
 }
 
 void test_supplies_db_fn(void) {
@@ -4438,6 +4463,7 @@ void test_supplies_db_fn(void) {
     test_supplies_db_check_exists_by_id();
     test_supplies_db_get();
     test_supplies_db_get_all();
+    printf("All supplies database operations tests passed successfully!\n");
 }
 
 void test_hash_fn(void) {
@@ -4446,6 +4472,7 @@ void test_hash_fn(void) {
     test_hash_consistency();
     test_hash_collision_resistance();
     test_edge_cases();
+    printf("All utils_hash tests passed successfully!\n");
 }
 
 void test_utils_fn(void) {
@@ -4454,26 +4481,20 @@ void test_utils_fn(void) {
     test_wrap_text();
     test_filter_integer_input();
     test_validate_date();
+    printf("All utilsfn tests passed successfully!\n");
 }
 
 int main(void) {
-    //test_db_manager_fn();
-
-    //test_resident_db_fn();
-
-    //test_foodbatch_db_fn();
-
-    //test_user_db_fn();
-
-    //test_clothes_db_fn();
-
-    //test_medication_db_fn();
-
+    test_db_manager_fn();
+    test_resident_db_fn();
+    test_foodbatch_db_fn();
+    test_user_db_fn();
+    test_clothes_db_fn();
+    test_medication_db_fn();
     test_supplies_db_fn();
+    test_hash_fn();
+    test_utils_fn();
 
-    //test_hash_fn();
-
-    //test_utils_fn();
-
+    printf("All tests passed successfully!\n");
     return 0;
 }
