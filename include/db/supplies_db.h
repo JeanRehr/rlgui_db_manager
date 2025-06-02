@@ -180,8 +180,6 @@ int supplies_db_get_count(database *db);
  * @return int Number of bytes written (excluding null terminator), or -1 on failure
  *
  * 
-    // Header will always needs 405 (406 (\0) if no other row) bytes and each row + separator will need at max 1450 with the current table and format
- * 
  * @note Header will always needs 405 (406 (+\0) if no other row) bytes and each row + separator
  *       (Considering max input is 256) will need at max 1450 with the current table and format
  *       String format:
