@@ -10,6 +10,9 @@
 #define TASKS_DB_H
 
 #include "db/db_manager.h"
+
+#include <stddef.h>
+
 #include "entities/task.h"
 
 /**
