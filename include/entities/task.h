@@ -55,15 +55,15 @@ extern const char *task_status_str[NUM_TASK_STATUS];
  * @note To get a string representation of the enums, use the lookup tables
  */
 struct task {
-    int id;                       ///< ID of the task (get only from the database table)
-    char title[MAX_INPUT];        ///< Title of the task
-    char description[MAX_INPUT];  ///< Description of the task
-    char due_date[DATE_LEN];      ///< ISO 8601 date, e.g., "2024-07-01"
-    enum task_priority priority;  ///< Task priority
-    enum task_status status;      ///< Task status
-    char assigned_to[MAX_INPUT];  ///< User it is assigned to
-    char created_at[MAX_INPUT];   ///< When it was created
-    char completed_at[MAX_INPUT]; ///< When it was completed
+    int id;                          ///< ID of the task (get only from the database table)
+    char title[MAX_INPUT];           ///< Title of the task
+    char description[MAX_INPUT];     ///< Description of the task
+    char due_date[DATE_LEN];         ///< ISO 8601 date, e.g., "2024-07-01"
+    enum task_priority priority;     ///< Task priority
+    enum task_status status;         ///< Task status
+    char assigned_to[MAX_INPUT];     ///< User it is assigned to
+    char created_at[DATETIME_LEN];   ///< ISO 8601 datetime, e.g., 2025-06-02 15:04:53
+    char completed_at[DATETIME_LEN]; ///< ISO 8601 datetime, e.g., 2025-06-02 15:04:53
 };
 
 #endif // TASK_H
