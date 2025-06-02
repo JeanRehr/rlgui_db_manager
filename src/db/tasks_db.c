@@ -78,7 +78,7 @@ int tasks_db_upsert(
         sqlite3_bind_text(stmt, 3, due_date, -1, SQLITE_STATIC);
         sqlite3_bind_int(stmt, 4, priority);
         sqlite3_bind_int(stmt, 5, status);
-        
+
         if (assigned_to) {
             sqlite3_bind_text(stmt, 6, assigned_to, -1, SQLITE_STATIC);
         } else {
@@ -94,7 +94,7 @@ int tasks_db_upsert(
         sqlite3_bind_int(stmt, 8, id);
     } else { // Insert
         const char *sql =
-            "INSERT INTO Tasks (Title, Description, DueDate, Priority, AssignedTo, CompletedAt) VALUES (?, ?, ?, ?, ?, ?)";
+            "INSERT INTO Tasks (Title, Description, DueDate, Priority, Status, AssignedTo, CompletedAt) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
 
@@ -185,7 +185,7 @@ int tasks_db_delete_entry_status(database *db, enum task_status status) {
 
     // Finalize the statement
     sqlite3_finalize(stmt);
-    
+
     if (rc != SQLITE_DONE) {
         fprintf(stderr, "Failed to execute delete statement: %s\n", sqlite3_errmsg(db->db));
         return rc;
@@ -211,7 +211,7 @@ int tasks_db_get(database *db, int id, struct task *out_task) {
     sqlite3_stmt *stmt;
 
     int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
-    
+
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
         return rc;
@@ -222,7 +222,6 @@ int tasks_db_get(database *db, int id, struct task *out_task) {
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-
         out_task->id = sqlite3_column_int(stmt, 0);
         strcpy(out_task->title, (const char *)sqlite3_column_text(stmt, 1));
         strcpy(out_task->description, (const char *)sqlite3_column_text(stmt, 2));
@@ -231,7 +230,12 @@ int tasks_db_get(database *db, int id, struct task *out_task) {
         out_task->status = sqlite3_column_int(stmt, 5);
         strcpy(out_task->assigned_to, (const char *)sqlite3_column_text(stmt, 6));
         strcpy(out_task->created_at, (const char *)sqlite3_column_text(stmt, 7));
-        strcpy(out_task->completed_at, (const char *)sqlite3_column_text(stmt, 8));
+        const char *completed_at_val = (const char *)sqlite3_column_text(stmt, 8);
+        if (completed_at_val) {
+            strcpy(out_task->completed_at, (const char *)sqlite3_column_text(stmt, 8));
+        } else {
+            out_task->completed_at[0] = '\0';
+        }
 
         rc = SQLITE_OK; // Found and read successfully
     } else if (rc == SQLITE_DONE) {
@@ -296,9 +300,9 @@ int tasks_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
 
     // Format header
     const char *header =
-        "+------------------------------------------------------------------------------------------------------------------------------------+\n"
-        "| ID  | Name                     | Category                 | Size             | Unit             | Stock | Notes                    |\n"
-        "+-----+--------------------------+--------------------------+------------------+------------------+-------+--------------------------+\n";
+        "+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+\n"
+        "| ID  | Title            | Description                      | Due Date    | Priority | Status      | Assigned To      | Created At          | Completed At        |\n"
+        "+-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+\n";
 
     // Write header if there's space
     size_t header_len = strlen(header);
@@ -318,26 +322,30 @@ int tasks_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
     // Process each row
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int id = sqlite3_column_int(stmt, 0);
-        const char *name = (const char *)sqlite3_column_text(stmt, 1);
-        const char *category = (const char *)sqlite3_column_text(stmt, 2);
-        const char *size = (const char *)sqlite3_column_text(stmt, 3);
-        const char *unit = (const char *)sqlite3_column_text(stmt, 4);
-        const int stock = sqlite3_column_int(stmt, 5);
-        const char *notes = (const char *)sqlite3_column_text(stmt, 6);
+        const char *title = (const char *)sqlite3_column_text(stmt, 1);
+        const char *description = (const char *)sqlite3_column_text(stmt, 2);
+        const char *due_date = (const char *)sqlite3_column_text(stmt, 3);
+        enum task_priority priority = sqlite3_column_int(stmt, 4);
+        enum task_status status = sqlite3_column_int(stmt, 5);
+        const char *assigned_to = (const char *)sqlite3_column_text(stmt, 6);
+        const char *created_at = (const char *)sqlite3_column_text(stmt, 7);
+        const char *completed_at = (const char *)sqlite3_column_text(stmt, 8);
 
         // Format the row
         char row[2048];
         snprintf(
             row,
             sizeof(row),
-            "| %-3d | %-24s | %-24s | %-16s | %-16s | %-5d | %-24s |\n",
+            "| %-3d | %-16s | %-32s | %-11s | %-8s | %-11s | %-16s | %-19s | %-19s |\n",
             id,
-            name,
-            category,
-            size,
-            unit,
-            stock,
-            notes
+            title,
+            description,
+            due_date,
+            task_priority_str[priority],
+            task_status_str[status],
+            assigned_to,
+            created_at,
+            completed_at
         );
 
         size_t row_len = strlen(row);
@@ -356,7 +364,7 @@ int tasks_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
 
         // Add separator line
         const char *separator =
-            "+-----+--------------------------+--------------------------+------------------+------------------+-------+--------------------------+\n";
+            "+-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+\n";
 
         size_t separator_len = strlen(separator);
         if (written + separator_len < buffer_size) {
@@ -398,10 +406,10 @@ char *tasks_db_get_all_format_old(database *db) {
         return NULL;
     }
 
-    // Header will always needs 405 (406 (\0) if no other row) bytes and each row + separator will need at max 1450 with the current table and format
+    // Header will always needs 492 (493 (\0) if no other row) bytes and each row + separator will need at max 1029 (Last row 1030 for the null terminator) with the current table and format
 
     // Initial buffer
-    size_t buffer_size = 4096;
+    size_t buffer_size = 4092;
     char *result = malloc(buffer_size);
     if (!result) {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -413,9 +421,9 @@ char *tasks_db_get_all_format_old(database *db) {
 
     // Append header to the result string
     const char *header =
-        "+------------------------------------------------------------------------------------------------------------------------------------+\n"
-        "| ID  | Name                     | Category                 | Size             | Unit             | Stock | Notes                    |\n"
-        "+-----+--------------------------+--------------------------+------------------+------------------+-------+--------------------------+\n";
+        "+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+\n"
+        "| ID  | Title            | Description                      | Due Date    | Priority | Status      | Assigned To      | Created At          | Completed At        |\n"
+        "+-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+\n";
 
     // Check if buffer is large enough for the header
     if (strlen(header) + 1 > buffer_size) {
@@ -434,26 +442,30 @@ char *tasks_db_get_all_format_old(database *db) {
     // Process each row
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int id = sqlite3_column_int(stmt, 0);
-        const char *name = (const char *)sqlite3_column_text(stmt, 1);
-        const char *category = (const char *)sqlite3_column_text(stmt, 2);
-        const char *size = (const char *)sqlite3_column_text(stmt, 3);
-        const char *unit = (const char *)sqlite3_column_text(stmt, 4);
-        const int stock = sqlite3_column_int(stmt, 5);
-        const char *notes = (const char *)sqlite3_column_text(stmt, 6);
+        const char *title = (const char *)sqlite3_column_text(stmt, 1);
+        const char *description = (const char *)sqlite3_column_text(stmt, 2);
+        const char *due_date = (const char *)sqlite3_column_text(stmt, 3);
+        enum task_priority priority = sqlite3_column_int(stmt, 4);
+        enum task_status status = sqlite3_column_int(stmt, 5);
+        const char *assigned_to = (const char *)sqlite3_column_text(stmt, 6);
+        const char *created_at = (const char *)sqlite3_column_text(stmt, 7);
+        const char *completed_at = (const char *)sqlite3_column_text(stmt, 8);
 
         // Format the row
         char row[2048];
         snprintf(
             row,
             sizeof(row),
-            "| %-3d | %-24s | %-24s | %-16s | %-16s | %-5d | %-24s |\n",
+            "| %-3d | %-16s | %-32s | %-11s | %-8s | %-11s | %-16s | %-19s | %-19s |\n",
             id,
-            name,
-            category,
-            size,
-            unit,
-            stock,
-            notes
+            title,
+            description,
+            due_date,
+            task_priority_str[priority],
+            task_status_str[status],
+            assigned_to,
+            created_at,
+            completed_at
         );
 
         // Check if buffer needs to grow
@@ -478,7 +490,7 @@ char *tasks_db_get_all_format_old(database *db) {
 
         // Add separator line
         const char *separator =
-            "+-----+--------------------------+--------------------------+------------------+------------------+-------+--------------------------+\n";
+            "+-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+\n";
 
         required_size = strlen(result) + strlen(separator) + 1;
         if (required_size > buffer_size) {
@@ -527,9 +539,9 @@ int tasks_db_get_all(database *db) {
     }
 
     printf(
-        "+--------------------------------------------------------------------------------------------------------------------------------------------------+\n"
-        "| ID  | Title            | Description                      | Due Date    | Priority | Status      | Assigned To      | Created At  | Completed At |\n"
-        "+-----+------------------+----------------------------------+-------------+----------+-------------+------------------+-------------+--------------+\n"
+        "+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+\n"
+        "| ID  | Title            | Description                      | Due Date    | Priority | Status      | Assigned To      | Created At          | Completed At        |\n"
+        "+-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+\n"
     );
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
@@ -544,7 +556,7 @@ int tasks_db_get_all(database *db) {
         const char *completed_at = (const char *)sqlite3_column_text(stmt, 8);
 
         printf(
-            "| %-3d | %-16s | %-32s | %-11s | %-8s | %-11s | %-16s | %-11s | %-12s |\n",
+            "| %-3d | %-16s | %-32s | %-11s | %-8s | %-11s | %-16s | %-19s | %-19s |\n",
             id,
             title,
             description,
@@ -556,7 +568,7 @@ int tasks_db_get_all(database *db) {
             completed_at
         );
         printf(
-            "+-----+------------------+----------------------------------+-------------+----------+-------------+------------------+-------------+--------------+\n"
+            "+-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+\n"
         );
     }
 

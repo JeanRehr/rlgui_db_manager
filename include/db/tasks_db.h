@@ -115,12 +115,15 @@ int tasks_db_get_count(database *db);
  * @param buffer Pointer to buffer where formatted string will be written
  * @param buffer_size Size of the provided buffer
  * @return int Number of bytes written (excluding null terminator), or -1 on failure
- *
  * 
- * 
- * @note Header will always needs xxx (xxx (+\0) if no other row) bytes and each row + separator
- *       (Considering max input is 256) will need at max xxxx with the current table and format
+ * @note Header will always needs 492 (493 (+\0) if no other row) bytes and each row + separator
+ *       (Considering max input is 256) will need at max 1029 (last row 1030 for the '\0') with the current table and format
  *       String format:
+ * +-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ * | ID  | Title            | Description                      | Due Date    | Priority | Status      | Assigned To      | Created At          | Completed At        |
+ * +-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+
+ * | 1   | Restock Milk     | Restock milk on area area_name   | 2025-05-01  | Normal   | Done        | Alice            | 2025-06-02 17:08:18 | 2025-06-02 16:37:26 |
+ * +-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+
  *
  * @warning Returns -1 if database is not initialized, on query failure, or if buffer is too small
  * @warning Buffer will be null-terminated if there's space, even on truncation
@@ -152,6 +155,11 @@ int tasks_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * @return char* Formatted table string containing all records, or NULL on failure
  *
  * @note Returned string format:
+ * +-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+ * | ID  | Title            | Description                      | Due Date    | Priority | Status      | Assigned To      | Created At          | Completed At        |
+ * +-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+
+ * | 1   | Restock Milk     | Restock milk on area area_name   | 2025-05-01  | Normal   | Done        | Alice            | 2025-06-02 17:08:18 | 2025-06-02 16:37:26 |
+ * +-----+------------------+----------------------------------+-------------+----------+-------------+------------------+---------------------+---------------------+
  *
  * @note Header will always needs xxx bytes and each row + separator (xxx) will need at max xxxx with the current table and format
  * 
