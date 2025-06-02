@@ -15,10 +15,10 @@
 #include "db/db_manager.h"
 #include "db/foodbatch_db.h"
 #include "db/medication_db.h"
-#include "db/supplies_db.h"
 #include "db/resident_db.h"
+#include "db/supplies_db.h"
+#include "db/tasks_db.h"
 #include "db/user_db.h"
-#include "entities/user.h"
 #include "utils/utils_hash.h"
 #include "utils/utilsfn.h"
 
@@ -3379,15 +3379,7 @@ void test_supplies_db_create_table(void) {
     const char *notes = "Pampers";
 
     // Verify table structure by trying to insert a supply
-    int rc = supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        stock,
-        notes
-    );
+    int rc = supplies_db_upsert(&test_supplies_db, name, category, size, unit, stock, notes);
     assert(rc == SQLITE_OK);
     printf("Table structure is correct.\n");
 
@@ -3426,15 +3418,7 @@ void test_supplies_db_upsert(void) {
         notes
     );
 
-    int rc = supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        stock,
-        notes
-    );
+    int rc = supplies_db_upsert(&test_supplies_db, name, category, size, unit, stock, notes);
 
     assert(rc == SQLITE_OK);
     printf("Inserted supply successfully.\n");
@@ -3448,15 +3432,7 @@ void test_supplies_db_upsert(void) {
         added_stock + stock
     );
 
-    rc = supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        added_stock,
-        NULL
-    );
+    rc = supplies_db_upsert(&test_supplies_db, name, category, size, unit, added_stock, NULL);
 
     assert(rc == SQLITE_OK);
 
@@ -3464,10 +3440,7 @@ void test_supplies_db_upsert(void) {
 
     const char *upd_notes = "Updated notes.";
 
-    printf(
-        "Attempting to insert quantity 0 and update notes with the following value: %s.\n",
-        upd_notes
-    );
+    printf("Attempting to insert quantity 0 and update notes with the following value: %s.\n", upd_notes);
 
     rc = supplies_db_upsert(&test_supplies_db, name, category, size, unit, 0, upd_notes);
 
@@ -3490,8 +3463,7 @@ void test_supplies_db_upsert(void) {
 
     printf("Attempting to update/insert a negative stock.\n");
 
-    rc =
-        supplies_db_upsert(&test_supplies_db, name, category, size, unit, -4, notes);
+    rc = supplies_db_upsert(&test_supplies_db, name, category, size, unit, -4, notes);
 
     assert(rc == SQLITE_CONSTRAINT);
 
@@ -3532,15 +3504,7 @@ void test_supplies_db_remove(void) {
         notes
     );
 
-    supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        stock,
-        notes
-    );
+    supplies_db_upsert(&test_supplies_db, name, category, size, unit, stock, notes);
 
     int quantity_to_remove = 3;
 
@@ -3628,15 +3592,7 @@ void test_supplies_db_delete_entry(void) {
         notes
     );
 
-    supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        stock,
-        notes
-    );
+    supplies_db_upsert(&test_supplies_db, name, category, size, unit, stock, notes);
 
     printf("Attempting to delete previous inserted entry.\n");
 
@@ -3695,15 +3651,7 @@ void test_supplies_db_remove_by_id(void) {
         notes
     );
 
-    supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        stock,
-        notes
-    );
+    supplies_db_upsert(&test_supplies_db, name, category, size, unit, stock, notes);
 
     int quantity_to_remove = 3;
 
@@ -3791,15 +3739,7 @@ void test_supplies_db_delete_entry_by_id(void) {
         notes
     );
 
-    supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        stock,
-        notes
-    );
+    supplies_db_upsert(&test_supplies_db, name, category, size, unit, stock, notes);
 
     printf("Attempting to delete by id the previous inserted entry.\n");
 
@@ -3850,15 +3790,7 @@ void test_supplies_db_check_exists(void) {
     const int stock = 5;
     const char *notes = "Pampers";
 
-    supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        stock,
-        notes
-    );
+    supplies_db_upsert(&test_supplies_db, name, category, size, unit, stock, notes);
 
     exists = supplies_db_check_exists(&test_supplies_db, name, category, size);
 
@@ -3894,15 +3826,7 @@ void test_supplies_db_check_exists_by_id(void) {
     const int stock = 5;
     const char *notes = "Pampers";
 
-    supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        stock,
-        notes
-    );
+    supplies_db_upsert(&test_supplies_db, name, category, size, unit, stock, notes);
 
     exists = supplies_db_check_exists_by_id(&test_supplies_db, 1);
 
@@ -3945,15 +3869,7 @@ void test_supplies_db_get(void) {
         notes
     );
 
-    supplies_db_upsert(
-        &test_supplies_db,
-        name,
-        category,
-        size,
-        unit,
-        stock,
-        notes
-    );
+    supplies_db_upsert(&test_supplies_db, name, category, size, unit, stock, notes);
 
     printf("Attempting to fill in a struct supply.\n");
 
@@ -3997,29 +3913,10 @@ void test_supplies_db_get_all(void) {
 
     // Create several test supplies
     printf("Creating test supplies...\n");
-    supplies_db_upsert(
-        &test_supplies_db,
-        "diaper", "hygiene", "m", "pack", 3, "Pampers"
-    );
-    supplies_db_upsert(
-        &test_supplies_db,
-        "tampon",
-        "personal care",
-        "l",
-        "pack",
-        5,
-        "None"
-    );
+    supplies_db_upsert(&test_supplies_db, "diaper", "hygiene", "m", "pack", 3, "Pampers");
+    supplies_db_upsert(&test_supplies_db, "tampon", "personal care", "l", "pack", 5, "None");
     supplies_db_upsert(&test_supplies_db, "water", "consumable", "s", "", 1, "");
-    supplies_db_upsert(
-        &test_supplies_db,
-        "pen",
-        "office",
-        "s",
-        "piece",
-        100,
-        ""
-    );
+    supplies_db_upsert(&test_supplies_db, "pen", "office", "s", "piece", 100, "");
 
     // Call get_all (this primarily tests that it doesn't crash)
     printf("Calling supplies_db_get_all...\n");
@@ -4032,7 +3929,215 @@ void test_supplies_db_get_all(void) {
     printf("supplies_db_get_all test passed successfully.\n");
 }
 
-// Supplies DB END
+// SUPPLIES DB END
+
+// TEST DB TASKS START
+
+// TEST DB TASKS START
+
+void test_tasks_db_create_table(void) {
+    const char *test_tasksdb_filename = "test_tasks_db.db";
+    database test_tasks_db;
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+
+    setup_cleanup(test_tasksdb_filename, &test_tasks_db);
+
+    printf("Testing tasks_db_create_table...\n");
+
+    // Try inserting a record to verify structure
+    int rc = tasks_db_upsert(
+        &test_tasks_db,
+        0,
+        "Restock Diapers",
+        "Restock all diaper supplies",
+        "2025-07-01",
+        TSK_HIGH,
+        TSK_PENDING,
+        "alice",
+        NULL
+    );
+
+    tasks_db_get_all(&test_tasks_db);
+
+    assert(rc == SQLITE_OK);
+
+    printf("Table structure is correct.\n");
+
+    teardown_cleanup();
+
+    printf("tasks_db_create_table test passed successfully.\n");
+}
+
+void test_tasks_db_upsert(void) {
+    const char *test_tasksdb_filename = "test_tasks_db.db";
+    database test_tasks_db;
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    setup_cleanup(test_tasksdb_filename, &test_tasks_db);
+
+    const char *title = "Restock Diapers";
+    const char *desc = "Restock all diaper supplies";
+    const char *due_date = "2024-07-01";
+    int priority = TSK_HIGH;
+    int status = TSK_PENDING;
+    const char *assigned = "alice";
+
+    printf("Attempting to insert a new task...\n");
+    int rc = tasks_db_upsert(&test_tasks_db, 0, title, desc, due_date, priority, status, assigned, NULL);
+    assert(rc == SQLITE_OK);
+
+    printf("Initial insert OK.\n");
+
+    struct task the_task = { 0 };
+    rc = tasks_db_get(&test_tasks_db, 1, &the_task);
+    assert(rc == SQLITE_OK);
+    assert(strcmp(the_task.title, title) == 0);
+
+    printf("Fetched inserted task successfully.\n");
+
+    // Now update the task, change status and complete it
+    const char *completed_time = "2025-12-02 10:00:00";
+    rc = tasks_db_upsert(&test_tasks_db, 1, title, desc, due_date, priority, TSK_DONE, assigned, completed_time);
+    assert(rc == SQLITE_OK);
+
+    rc = tasks_db_get(&test_tasks_db, 1, &the_task);
+    assert(rc == SQLITE_OK);
+    assert(the_task.status == 2);
+
+    printf("Updated status and completed_at OK.\n");
+
+    // Try to update a non-existing ID
+    rc = tasks_db_upsert(&test_tasks_db, 99, title, desc, due_date, TSK_NORMAL, TSK_PENDING, NULL, NULL);
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("tasks_db_upsert handles non-existent update correctly.\n");
+
+    teardown_cleanup();
+    printf("tasks_db_upsert test passed successfully.\n");
+}
+
+void test_tasks_db_check_exists(void) {
+    const char *test_tasksdb_filename = "test_tasks_db.db";
+    database test_tasks_db;
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    setup_cleanup(test_tasksdb_filename, &test_tasks_db);
+
+    printf("Checking if a non-existent task id exists.\n");
+    assert(!tasks_db_check_exists(&test_tasks_db, 123));
+
+    printf("Non-existent id does not exist as expected.\n");
+
+    // Insert a record, check exists
+    tasks_db_upsert(&test_tasks_db, 0, "Do something", "desc", "2025-06-05", 0, 0, NULL, NULL);
+    assert(tasks_db_check_exists(&test_tasks_db, 1));
+
+    printf("tasks_db_check_exists found the inserted record.\n");
+
+    teardown_cleanup();
+    printf("tasks_db_check_exists passed successfully.\n");
+}
+
+void test_tasks_db_get(void) {
+    const char *test_tasksdb_filename = "test_tasks_db.db";
+    database test_tasks_db;
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    setup_cleanup(test_tasksdb_filename, &test_tasks_db);
+
+    // Insert and then fetch
+    tasks_db_upsert(
+        &test_tasks_db,
+        0,
+        "FetchThis",
+        "FETCH SUCCESS",
+        "2024-09-01",
+        TSK_NORMAL,
+        TSK_IN_PROGRESS,
+        "bob",
+        NULL
+    );
+
+    struct task tsk = { 0 };
+    int rc = tasks_db_get(&test_tasks_db, 1, &tsk);
+    assert(rc == SQLITE_OK);
+    assert(strcmp(tsk.title, "FetchThis") == 0);
+    assert(strcmp(tsk.description, "FETCH SUCCESS") == 0);
+    assert(tsk.priority == TSK_NORMAL);
+
+    // Try getting non-existent
+    rc = tasks_db_get(&test_tasks_db, 999, &tsk);
+    assert(rc == SQLITE_NOTFOUND);
+
+    printf("tasks_db_get test passed successfully.\n");
+
+    teardown_cleanup();
+}
+
+void test_tasks_db_get_count(void) {
+    const char *test_tasksdb_filename = "test_tasks_db.db";
+    database test_tasks_db;
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    setup_cleanup(test_tasksdb_filename, &test_tasks_db);
+
+    assert(tasks_db_get_count(&test_tasks_db) == 0);
+
+    tasks_db_upsert(&test_tasks_db, 0, "Count1", "desc", "2024-07-20", TSK_NORMAL, TSK_PENDING, NULL, NULL);
+    assert(tasks_db_get_count(&test_tasks_db) == 1);
+
+    tasks_db_upsert(&test_tasks_db, 0, "Count2", "desc", "2024-07-21", TSK_NORMAL, TSK_PENDING, NULL, NULL);
+    assert(tasks_db_get_count(&test_tasks_db) == 2);
+
+    teardown_cleanup();
+    printf("tasks_db_get_count test passed successfully.\n");
+}
+
+void test_tasks_db_get_all_and_format(void) {
+    const char *test_tasksdb_filename = "test_tasks_db.db";
+    database test_tasks_db;
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    setup_cleanup(test_tasksdb_filename, &test_tasks_db);
+
+    // Insert a few diverse tasks
+    tasks_db_upsert(&test_tasks_db, 0, "A", "DescA", "2025-06-23", TSK_LOW, TSK_PENDING, "alice", NULL);
+    tasks_db_upsert(&test_tasks_db, 0, "B", "DescB", "2025-06-11", TSK_NORMAL, TSK_IN_PROGRESS, "bob", NULL);
+    tasks_db_upsert(&test_tasks_db, 0, "C", "DescC", NULL, 0, 2, NULL, "2025-12-30 17:07");
+
+    printf("Testing tasks_db_get_all (prints to stdout)...\n");
+    int rc = tasks_db_get_all(&test_tasks_db);
+    assert(rc == SQLITE_OK);
+
+    // Buffer-based formatting
+    char buf[4096];
+    printf("Testing tasks_db_get_all_format...\n");
+    int n = tasks_db_get_all_format(&test_tasks_db, buf, sizeof(buf));
+    assert(n > 0);
+    printf("tasks_db_get_all_format:\n%s", buf);
+
+    teardown_cleanup();
+    printf("tasks_db_get_all_and_format test passed successfully.\n");
+}
+
+void test_tasks_db_get_all_format_old(void) {
+    const char *test_tasksdb_filename = "test_tasks_db.db";
+    database test_tasks_db;
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    setup_cleanup(test_tasksdb_filename, &test_tasks_db);
+
+    // Insert a few tasks
+    tasks_db_upsert(&test_tasks_db, 0, "Restock Milk", "Restock milk on area area_name", "2025-05-01", TSK_NORMAL, TSK_DONE, "Alice", "2025-06-02 16:37:26");
+    tasks_db_upsert(&test_tasks_db, 0, "oldB", "desc", "2025-06-01", 1, 1, NULL, NULL);
+
+    char *formatted = tasks_db_get_all_format_old(&test_tasks_db);
+    assert(formatted != NULL);
+
+    printf("tasks_db_get_all_format_old output:\n%s", formatted);
+    free(formatted);
+
+    teardown_cleanup();
+    printf("tasks_db_get_all_format_old test passed successfully.\n");
+}
+
+
+
+// TASKS DB END
 
 // UTILS_HASH TESTS
 
@@ -4466,6 +4571,17 @@ void test_supplies_db_fn(void) {
     printf("All supplies database operations tests passed successfully!\n");
 }
 
+void test_tasks_db_fn(void) {
+    test_tasks_db_create_table();
+    test_tasks_db_upsert();
+    test_tasks_db_check_exists();
+    test_tasks_db_get();
+    test_tasks_db_get_count();
+    test_tasks_db_get_all_and_format();
+    test_tasks_db_get_all_format_old();
+    printf("All tasks database operations tests passed successfully!\n");
+}
+
 void test_hash_fn(void) {
     test_generate_salt();
     test_hash_password();
@@ -4492,6 +4608,7 @@ int main(void) {
     test_clothes_db_fn();
     test_medication_db_fn();
     test_supplies_db_fn();
+    test_tasks_db_fn();
     test_hash_fn();
     test_utils_fn();
 
