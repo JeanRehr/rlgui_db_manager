@@ -15,7 +15,7 @@
  *
  * @warning Terminating NUM must always be last to maximize compile-time access safety
  */
-enum task_priority { LOW = 0, NORMAL, HIGH, NUM_TASK_PRIORITY };
+enum task_priority { TSK_LOW = 0, TSK_NORMAL, TSK_HIGH, NUM_TASK_PRIORITY };
 
 /**
  * @enum task_status
@@ -25,7 +25,7 @@ enum task_priority { LOW = 0, NORMAL, HIGH, NUM_TASK_PRIORITY };
  * 
  * @warning Terminating NUM must always be last to maximize compile-time access safety
  */
-enum task_status { PENDING = 0, IN_PROGRESS, DONE, CANCELLED, NUM_TASK_STATUS };
+enum task_status { TSK_PENDING = 0, TSK_IN_PROGRESS, TSK_DONE, TSK_CANCELLED, NUM_TASK_STATUS };
 
 /**
  * @addtogroup task_lookup_table
