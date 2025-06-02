@@ -66,8 +66,24 @@
   * throughout all application screens.
   *
   * @note Should be ISO 8601 formatted date (YYYY-MM-DD + null)
+  * 
+  * @example 2025-06-02
   *
   */
 #define DATE_LEN 11
+
+/**
+  * @def DATETIME_LEN
+  * @brief Length of date for use in all datetime character arrays
+  *
+  * Defines the length of date and time to be used consistently
+  * throughout all application screens.
+  *
+  * @note Should be ISO 8601 formatted datetime (YYYY-MM-DD HH:MM:SS + null)
+  * 
+  * @example 2025-06-02 15:04:53
+  * 
+  */
+#define DATETIME_LEN 20 
 
 #endif // CONSTANTS_H
