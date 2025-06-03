@@ -54,8 +54,8 @@ int tasks_db_upsert(
     const char *title,
     const char *description,
     const char *due_date,
-    int priority,
-    int status,
+    enum task_priority priority,
+    enum task_status status,
     const char *assigned_to,
     const char *completed_at
 );
