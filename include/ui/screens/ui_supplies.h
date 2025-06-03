@@ -15,6 +15,13 @@
  *
  * Tracks various states and validation results for the supplies screen.
  */
+
+#include "ui/components/button.h"
+#include "ui/components/intbox.h"
+#include "ui/components/scrollpanel.h"
+#include "ui/components/textbox.h"
+#include "ui/screens/ui_base.h"
+
 enum supplies_screen_flags {
     FLAG_SUPPLIES_OPERATION_DONE = 1 << 0,         ///< Operation done
     FLAG_SUPPLIES_GENERIC_ERROR = 1 << 1,          ///< Generic error
@@ -28,12 +35,6 @@ enum supplies_screen_flags {
     FLAG_SUPPLIES_CATEGORY_EMPTY = 1 << 9,         ///< Category textbox empty
     FLAG_SUPPLIES_SIZE_EMPTY = 1 << 10,            ///< Size textbox empty
 };
-
-#include "ui/components/button.h"
-#include "ui/components/intbox.h"
-#include "ui/components/scrollpanel.h"
-#include "ui/components/textbox.h"
-#include "ui/screens/ui_base.h"
 
 /**
  * @struct ui_supplies
