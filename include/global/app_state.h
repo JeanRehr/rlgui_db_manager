@@ -89,6 +89,15 @@ enum app_state {
     STATE_CREATE_USER,
 
     /**
+     * @brief Create task screen
+     * 
+     * Manages the creation/deletion of tasks
+     * Transitions back to:
+     * - STATE_MAIN_MENU on going back
+     */
+    STATE_MANAGE_TASKS,
+
+    /**
      * @brief Settings screens
      * 
      * Manages the modification of currently logged in user.

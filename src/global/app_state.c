@@ -22,6 +22,8 @@ const char *app_state_to_string(const enum app_state *const state) {
         return "Manage Supplies";
     case STATE_CREATE_USER:
         return "Create User";
+    case STATE_MANAGE_TASKS:
+        return "Manage Tasks";
     case STATE_SETTINGS:
         return "Settings screen";
     default:
