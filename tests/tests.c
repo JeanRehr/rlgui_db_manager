@@ -1213,7 +1213,6 @@ void test_foodbatch_db_get_all_format(void) {
 
     char *str_content = malloc(buffer_size);
     assert(str_content);
-    printf("%d\n%zu\n", count, buffer_size);
     int written = foodbatch_db_get_all_format(&test_foodbatch_db, str_content, buffer_size);
     assert(written > 0);
     printf("Empty database format output:\n%s\n", str_content);
