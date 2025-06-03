@@ -74,7 +74,7 @@ static void handle_login_button(
 
 void ui_login_init(struct ui_login *ui, struct user *current_user) {
     // Initialize base
-    ui_base_init_defaults(&ui->base, "ui_login.c");
+    ui_base_init_defaults(&ui->base, __FILE__);
     // Override methods
     ui->base.render = ui_login_render;
     ui->base.handle_buttons = ui_login_handle_buttons;

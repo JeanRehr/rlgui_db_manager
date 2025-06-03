@@ -68,7 +68,7 @@ static void handle_reset_password_button(struct ui_settings *ui, enum error_code
 
 void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
     // Initialize base
-     "ui_settings.c");
+    ui_base_init_defaults(&ui->base, __FILE__);
 
     // Override methods
     ui->base.render = ui_settings_render;

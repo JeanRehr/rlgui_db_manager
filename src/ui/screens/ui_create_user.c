@@ -84,7 +84,7 @@ static void handle_get_all_button(struct ui_create_user *ui, database *user_db);
 
 void ui_create_user_init(struct ui_create_user *ui) {
     /* Initialize base to default no-op */
-    ui_base_init_defaults(&ui->base, "ui_create_user.c");
+    ui_base_init_defaults(&ui->base, __FILE__);
 
     /* Override methods */
     ui->base.render = ui_create_user_render;

@@ -83,7 +83,7 @@ static void handle_retrieve_all_button(struct ui_food *ui, database *foodbatch_d
 
 void ui_food_init(struct ui_food *ui) {
     // Initialize base
-    ui_base_init_defaults(&ui->base, "ui_food.c");
+    ui_base_init_defaults(&ui->base, __FILE__);
 
     // Override methods
     ui->base.render = ui_food_render;

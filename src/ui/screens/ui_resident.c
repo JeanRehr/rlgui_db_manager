@@ -96,7 +96,7 @@ static void handle_retrieve_all_button(struct ui_resident *ui, database *residen
 
 void ui_resident_init(struct ui_resident *ui) {
     // Initialize base
-    ui_base_init_defaults(&ui->base, "ui_resident.c");
+    ui_base_init_defaults(&ui->base, __FILE__);
 
     // Override methods
     ui->base.render = ui_resident_render;

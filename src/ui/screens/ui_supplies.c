@@ -109,7 +109,7 @@ static void handle_view_all_button(struct ui_supplies *ui, database *supplies_db
 
 void ui_supplies_init(struct ui_supplies *ui) {
     // Initialize base
-    ui_base_init_defaults(&ui->base, "ui_supplies.c");
+    ui_base_init_defaults(&ui->base, __FILE__);
     // Override methods
     ui->base.render = ui_supplies_render;
     ui->base.handle_buttons = ui_supplies_handle_buttons;
