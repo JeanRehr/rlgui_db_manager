@@ -1,0 +1,384 @@
+/**
+ * @file ui_tasks.c
+ * @brief Tasks screen implementation
+ */
+#include "ui/screens/ui_tasks.h"
+
+#include <limits.h> // For INT_MAX
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <external/raylib/raygui.h>
+
+#include "db/tasks_db.h"
+#include "global/globals.h"
+#include "utils/utilsfn.h"
+
+/* Forward declarations */
+
+static void ui_tasks_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *tasks_db);
+
+static void ui_tasks_handle_buttons(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *tasks_db
+);
+
+/*
+static void ui_tasks_handle_warning_msg(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *tasks_db
+);
+
+static void ui_tasks_update_positions(struct ui_base *base);
+
+static void ui_tasks_clear_fields(struct ui_base *base);
+*/
+
+static void ui_tasks_cleanup(struct ui_base *base);
+
+static void draw_tasks_table_content(Rectangle bounds, char *data);
+
+static void handle_back_button(struct ui_tasks *ui, enum app_state *state);
+
+static void handle_insert_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db);
+
+static void handle_delete_done_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db);
+
+static void handle_delete_cancelled_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db);
+
+static void handle_view_all_button(struct ui_tasks *ui, database *tasks_db);
+
+/* ======================= PUBLIC FUNCTIONS ======================= */
+
+void ui_tasks_init(struct ui_tasks *ui) {
+    // Initialize base
+    ui_base_init_defaults(&ui->base, "ui_tasks.c");
+    // Override methods
+    ui->base.render = ui_tasks_render;
+    ui->base.handle_buttons = ui_tasks_handle_buttons;
+    //ui->base.handle_warning_msg = ui_tasks_handle_warning_msg;
+    //ui->base.update_positions = ui_tasks_update_positions;
+    //ui->base.clear_fields = ui_tasks_clear_fields;
+    ui->base.cleanup = ui_tasks_cleanup;
+
+    // Initialize ui specific fields
+
+    ui->butn_back = button_init((Rectangle) { 20, 20, 0, 30 }, "Back");
+
+    ui->tb_title = textbox_init(
+        (Rectangle) { 20, ui->butn_back.bounds.y + ui->butn_back.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        "Title:"
+    );
+
+    ui->tb_desc = textbox_init(
+        (Rectangle) { 20, ui->tb_title.bounds.y + ui->tb_title.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        "Description:"
+    );
+
+    ui->due_date_text = (Rectangle) { 20,
+                                      ui->tb_desc.bounds.y + ui->tb_desc.bounds.height + (FONT_SIZE * 2),
+                                      MeasureText("Expiration date:", FONT_SIZE),
+                                      20 };
+
+    ui->ib_year = intbox_init(
+        (Rectangle) { 20, ui->due_date_text.y + ui->due_date_text.height + (FONT_SIZE * 2), 40, 30 },
+        "Year",
+        0,
+        9999
+    );
+
+    ui->ib_month = intbox_init(
+        (Rectangle) { ui->ib_year.bounds.x + ui->ib_year.bounds.width + 5,
+                      ui->due_date_text.y + ui->due_date_text.height + (FONT_SIZE * 2),
+                      35,
+                      30 },
+        "Month",
+        0,
+        12
+    );
+
+    ui->ib_day = intbox_init(
+        (Rectangle) { ui->ib_month.bounds.x + ui->ib_month.bounds.width + 5,
+                      ui->due_date_text.y + ui->due_date_text.height + (FONT_SIZE * 2),
+                      35,
+                      30 },
+        "Day",
+        0,
+        31
+    );
+
+    ui->ddb_priority = dropdownbox_init(
+        (Rectangle) { 20, ui->ib_year.bounds.y + ui->ib_year.bounds.height + (FONT_SIZE * 2), 130, 30 },
+        "Low;Normal;High",
+        "Priority:"
+    );
+
+    ui->ddb_status = dropdownbox_init(
+        (Rectangle) { 20, ui->ddb_priority.bounds.y + ui->ddb_priority.bounds.height + (FONT_SIZE * 2), 130, 30 },
+        "Pending;In Progress;Done;Cancelled",
+        "Status:"
+    );
+
+    ui->tb_assigned_to = textbox_init(
+        (Rectangle) { 20, ui->ddb_status.bounds.y + ui->ddb_status.bounds.height + (FONT_SIZE * 2), 300, 30 },
+        "Assigned to:"
+    );
+
+    ui->ib_task_id = intbox_init(
+        (Rectangle) { 20, ui->tb_assigned_to.bounds.y + ui->tb_assigned_to.bounds.height + (FONT_SIZE * 2), 130, 30 },
+        "Entry ID to Update:",
+        0,
+        INT_MAX
+    );
+
+    ui->butn_upsert = button_init((Rectangle) { 20, window_height - 60, 100, 30 }, "Insert/Update");
+
+    ui->butn_delete_status_done = button_init(
+        (Rectangle) { ui->butn_upsert.bounds.x + ui->butn_upsert.bounds.width + 10, window_height - 60, 100, 30 },
+        "Delete all Done entries"
+    );
+
+    ui->butn_delete_status_cancelled = button_init(
+        (Rectangle) { ui->butn_delete_status_done.bounds.x + ui->butn_delete_status_done.bounds.width + 10,
+                      window_height - 60,
+                      100,
+                      30 },
+        "Delete all Cancelled entries"
+    );
+
+    ui->butn_view_all = button_init(
+        (Rectangle) { ui->butn_delete_status_cancelled.bounds.x + ui->butn_delete_status_cancelled.bounds.width + 10,
+                      window_height - 60,
+                      100,
+                      30 },
+        "View All"
+    );
+
+    ui->sp_table_view = scrollpanel_init(
+        (Rectangle) { ui->tb_title.bounds.x + ui->tb_title.bounds.width + 10,
+                      10,
+                      window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20),
+                      window_height - 100 },
+        "Database view",
+        (Rectangle) { 0, 0, 0, 0 }
+    );
+
+    ui->str_table_content = NULL;
+
+    ui->flag = 0;
+}
+
+/* ======================= BASE INTERFACE OVERRIDES ======================= */
+
+/**
+ * @name UI Base Overrides
+ * @brief Implementation of ui_base function pointers
+ * @{
+ */
+
+/**
+ * @brief Tasks screen rendering and interaction handling.
+ * 
+ * @implements ui_base.render
+ *
+ * Handles rendering and interaction for all menu elements.
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to any other ui*)
+ * @param state Pointer to application state
+ * @param error Pointer to error code
+ * @param tasks_db Pointer to the tasks database 
+ * 
+ * @warning Should be called through the base interface
+ */
+static void ui_tasks_render(struct ui_base *base, enum app_state *state, enum error_code *error, database *tasks_db) {
+    struct ui_tasks *ui = (struct ui_tasks *)base;
+
+    textbox_draw(&ui->tb_title);
+    textbox_draw(&ui->tb_desc);
+    textbox_draw(&ui->tb_assigned_to);
+
+    GuiLabel(ui->due_date_text, "Due Date:");
+
+    intbox_draw(&ui->ib_year);
+    GuiLabel(
+        (Rectangle) { ui->ib_year.bounds.x + ui->ib_year.bounds.width - 1,
+                      ui->ib_year.bounds.y + (ui->ib_year.bounds.height / 2) - 5,
+                      10,
+                      10 },
+        "-"
+    );
+    intbox_draw(&ui->ib_month);
+    GuiLabel(
+        (Rectangle) { ui->ib_month.bounds.x + ui->ib_month.bounds.width - 1,
+                      ui->ib_month.bounds.y + (ui->ib_month.bounds.height / 2) - 5,
+                      10,
+                      10 },
+        "-"
+    );
+    intbox_draw(&ui->ib_day);
+
+    intbox_draw(&ui->ib_task_id);
+
+    dropdownbox_draw(&ui->ddb_status);
+    dropdownbox_draw(&ui->ddb_priority);
+
+    scrollpanel_draw(&ui->sp_table_view, draw_tasks_table_content, ui->str_table_content);
+
+    ui->base.handle_buttons(&ui->base, state, error, tasks_db);
+    // Start show warning/error boxes (only if there is a flag set)
+    if (ui->flag != 0) {
+        ui->base.handle_warning_msg(&ui->base, state, error, tasks_db);
+    }
+
+    if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_OPERATION_DONE)) {
+        ui->base.clear_fields(&ui->base);
+        CLEAR_FLAG(&ui->flag, FLAG_TASKS_OPERATION_DONE);
+    }
+}
+
+/**
+ * @brief Handle button drawing and logic.
+ * 
+ * @implements ui_base.handle_buttons
+ *
+ * @param base Pointer to base UI (implements interface) structure (can be safely cast to any ui*)
+ * @param state Pointer to application state
+ * @param error Pointer to error tracking variable
+ * @param tasks_db Pointer to tasks database connection
+ * 
+ * @warning Should be called through the base interface
+ */
+static void ui_tasks_handle_buttons(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *tasks_db
+) {
+    struct ui_tasks *ui = (struct ui_tasks *)base;
+
+    if (button_draw_updt(&ui->butn_back)) {
+        handle_back_button(ui, state);
+        return;
+    }
+
+    if (button_draw_updt(&ui->butn_upsert)) {
+        handle_insert_button(ui, error, tasks_db);
+        return;
+    }
+
+    if (button_draw_updt(&ui->butn_delete_status_done)) {
+        handle_delete_done_button(ui, error, tasks_db);
+        return;
+    }
+
+    if (button_draw_updt(&ui->butn_delete_status_cancelled)) {
+        handle_delete_cancelled_button(ui, error, tasks_db);
+        return;
+    }
+
+    if (button_draw_updt(&ui->butn_view_all)) {
+        handle_view_all_button(ui, tasks_db);
+        return;
+    }
+}
+
+/**
+ * @brief Cleans up tasks screen resources
+ * 
+ * @implements ui_base.cleanup
+ *
+ * @param base Pointer to base UI structure (can be safely cast to ui_tasks*)
+ * 
+ * @warning Frees any allocated buffers/memory
+ * 
+ */
+static void ui_tasks_cleanup(struct ui_base *base) {
+    struct ui_tasks *ui = (struct ui_tasks *)base;
+
+    if (ui->str_table_content) {
+        free(ui->str_table_content);
+        ui->str_table_content = NULL;
+    }
+}
+
+/** @} */
+
+/* ======================= INTERNAL HELPERS ======================= */
+
+/**
+ * @internal
+ * @brief Draws the table content of the database
+ * 
+ * @note This is a callback to be used in the scrollpanel_draw
+ * 
+ */
+static void draw_tasks_table_content(Rectangle bounds, char *data) {
+    GuiLabel(bounds, data ? data : "No data");
+}
+
+static void handle_back_button(struct ui_tasks *ui, enum app_state *state) {
+    ui->base.cleanup(&ui->base);
+    *state = STATE_MAIN_MENU;
+}
+
+static void handle_insert_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db) {
+    fprintf(stderr, "%s %d %p INSERT TASK NOT IMPLEMENT YET.\n", ui->base.type_name, *error, (void *)tasks_db->db);
+}
+
+static void handle_delete_done_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db) {
+    fprintf(stderr, "%s %d %p DELETE DONE TASK NOT IMPLEMENT YET.\n", ui->base.type_name, *error, (void *)tasks_db->db);
+}
+
+static void handle_delete_cancelled_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db) {
+    fprintf(
+        stderr,
+        "%s %d %p DELETE CANCELLED TASK NOT IMPLEMENT YET.\n",
+        ui->base.type_name,
+        *error,
+        (void *)tasks_db->db
+    );
+}
+
+static void handle_view_all_button(struct ui_tasks *ui, database *tasks_db) {
+    if (ui->str_table_content) {
+        free(ui->str_table_content); // Free old data before getting new data
+        ui->str_table_content = NULL;
+    }
+
+    int total_tasks = tasks_db_get_count(tasks_db);
+    if (total_tasks == -1) {
+        fprintf(stderr, "Failed to get total count.\n");
+        return;
+    }
+
+    // 492 for header + 1029 (at max) for each row
+    size_t buffer_size = 512 + 2048 * total_tasks;
+
+    ui->str_table_content = malloc(buffer_size);
+    if (!ui->str_table_content) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return;
+    }
+
+    if (tasks_db_get_all_format(tasks_db, ui->str_table_content, buffer_size) == -1) {
+        fprintf(stderr, "Failed to get formatted table.\n");
+        free(ui->str_table_content);
+        ui->str_table_content = NULL;
+        return;
+    }
+
+    // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
+    if (ui->str_table_content) {
+        Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
+    }
+
+    tasks_db_get_all(tasks_db);
+    return;
+}
