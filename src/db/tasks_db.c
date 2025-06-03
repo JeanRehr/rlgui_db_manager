@@ -70,23 +70,54 @@ int tasks_db_upsert(
         rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
 
         if (rc != SQLITE_OK) {
+            fprintf(
+                stderr,
+                "Not possible to get prepare statement: %s\non function %s, line %d\n",
+                sqlite3_errmsg(db->db),
+                __func__,
+                __LINE__
+            );
             return rc;
         }
 
-        sqlite3_bind_text(stmt, 1, title, -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 2, description, -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 3, due_date, -1, SQLITE_STATIC);
-        sqlite3_bind_int(stmt, 4, priority);
-        sqlite3_bind_int(stmt, 5, status);
+        struct task tsk = { 0 };
+        rc = tasks_db_get(db, id, &tsk);
+
+        // Decide which fields to use for update based on inputs
+        const char *title_updt = (title[0] != '\0') ? title : tsk.title;
+        const char *desc_updt = (description[0] != '\0') ? description : tsk.description;
+        const char *due_date_updt = (due_date[0] != '\0') ? due_date : tsk.due_date;
+        enum task_priority priority_updt;
+        if (priority != tsk.priority) {
+            priority_updt = priority;
+        } else {
+            priority_updt = tsk.priority;
+        }
+
+        enum task_status status_updt;
+        if (status != tsk.status) {
+            status_updt = status;
+        } else {
+            status_updt = tsk.status;
+        }
+
+        const char *assigned_to_updt = (assigned_to[0] != '\0') ? assigned_to : tsk.assigned_to;
+        const char *completed_at_updt = (completed_at[0] != '\0') ? completed_at : tsk.completed_at;
+
+        sqlite3_bind_text(stmt, 1, title_updt, -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 2, desc_updt, -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 3, due_date_updt, -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt, 4, priority_updt);
+        sqlite3_bind_int(stmt, 5, status_updt);
 
         if (assigned_to) {
-            sqlite3_bind_text(stmt, 6, assigned_to, -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 6, assigned_to_updt, -1, SQLITE_STATIC);
         } else {
             sqlite3_bind_null(stmt, 6);
         }
 
         if (completed_at) {
-            sqlite3_bind_text(stmt, 7, completed_at, -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 7, completed_at_updt, -1, SQLITE_STATIC);
         } else {
             sqlite3_bind_null(stmt, 7);
         }
