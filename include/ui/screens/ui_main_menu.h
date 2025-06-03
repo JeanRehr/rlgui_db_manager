@@ -19,9 +19,9 @@ enum main_menu_screen_flags {
     FLAG_MAIN_MENU_WARN_NOT_ADMIN = 1 << 0, ///< Flag for warning current user is not admin
 };
 
-#include "ui/screens/ui_base.h"
-#include "ui/components/button.h"
 #include "entities/user.h"
+#include "ui/components/button.h"
+#include "ui/screens/ui_base.h"
 
 /**
  * @struct ui_main_menu
@@ -38,6 +38,7 @@ struct ui_main_menu {
     struct button reg_clothes_butn;  ///< Button for clothes inventory management
     struct button reg_supplies_butn; ///< Button for supplies inventory management
     struct button create_user_butn;  ///< Button for the create user screen
+    struct button tasks_butn;        ///< Button for the creation of tasks
     struct button settings_butn;     ///< Button for the settings screen
     struct button logout_butn;       ///< Button to logout the current user
 

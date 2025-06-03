@@ -50,6 +50,8 @@ static void handle_create_user_button(
     struct user *current_user
 );
 
+static void handle_manage_tasks_button(enum app_state *state);
+
 static void handle_settings_button(enum app_state *state);
 
 static void handle_logout_button(struct ui_main_menu *ui, enum app_state *state);
@@ -94,6 +96,11 @@ void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
     ui->create_user_butn = button_init(
         (Rectangle) { ui->reg_supplies_butn.bounds.x + ui->reg_supplies_butn.bounds.width + 20, 50, 200, 50 },
         "Create User"
+    );
+
+    ui->tasks_butn = button_init(
+        (Rectangle) { ui->create_user_butn.bounds.x, ui->create_user_butn.bounds.y + 100, 200, 50 },
+        "Tasks"
     );
 
     ui->settings_butn = button_init((Rectangle) { window_width - 250, 50, 200, 50 }, "Settings");
@@ -187,6 +194,11 @@ static void ui_main_menu_handle_buttons(
 
     if (button_draw_updt(&ui->create_user_butn)) {
         handle_create_user_button(ui, state, error, user_db, ui->current_user);
+        return;
+    }
+
+    if (button_draw_updt(&ui->tasks_butn)) {
+        handle_manage_tasks_button(state);
         return;
     }
 
@@ -302,6 +314,10 @@ static void handle_create_user_button(
     }
 
     *state = STATE_CREATE_USER;
+}
+
+static void handle_manage_tasks_button(enum app_state *state) {
+    *state = STATE_MANAGE_TASKS;
 }
 
 static void handle_settings_button(enum app_state *state) {
