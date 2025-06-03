@@ -26,6 +26,7 @@
 #include "db/medication_db.h"
 #include "db/resident_db.h"
 #include "db/supplies_db.h"
+#include "db/tasks_db.h"
 #include "db/user_db.h"
 #include "entities/user.h"
 #include "global/CONSTANTS.h"
@@ -41,6 +42,7 @@
 #include "ui/screens/ui_resident.h"
 #include "ui/screens/ui_settings.h"
 #include "ui/screens/ui_supplies.h"
+#include "ui/screens/ui_tasks.h"
 
 /**
   * @brief Application entry point
@@ -86,6 +88,7 @@ int main(void) {
     database medication_db = { 0 }; ///< Medication database
     database clothes_db = { 0 };    ///< Clothes database
     database supplies_db = { 0 };   ///< Supplies database
+    database tasks_db = { 0 };      ///< Tasks database
 
     // Initialize databases with tables
     if (db_init_with_tbl(&resident_db, "resident_db.db", resident_db_create_table) != SQLITE_OK) {
@@ -124,6 +127,12 @@ int main(void) {
         goto cleanup;
     }
 
+    if (db_init_with_tbl(&tasks_db, "tasks_db.db", tasks_db_create_table) != SQLITE_OK) {
+        fprintf(stderr, "Error opening tasks db.\n");
+        return_code = ERROR_OPENING_DB;
+        goto cleanup;
+    }
+
     // Application state tracking
     struct user current_user = { 0 };            ///< Currently logged in user
     enum error_code error = NO_ERROR;            ///< Application error state
@@ -157,6 +166,9 @@ int main(void) {
     struct ui_settings ui_settings = { 0 }; ///< Modify user info/settings interface
     ui_settings_init(&ui_settings, &current_user);
 
+    struct ui_tasks ui_tasks = { 0 }; ///< Manage tasks interface
+    ui_tasks_init(&ui_tasks);
+
     // Status bar is a persistent element
     Rectangle statusbar_bounds = (Rectangle) { 0, window_height - 20, window_width, 20 };
 
@@ -177,6 +189,7 @@ int main(void) {
             ui_supplies.base.update_positions(&ui_supplies.base);
             ui_create_user.base.update_positions(&ui_create_user.base);
             ui_settings.base.update_positions(&ui_settings.base);
+            ui_tasks.base.update_positions(&ui_settings.base);
 
             // Persistent element
             statusbar_bounds.y = window_height - 20;
@@ -215,6 +228,9 @@ int main(void) {
             break;
         case STATE_CREATE_USER:
             ui_create_user.base.render(&ui_create_user.base, &app_state, &error, &user_db);
+            break;
+        case STATE_MANAGE_TASKS:
+            ui_tasks.base.render(&ui_tasks.base, &app_state, &error, &tasks_db);
             break;
         case STATE_SETTINGS:
             ui_settings.base.render(&ui_settings.base, &app_state, &error, &user_db);
@@ -261,6 +277,10 @@ cleanup:
         db_deinit(&supplies_db);
     }
 
+    if (db_is_init(&tasks_db)) {
+        db_deinit(&tasks_db);
+    }
+
     // Invoke cleanup code on all ui screens
     // OS will free all of this automatically anyway, so there is no need for this but just for good practice
     ui_login.base.cleanup(&ui_login.base);
@@ -272,6 +292,7 @@ cleanup:
     ui_supplies.base.cleanup(&ui_supplies.base);
     ui_create_user.base.cleanup(&ui_create_user.base);
     ui_settings.base.cleanup(&ui_settings.base);
+    ui_tasks.base.cleanup(&ui_tasks.base);
 
     // Close graphics window
     CloseWindow();
