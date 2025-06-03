@@ -90,7 +90,13 @@ test: debug
 clean:
 	rm -rf $(OUT_DIR)/*.o $(MAIN_TARGET) $(TEST_TARGET)
 
-.PHONY: release debug test run clean
+# Clean, build release and run app
+app:
+	$(MAKE) clean
+	$(MAKE) release
+	./$(MAIN_TARGET)
+
+.PHONY: release debug test run app clean
 
 # Build main application
 $(MAIN_TARGET): $(MAIN_OUT_FILES)
