@@ -12,8 +12,8 @@
 #ifndef UI_BASE_H
 #define UI_BASE_H
 
-#include "global/app_state.h"
 #include "db/db_manager.h"
+#include "global/app_state.h"
 #include "global/error_handling.h"
 
 // Forward declaration
@@ -156,8 +156,7 @@ struct ui_base {
     update_positions_fn update_positions;     ///< Layout updater (window resize)
     clear_fields_fn clear_fields;             ///< Input field reset
     cleanup_fn cleanup;                       ///< Resource deallocator
-
-    const char *type_name; ///< Name of the derived screen type (for debugging)
+    const char *type_name;                    ///< Name of the derived screen type (for debugging)
 };
 
 /**
