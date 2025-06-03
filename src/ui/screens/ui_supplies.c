@@ -279,9 +279,6 @@ static void ui_supplies_handle_buttons(
     enum error_code *error,
     database *supplies_db
 ) {
-    (void)error;
-    (void)supplies_db;
-
     struct ui_supplies *ui = (struct ui_supplies *)base;
 
     if (button_draw_updt(&ui->butn_back)) {
