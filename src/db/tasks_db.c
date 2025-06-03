@@ -152,8 +152,11 @@ int tasks_db_upsert(
         }
     }
 
+    printf("ABORTED HERE 1\n");
     rc = sqlite3_step(stmt);
+    printf("ABORTED HERE 2\n");
     sqlite3_finalize(stmt);
+    printf("ABORTED HERE 3\n");
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
 }
 
@@ -276,6 +279,67 @@ int tasks_db_get(database *db, int id, struct task *out_task) {
         fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
     }
 
+    sqlite3_finalize(stmt);
+    return rc;
+}
+
+int tasks_db_get_status(database *db, int id, enum task_status *out_status) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    const char *sql =
+        "SELECT Status FROM Tasks WHERE ID=?;";
+
+    sqlite3_stmt *stmt;
+
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+
+    sqlite3_bind_int(stmt, 1, id);
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        *out_status = sqlite3_column_int(stmt, 0);
+        rc = SQLITE_OK; // Found and read successfully
+    } else if (rc == SQLITE_DONE) {
+        fprintf(stderr, "No Task found with the given data.\n");
+        rc = SQLITE_NOTFOUND;
+    } else {
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc;
+}
+
+int tasks_db_reset_completed_at(database *db, int id) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (!tasks_db_check_exists(db, id)) {
+        fprintf(stderr, "Given ID not found.\n");
+        return SQLITE_NOTFOUND;
+    }
+
+    const char *sql = "UPDATE Tasks SET CompletedAt = 0 WHERE ID = ?;";
+    sqlite3_stmt *stmt;
+    
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+    
+    sqlite3_bind_int(stmt, 1, id);
+    
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to reset CompletedAt: %s\n", sqlite3_errmsg(db->db));
+    }
+    
     sqlite3_finalize(stmt);
     return rc;
 }

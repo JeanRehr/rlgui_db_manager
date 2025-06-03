@@ -136,7 +136,7 @@ int main(void) {
     // Application state tracking
     struct user current_user = { 0 };            ///< Currently logged in user
     enum error_code error = NO_ERROR;            ///< Application error state
-    enum app_state app_state = STATE_LOGIN_MENU; ///< Current application screen
+    enum app_state app_state = STATE_MANAGE_TASKS; ///< Current application screen
 
     // Initialize UI systems
     struct ui_login ui_login = { 0 }; ///< Login screen interface

@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <external/raylib/raygui.h>
 
@@ -26,7 +27,6 @@ static void ui_tasks_handle_buttons(
     database *tasks_db
 );
 
-/*
 static void ui_tasks_handle_warning_msg(
     struct ui_base *base,
     enum app_state *state,
@@ -37,9 +37,32 @@ static void ui_tasks_handle_warning_msg(
 static void ui_tasks_update_positions(struct ui_base *base);
 
 static void ui_tasks_clear_fields(struct ui_base *base);
-*/
 
 static void ui_tasks_cleanup(struct ui_base *base);
+
+// Tagged union for when a warning message needs to perform a database operation
+// Type of the operation
+enum ui_tasks_db_action_type {
+    DB_ACTION_NONE,
+    DB_ACTION_DELETE,
+};
+
+// Info for the database operation based on the type
+struct ui_tasks_db_action_info {
+    enum ui_tasks_db_action_type type;
+    union {
+        struct {
+            enum task_status status;
+        } delete;
+    };
+};
+
+static void process_db_action_in_warning(
+    struct ui_tasks *ui,
+    enum error_code *error,
+    struct ui_tasks_db_action_info *action,
+    database *tasks_db
+);
 
 static void draw_tasks_table_content(Rectangle bounds, char *data);
 
@@ -61,9 +84,9 @@ void ui_tasks_init(struct ui_tasks *ui) {
     // Override methods
     ui->base.render = ui_tasks_render;
     ui->base.handle_buttons = ui_tasks_handle_buttons;
-    //ui->base.handle_warning_msg = ui_tasks_handle_warning_msg;
-    //ui->base.update_positions = ui_tasks_update_positions;
-    //ui->base.clear_fields = ui_tasks_clear_fields;
+    ui->base.handle_warning_msg = ui_tasks_handle_warning_msg;
+    ui->base.update_positions = ui_tasks_update_positions;
+    ui->base.clear_fields = ui_tasks_clear_fields;
     ui->base.cleanup = ui_tasks_cleanup;
 
     // Initialize ui specific fields
@@ -288,6 +311,120 @@ static void ui_tasks_handle_buttons(
 }
 
 /**
+ * @brief Manages tasks-related warning/confirmation dialogs
+ * 
+ * @implements ui_base.handle_warning_msg
+ * 
+ * Shows appropriate warning messages for tasks operations (e.g., deletions),
+ * handles user responses, and triggers follow-up actions.
+ *
+ * @param base Pointer to base UI structure (can be safely cast to ui_tasks*)
+ * @param state Pointer to application state
+ * @param error Pointer to error tracking variable
+ * @param tasks_db Pointer to tasks database connection
+ * 
+ * @warning May trigger database operations on confirmation
+ * 
+ */
+static void ui_tasks_handle_warning_msg(
+    struct ui_base *base,
+    enum app_state *state,
+    enum error_code *error,
+    database *tasks_db
+) {
+    (void)state;
+
+    struct ui_tasks *ui = (struct ui_tasks *)base;
+
+    const char *message = NULL;
+    enum tasks_screen_flags flag_to_clear = 0;
+    struct ui_tasks_db_action_info action = { 0 };
+    action.type = DB_ACTION_NONE;
+
+    // Warnings FLAG_TASKS_TITLE_EMPTY | FLAG_TASKS_INVALID_DUEDATE | FLAG_TASKS_NOTFOUND | FLAG_TASKS_GENERIC_ERROR
+    if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_TITLE_EMPTY)) {
+        message = "Title must not be empty.";
+        flag_to_clear = FLAG_TASKS_TITLE_EMPTY;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_INVALID_DUEDATE)) {
+        message = "Date inserted is not valid.";
+        flag_to_clear = FLAG_TASKS_INVALID_DUEDATE;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_NOTFOUND)) {
+        message = "Task ID not found.";
+        flag_to_clear = FLAG_TASKS_NOTFOUND;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_GENERIC_ERROR)) {
+        message = "Database error.";
+        flag_to_clear = FLAG_TASKS_GENERIC_ERROR;
+        *error = NO_ERROR;
+    }
+
+    if (message) {
+        const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
+
+        int result = GuiMessageBox(
+            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            "#191#Warning!",
+            message,
+            buttons
+        );
+
+        if (result == 1 && action.type != DB_ACTION_NONE) {
+            process_db_action_in_warning(ui, error, &action, tasks_db);
+        }
+
+        if (result >= 0 && flag_to_clear) {
+            CLEAR_FLAG(&ui->flag, flag_to_clear);
+        }
+    }
+}
+
+/**
+ * @brief Updates tasks UI element positions for window resizing
+ * 
+ * @implements ui_base.update_positions
+ *
+ * @param base Pointer to base UI structure (can be safely cast to ui_tasks*)
+ * 
+ * @note If any ui element is initialized with window_width or window_height
+ *       in their bounds, they must be updated here
+ * 
+ * @warning Should be called on window resize events
+ * 
+ */
+static void ui_tasks_update_positions(struct ui_base *base) {
+    struct ui_tasks *ui = (struct ui_tasks *)base;
+
+    ui->butn_upsert.bounds.y = window_height - 60;
+    ui->butn_delete_status_done.bounds.y = ui->butn_upsert.bounds.y;
+    ui->butn_delete_status_cancelled.bounds.y = ui->butn_upsert.bounds.y;
+    ui->butn_view_all.bounds.y = ui->butn_upsert.bounds.y;
+    ui->sp_table_view.panel_bounds.width =
+        window_width - (ui->butn_upsert.bounds.x + ui->butn_upsert.bounds.width + 20);
+    ui->sp_table_view.panel_bounds.height = window_height - 100;
+}
+
+/**
+ * @brief Clears all tasks-related input fields
+ * 
+ * @implements ui_base.clear_fields
+ *
+ * @param base Pointer to base UI structure (can be safely cast to ui_tasks*)
+ * 
+ * @post All text inputs and selections are reset to defaults
+ * 
+ */
+static void ui_tasks_clear_fields(struct ui_base *base) {
+    struct ui_tasks *ui = (struct ui_tasks *)base;
+
+    ui->tb_title.input[0] = '\0';
+    ui->tb_desc.input[0] = '\0';
+    ui->tb_assigned_to.input[0] = '\0';
+    ui->ib_task_id.input = 0;
+    ui->ib_year.input = 0;
+    ui->ib_month.input = 0;
+    ui->ib_day.input = 0;
+}
+
+/**
  * @brief Cleans up tasks screen resources
  * 
  * @implements ui_base.cleanup
@@ -312,6 +449,41 @@ static void ui_tasks_cleanup(struct ui_base *base) {
 
 /**
  * @internal
+ * @brief Processes database actions triggered by warning messages
+ * 
+ * Handles tasks update, deletion and other DB operations that may be requested
+ * through warning message dialogs.
+ * 
+ * @param ui UI context
+ * @param error Error code to set if operation fails
+ * @param action Database action to perform with parameters
+ * @param tasks_db Database connection
+ * 
+ */
+static void process_db_action_in_warning(
+    struct ui_tasks *ui,
+    enum error_code *error,
+    struct ui_tasks_db_action_info *action,
+    database *tasks_db
+) {
+    switch (action->type) {
+    case DB_ACTION_DELETE:
+        if (tasks_db_delete_entry_status(tasks_db, action->delete.status) != SQLITE_OK) {
+            SET_FLAG(&ui->flag, FLAG_TASKS_GENERIC_ERROR);
+            *error = ERROR_DELETE_DB;
+            break;
+        }
+        SET_FLAG(&ui->flag, FLAG_TASKS_OPERATION_DONE);
+        break;
+
+    case DB_ACTION_NONE:
+    default:
+        break;
+    }
+}
+
+/**
+ * @internal
  * @brief Draws the table content of the database
  * 
  * @note This is a callback to be used in the scrollpanel_draw
@@ -327,7 +499,96 @@ static void handle_back_button(struct ui_tasks *ui, enum app_state *state) {
 }
 
 static void handle_insert_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db) {
-    fprintf(stderr, "%s %d %p INSERT TASK NOT IMPLEMENT YET.\n", ui->base.type_name, *error, (void *)tasks_db->db);
+    // Clear possible set flags first
+    CLEAR_FLAG(
+        &ui->flag,
+        FLAG_TASKS_TITLE_EMPTY | FLAG_TASKS_INVALID_DUEDATE | FLAG_TASKS_NOTFOUND | FLAG_TASKS_GENERIC_ERROR
+            | FLAG_TASKS_OPERATION_DONE
+    );
+
+    // Validate inputs
+
+    bool updating = false;
+    // First thing, if updating, check if it exists
+    if (ui->ib_task_id.input != 0) {
+        if (!tasks_db_check_exists(tasks_db, ui->ib_task_id.input)) {
+            fprintf(stderr, "ID not found for update.\n");
+            SET_FLAG(&ui->flag, FLAG_TASKS_NOTFOUND);
+            return;
+        }
+        updating = true;
+    }
+
+    // At least title must not be empty when inserting
+    if (!updating && ui->tb_title.input[0] == '\0') {
+        fprintf(stderr, "Title cannot be null.\n");
+        SET_FLAG(&ui->flag, FLAG_TASKS_TITLE_EMPTY);
+        return;
+    }
+
+    // For when due date is different than zero
+    char str_due_date[DATE_LEN] = { 0 };
+    if (ui->ib_year.input != 0 || ui->ib_month.input != 0 || ui->ib_day.input != 0) {
+        if (!validate_date(ui->ib_year.input, ui->ib_month.input, ui->ib_day.input)) {
+            fprintf(stderr, "Invalid due date.\n");
+            SET_FLAG(&ui->flag, FLAG_TASKS_INVALID_DUEDATE);
+            return;
+        }
+        snprintf(
+            str_due_date,
+            sizeof(str_due_date),
+            "%04d-%02d-%02d",
+            ui->ib_year.input,
+            ui->ib_month.input,
+            ui->ib_day.input
+        );
+    }
+
+    // For when the status is completed when inserting
+    char str_datetime_tsk_done[DATETIME_LEN] = { 0 };
+    if (updating) {
+        enum task_status status;
+        tasks_db_get_status(tasks_db, ui->ib_task_id.input, &status);
+        if (status == TSK_DONE && status != (enum task_status)ui->ddb_status.active_option) {
+            // Reset CompletedAt if task was done and is being changed to another status
+            tasks_db_reset_completed_at(tasks_db, ui->ib_task_id.input);
+        }
+    } else {
+        if (ui->ddb_status.active_option == TSK_DONE) {
+            time_t rawtime;
+            struct tm *timeinfo;
+
+            time(&rawtime);
+
+            timeinfo = localtime(&rawtime);
+            strftime(str_datetime_tsk_done, sizeof(str_datetime_tsk_done), "%Y-%m-%d %H:%M:%S", timeinfo);
+        }
+    }
+
+    int rc = tasks_db_upsert(
+        tasks_db,
+        ui->ib_task_id.input,
+        ui->tb_title.input,
+        ui->tb_desc.input,
+        str_due_date,
+        ui->ddb_priority.active_option,
+        ui->ddb_status.active_option,
+        ui->tb_assigned_to.input,
+        str_datetime_tsk_done
+    );
+
+    if (rc == SQLITE_NOTFOUND) { // Will never happen as this is checked at the beginning
+        fprintf(stderr, "ID not found for update.\n");
+        SET_FLAG(&ui->flag, FLAG_TASKS_NOTFOUND);
+        return;
+    } else if (rc != SQLITE_OK) {
+        fprintf(stderr, "Database error.\n");
+        SET_FLAG(&ui->flag, FLAG_TASKS_GENERIC_ERROR);
+        return;
+    }
+
+    SET_FLAG(&ui->flag, FLAG_TASKS_OPERATION_DONE);
+    *error = NO_ERROR;
 }
 
 static void handle_delete_done_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db) {

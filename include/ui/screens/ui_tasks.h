@@ -25,13 +25,13 @@
 enum tasks_screen_flags {
     FLAG_TASKS_OPERATION_DONE = 1 << 0,         ///< Operation done
     FLAG_TASKS_GENERIC_ERROR = 1 << 1,          ///< Generic error
-    FLAG_TASKS_NOTFOUND = 1 << 2,               ///< Task entry not found
-    FLAG_TASKS_STOCK_BELOW_ZERO = 1 << 3,       ///< Operation will make stock go below 0
-    FLAG_TASKS_CONFIRM_REMOVAL = 1 << 4,        ///< Confirm removal of quantity
-    FLAG_TASKS_CONFIRM_DELETION = 1 << 5,       ///< Confirm deletion of entry
-    FLAG_TASKS_CONFIRM_REMOVAL_BY_ID = 1 << 6,  ///< Confirm removal of quantity by ID
-    FLAG_TASKS_CONFIRM_DELETION_BY_ID = 1 << 7, ///< Confirm deletion of entry by ID
-    FLAG_TASKS_NAME_EMPTY = 1 << 8,             ///< Name textbox empty
+    FLAG_TASKS_TITLE_EMPTY = 1 << 2,             ///< Title textbox empty
+    FLAG_TASKS_INVALID_DUEDATE = 1 << 3,               ///< Due date invalid entry not found
+    FLAG_TASKS_NOTFOUND = 1 << 4,       ///< ID not found
+    FLAG_TASKS_CONFIRM_REMOVAL = 1 << 5,        ///< Confirm removal of quantity
+    FLAG_TASKS_CONFIRM_DELETION = 1 << 6,       ///< Confirm deletion of entry
+    FLAG_TASKS_CONFIRM_REMOVAL_BY_ID = 1 << 7,  ///< Confirm removal of quantity by ID
+    FLAG_TASKS_CONFIRM_DELETION_BY_ID = 1 << 8, ///< Confirm deletion of entry by ID
     FLAG_TASKS_CATEGORY_EMPTY = 1 << 9,         ///< Category textbox empty
     FLAG_TASKS_SIZE_EMPTY = 1 << 10,            ///< Size textbox empty
 };

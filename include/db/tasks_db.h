@@ -83,7 +83,6 @@ bool tasks_db_check_exists(database *db, int id);
 int tasks_db_delete_entry_status(database *db, enum task_status status);
 
 /**
- * 
  * @brief Retrieves a task record
  *
  * Fetches the complete record for the Tasks table.
@@ -96,6 +95,31 @@ int tasks_db_delete_entry_status(database *db, enum task_status status);
  *
  */
 int tasks_db_get(database *db, int id, struct task *out_task);
+
+/**
+ * @brief Retrieves the status of a task record
+ *
+ * Fetches the the status of a record for the Tasks table.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] id ID of the task
+ * @param[out] out_status enum task_status returned with the data
+ *
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
+ *
+ */
+int tasks_db_get_status(database *db, int id, enum task_status *out_status);
+
+/**
+ * @brief Resets the completed at of the given task ID
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] id ID of the task
+ *
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
+ *
+ */
+int tasks_db_reset_completed_at(database *db, int id);
 
 /**
  * @brief Gets the count of registered tasks in the database
