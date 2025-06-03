@@ -20,18 +20,18 @@ LIB_DIR = lib
 
 # Compiler and linker flags per OS
 ifeq ($(UNAME_S),Linux)
-    CC = clang
-    SAN_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
-    BASE_LDFLAGS = \
-        $(LIB_DIR)/linuxlibraylib.a \
-        $(LIB_DIR)/linuxlibcrypto.a \
-        $(LIB_DIR)/linuxlibssl.a \
-        -lm -lpthread -ldl \
-        -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lXext -lz
+	CC = clang
+	SAN_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
+	BASE_LDFLAGS = \
+		$(LIB_DIR)/linuxlibraylib.a \
+		$(LIB_DIR)/linuxlibcrypto.a \
+		$(LIB_DIR)/linuxlibssl.a \
+		-lm -lpthread -ldl \
+		-lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lXext -lz
 else
-    CC = gcc
-    SAN_FLAGS =
-    BASE_LDFLAGS = -L$(LIB_DIR) -lraylib -lopengl32 -lwinmm -lcrypto -lgdi32 -luser32 -lws2_32 -ladvapi32
+	CC = gcc
+	SAN_FLAGS =
+	BASE_LDFLAGS = -L$(LIB_DIR) -lraylib -lopengl32 -lwinmm -lcrypto -lgdi32 -luser32 -lws2_32 -ladvapi32
 endif
 
 # Automatically find all source files with find command, maybe not cross-platform?
@@ -58,11 +58,11 @@ INCLUDE_FLAGS = -I$(INCLUDE_DIR)
 
 # Targets
 ifeq ($(UNAME_S),Linux)
-    MAIN_TARGET = main.out
-    TEST_TARGET = tests.out
+	MAIN_TARGET = main.out
+	TEST_TARGET = tests.out
 else
-    MAIN_TARGET = main.exe
-    TEST_TARGET = tests.exe
+	MAIN_TARGET = main.exe
+	TEST_TARGET = tests.exe
 endif
 
 # Set default target to debug
