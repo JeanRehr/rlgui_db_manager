@@ -109,7 +109,7 @@ static void handle_view_all_button(struct ui_medication *ui, database *medicatio
 
 void ui_medication_init(struct ui_medication *ui) {
     // Initialize base
-    ui_base_init_defaults(&ui->base, "Medication");
+    ui_base_init_defaults(&ui->base, "ui_medication.c");
     // Override methods
     ui->base.render = ui_medication_render;
     ui->base.handle_buttons = ui_medication_handle_buttons;

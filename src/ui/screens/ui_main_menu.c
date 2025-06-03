@@ -60,7 +60,7 @@ static void handle_logout_button(struct ui_main_menu *ui, enum app_state *state)
 
 void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
     // Initialize base
-    ui_base_init_defaults(&ui->base, "Main Menu");
+    ui_base_init_defaults(&ui->base, "ui_main_menu.c");
     // Override methods
     ui->base.render = ui_main_menu_render;
     ui->base.handle_buttons = ui_main_menu_handle_buttons;
