@@ -40,14 +40,15 @@ int supplies_db_create_table(database *db) {
     return SQLITE_OK;
 }
 
-int supplies_db_upsert(
+static int _supplies_db_upsert(
     database *db,
     const char *name,
     const char *category,
     const char *size,
     const char *unit,
     const int stock,
-    const char *notes
+    const char *notes,
+    int *was_updated
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -86,8 +87,39 @@ int supplies_db_upsert(
     }
 
     rc = sqlite3_step(stmt);
+
+    // Check if any row was updated
+    if (was_updated) {
+        *was_updated = sqlite3_changes(db->db) > 0;
+    }
+
     sqlite3_finalize(stmt);
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
+}
+
+int supplies_db_upsert(
+    database *db,
+    const char *name,
+    const char *category,
+    const char *size,
+    const char *unit,
+    const int stock,
+    const char *notes
+) {
+    int was_updated = 0;
+    int rc = _supplies_db_upsert(db, name, category, size, unit, stock, notes, &was_updated);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            if (was_updated) {
+                logger_log(db->logger, "Updated Supply %s %s %s by quantity %d", name, category, size, stock);
+            } else {
+                logger_log(db->logger, "Created Supply %s %s %s with stock %d", name, category, size, stock);
+            }
+        }
+    }
+
+    return rc;
 }
 
 bool supplies_db_check_exists(database *db, const char *name, const char *category, const char *size) {
@@ -164,7 +196,7 @@ bool supplies_db_check_exists_by_id(database *db, const int id) {
     return exists;
 }
 
-int supplies_db_remove(
+static int _supplies_db_remove(
     database *db,
     const char *name,
     const char *category,
@@ -225,7 +257,25 @@ int supplies_db_remove(
     return SQLITE_CONSTRAINT;
 }
 
-int supplies_db_remove_by_id(database *db, const int id, const int quantity_to_remove) {
+int supplies_db_remove(
+    database *db,
+    const char *name,
+    const char *category,
+    const char *size,
+    const int quantity_to_remove
+) {
+    int rc = _supplies_db_remove(db, name, category, size, quantity_to_remove);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Removed Supply %s %s %s by quantity %d", name, category, size, quantity_to_remove);
+        }
+    }
+
+    return rc;
+}
+
+static int _supplies_db_remove_by_id(database *db, const int id, const int quantity_to_remove) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database not initialized.\n");
         return SQLITE_ERROR;
@@ -278,7 +328,28 @@ int supplies_db_remove_by_id(database *db, const int id, const int quantity_to_r
     return SQLITE_CONSTRAINT;
 }
 
-int supplies_db_delete_entry(database *db, const char *name, const char *category, const char *size) {
+int supplies_db_remove_by_id(database *db, const int id, const int quantity_to_remove) {
+    struct supply removed_supply = { 0 };
+    int rc = _supplies_db_remove_by_id(db, id, quantity_to_remove);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Removed Supply with ID %d, name [%s], category [%s], size: [%s] by quantity %d",
+                id,
+                removed_supply.name,
+                removed_supply.category,
+                removed_supply.size,
+                quantity_to_remove
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _supplies_db_delete_entry(database *db, const char *name, const char *category, const char *size) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -315,7 +386,25 @@ int supplies_db_delete_entry(database *db, const char *name, const char *categor
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
-int supplies_db_delete_entry_by_id(database *db, const int id) {
+int supplies_db_delete_entry(database *db, const char *name, const char *category, const char *size) {
+    int rc = _supplies_db_delete_entry(db, name, category, size);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Delete Supply entry with name [%s], category [%s], size: [%s].",
+                name,
+                category,
+                size
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _supplies_db_delete_entry_by_id(database *db, const int id) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -348,6 +437,26 @@ int supplies_db_delete_entry_by_id(database *db, const int id) {
     // Finalize the statement
     sqlite3_finalize(stmt);
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
+}
+
+int supplies_db_delete_entry_by_id(database *db, const int id) {
+    struct supply removed_supply = { 0 };
+    int rc = _supplies_db_delete_entry_by_id(db, id);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Delete Supply entry with ID [%d], name [%s], category [%s], size: [%s].",
+                id,
+                removed_supply.name,
+                removed_supply.category,
+                removed_supply.size
+            );
+        }
+    }
+
+    return rc;
 }
 
 int supplies_db_get(database *db, const char *name, const char *category, const char *size, struct supply *out_supply) {
