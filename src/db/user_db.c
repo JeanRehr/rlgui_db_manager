@@ -732,7 +732,7 @@ int user_db_set_reset_password(database *db, const char *username) {
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Updated triggered a password reset to %s.", username);
+            logger_log(db->logger, "Triggered a password reset to %s.", username);
         }
     }
 
