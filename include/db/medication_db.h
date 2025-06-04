@@ -171,6 +171,25 @@ int medication_db_get(
 );
 
 /**
+ * 
+ * @brief Retrieves a medication record by ID
+ *
+ * Fetches the complete record for the medication table.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] id ID of the entry to fetch the medication
+ * @param[out] medication struct returned with the data
+ *
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
+ *
+ */
+int medication_db_get_by_id(
+    database *db,
+    const int id,
+    struct medication *medication
+);
+
+/**
  * @brief Gets the count of registered medication in the database
  * 
  * @param db Pointer to initialized database structure

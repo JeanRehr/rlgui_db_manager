@@ -55,7 +55,7 @@ int medication_db_create_table(database *db) {
     return SQLITE_OK;
 }
 
-int medication_db_upsert(
+static int _medication_db_upsert(
     database *db,
     const char *name,
     const char *generic_name,
@@ -64,7 +64,8 @@ int medication_db_upsert(
     const char *unit,
     const int stock,
     const char *expiration_date,
-    const char *notes
+    const char *notes,
+    int *was_updated
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -112,8 +113,52 @@ int medication_db_upsert(
     }
 
     rc = sqlite3_step(stmt);
+
+    // Check if the operation was an INSERT or UPDATE
+    if (was_updated) {
+        *was_updated = sqlite3_changes(db->db) > 0;
+    }
+
     sqlite3_finalize(stmt);
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
+}
+
+int medication_db_upsert(
+    database *db,
+    const char *name,
+    const char *generic_name,
+    const char *form,
+    const char *strength,
+    const char *unit,
+    const int stock,
+    const char *expiration_date,
+    const char *notes
+) {
+    int was_updated = 0;
+    int rc = _medication_db_upsert(
+        db,
+        name,
+        generic_name,
+        form,
+        strength,
+        unit,
+        stock,
+        expiration_date,
+        notes,
+        &was_updated
+    );
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            if (was_updated) {
+                logger_log(db->logger, "Updated Medication %s %s %s by quantity %d", name, form, strength, stock);
+            } else {
+                logger_log(db->logger, "Created Medication %s %s %s with stock %d", name, form, strength, stock);
+            }
+        }
+    }
+
+    return rc;
 }
 
 bool medication_db_check_exists(database *db, const char *name, const char *form, const char *strength) {
@@ -190,7 +235,7 @@ bool medication_db_check_exists_by_id(database *db, const int id) {
     return exists;
 }
 
-int medication_db_remove(
+static int _medication_db_remove(
     database *db,
     const char *name,
     const char *form,
@@ -251,7 +296,32 @@ int medication_db_remove(
     return SQLITE_CONSTRAINT;
 }
 
-int medication_db_remove_by_id(database *db, const int id, const int quantity_to_remove) {
+int medication_db_remove(
+    database *db,
+    const char *name,
+    const char *form,
+    const char *strength,
+    const int quantity_to_remove
+) {
+    int rc = _medication_db_remove(db, name, form, strength, quantity_to_remove);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Removed Medication %s %s %s by quantity %d",
+                name,
+                form,
+                strength,
+                quantity_to_remove
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _medication_db_remove_by_id(database *db, const int id, const int quantity_to_remove) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database not initialized.\n");
         return SQLITE_ERROR;
@@ -304,7 +374,29 @@ int medication_db_remove_by_id(database *db, const int id, const int quantity_to
     return SQLITE_CONSTRAINT;
 }
 
-int medication_db_delete_entry(database *db, const char *name, const char *form, const char *strength) {
+int medication_db_remove_by_id(database *db, const int id, const int quantity_to_remove) {
+    struct medication med_removed = { 0 };
+    medication_db_get_by_id(db, id, &med_removed);
+
+    int rc = _medication_db_remove_by_id(db, id, quantity_to_remove);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Deleted Medication entry with ID [%d], name: [%s], form: [%s] strength [%s].",
+                id,
+                med_removed.name,
+                med_removed.form,
+                med_removed.strength
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _medication_db_delete_entry(database *db, const char *name, const char *form, const char *strength) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -341,7 +433,25 @@ int medication_db_delete_entry(database *db, const char *name, const char *form,
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
-int medication_db_delete_entry_by_id(database *db, const int id) {
+int medication_db_delete_entry(database *db, const char *name, const char *form, const char *strength) {
+    int rc = _medication_db_delete_entry(db, name, form, strength);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Deleted Medication entry with name: [%s], form: [%s] strength [%s]",
+                name,
+                form,
+                strength
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _medication_db_delete_entry_by_id(database *db, const int id) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -376,6 +486,28 @@ int medication_db_delete_entry_by_id(database *db, const int id) {
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
+int medication_db_delete_entry_by_id(database *db, const int id) {
+    struct medication med_deleted = { 0 };
+    medication_db_get_by_id(db, id, &med_deleted);
+
+    int rc = _medication_db_delete_entry_by_id(db, id);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Deleted Medication entry with ID [%d], name: [%s], form: [%s] strength [%s].",
+                id,
+                med_deleted.name,
+                med_deleted.form,
+                med_deleted.strength
+            );
+        }
+    }
+
+    return rc;
+}
+
 int medication_db_get(
     database *db,
     const char *name,
@@ -402,6 +534,75 @@ int medication_db_get(
     sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, form, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 3, strength, -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        strcpy(medication->name, (const char *)sqlite3_column_text(stmt, 0));
+
+        const char *generic_name_val = (const char *)sqlite3_column_text(stmt, 1);
+        if (generic_name_val) {
+            strcpy(medication->generic_name, generic_name_val);
+        } else {
+            medication->generic_name[0] = '\0';
+        }
+
+        strcpy(medication->form, (const char *)sqlite3_column_text(stmt, 2));
+
+        strcpy(medication->strength, (const char *)sqlite3_column_text(stmt, 3));
+
+        const char *unit_val = (const char *)sqlite3_column_text(stmt, 4);
+        if (unit_val) {
+            strcpy(medication->unit, unit_val);
+        } else {
+            medication->unit[0] = '\0';
+        }
+
+        medication->stock = sqlite3_column_int(stmt, 5);
+
+        const char *expiration_date_val = (const char *)sqlite3_column_text(stmt, 6);
+        if (expiration_date_val) {
+            strcpy(medication->expiration_date, expiration_date_val);
+        } else {
+            medication->expiration_date[0] = '\0';
+        }
+
+        const char *note_val = (const char *)sqlite3_column_text(stmt, 7);
+        if (note_val) {
+            strcpy(medication->notes, note_val);
+        } else {
+            medication->notes[0] = '\0';
+        }
+
+        rc = SQLITE_OK; // Found and read successfully
+    } else if (rc == SQLITE_DONE) {
+        fprintf(stderr, "No medication found with the given data.\n");
+        rc = SQLITE_NOTFOUND;
+    } else {
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc;
+}
+
+int medication_db_get_by_id(database *db, const int id, struct medication *medication) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    const char *sql =
+        "SELECT Name, GenericName, Form, Strength, Unit, Stock, ExpirationDate, Notes FROM Medications WHERE ID=?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    // Bind the parameters
+    sqlite3_bind_int(stmt, 1, id);
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
