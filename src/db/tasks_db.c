@@ -40,7 +40,7 @@ int tasks_db_create_table(database *db) {
     return SQLITE_OK;
 }
 
-int tasks_db_upsert(
+static int _tasks_db_upsert(
     database *db,
     int id,
     const char *title,
@@ -170,6 +170,44 @@ int tasks_db_upsert(
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
 }
 
+int tasks_db_upsert(
+    database *db,
+    int id,
+    const char *title,
+    const char *description,
+    const char *due_date,
+    enum task_priority priority,
+    enum task_status status,
+    const char *assigned_to,
+    const char *completed_at
+) {
+    int rc = _tasks_db_upsert(db, id, title, description, due_date, priority, status, assigned_to, completed_at);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            if (db == 0) {
+                logger_log(
+                    db->logger,
+                    "Created a task with title: %s where status and priority are %s %s",
+                    title,
+                    task_priority_str[priority],
+                    task_status_str[status]
+                );
+            } else {
+                logger_log(
+                    db->logger,
+                    "Updated a task with title: %s where status and priority are %s %s",
+                    title,
+                    task_priority_str[priority],
+                    task_status_str[status]
+                );
+            }
+        }
+    }
+
+    return rc;
+}
+
 bool tasks_db_check_exists(database *db, int id) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -206,7 +244,7 @@ bool tasks_db_check_exists(database *db, int id) {
     return exists;
 }
 
-int tasks_db_delete_entry_status(database *db, enum task_status status) {
+static int _tasks_db_delete_entry_status(database *db, enum task_status status) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -241,6 +279,18 @@ int tasks_db_delete_entry_status(database *db, enum task_status status) {
     }
 
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
+}
+
+int tasks_db_delete_entry_status(database *db, enum task_status status) {
+    int rc = _tasks_db_delete_entry_status(db, status);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Delete all tasks where status is ", task_status_str[status]);
+        }
+    }
+
+    return rc;
 }
 
 int tasks_db_get(database *db, int id, struct task *out_task) {
