@@ -119,20 +119,20 @@ int tasks_db_upsert(
             completed_at_updt = tsk.completed_at;
         }
 
-        sqlite3_bind_text(stmt, 1, title_updt, -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 2, desc_updt, -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 3, due_date_updt, -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 1, title_updt, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, desc_updt, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 3, due_date_updt, -1, SQLITE_TRANSIENT);
         sqlite3_bind_int(stmt, 4, priority_updt);
         sqlite3_bind_int(stmt, 5, status_updt);
 
         if (assigned_to_updt) {
-            sqlite3_bind_text(stmt, 6, assigned_to_updt, -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 6, assigned_to_updt, -1, SQLITE_TRANSIENT);
         } else {
             sqlite3_bind_null(stmt, 6);
         }
 
         if (completed_at_updt) {
-            sqlite3_bind_text(stmt, 7, completed_at_updt, -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 7, completed_at_updt, -1, SQLITE_TRANSIENT);
         } else {
             sqlite3_bind_null(stmt, 7);
         }
