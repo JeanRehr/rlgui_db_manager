@@ -11,87 +11,20 @@
 
 #include <inttypes.h> // For PRIu64 (compatibility for both windows and linux)
 
+#include "utils/logger.h"
 #include "utils/utils_hash.h"
 
-int user_db_create_table(database *db) {
-    if (!db_is_init(db)) {
-        fprintf(stderr, "Database connection is not initialized.\n");
-        return SQLITE_ERROR;
-    }
-
-    const char *sql =
-        "CREATE TABLE IF NOT EXISTS Users ("
-        "Username TEXT PRIMARY KEY NOT NULL,"
-        "PasswordHash TEXT,"
-        "Salt TEXT,"
-        "PhoneNumber TEXT,"
-        "CPF TEXT UNIQUE NOT NULL,"
-        "IsAdmin INTEGER NOT NULL DEFAULT 0,"
-        "ResetPassword INTEGER NOT NULL DEFAULT 1,"
-        "CreatedAt INTEGER NOT NULL,"
-        "LastLogin INTEGER);";
-
-    char *errMsg = 0;
-    int rc = sqlite3_exec(db->db, sql, 0, 0, &errMsg);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL error on init Users Table: %s\n", errMsg);
-        sqlite3_free(errMsg);
-        return rc;
-    }
-
-    if (!user_db_check_exists(db, "admin")) {
-        user_db_create_admin(db);
-    }
-
-    return SQLITE_OK;
-}
-
-int user_db_create_user(database *db, const char *username, const char *cpf, const char *phone_number, bool is_admin) {
-    if (!db_is_init(db)) {
-        fprintf(stderr, "Database connection is not initialized.\n");
-        return SQLITE_ERROR;
-    }
-
-    if (user_db_check_exists(db, username)) {
-        fprintf(stderr, "Username already exists.\n");
-        return SQLITE_CONSTRAINT;
-    }
-
-    if (user_db_check_cpf_exists(db, cpf)) {
-        fprintf(stderr, "CPF already exists.\n");
-        return SQLITE_CONSTRAINT;
-    }
-
-    const char *sql =
-        "INSERT INTO Users (Username, CPF, PhoneNumber, IsAdmin, ResetPassword, CreatedAt) "
-        "VALUES (?, ?, ?, ?, ?, ?);";
-
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
-        return rc;
-    }
-
-    time_t now = time(NULL);
-
-    sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, cpf, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, phone_number, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 4, is_admin ? 1 : 0);
-    sqlite3_bind_int(stmt, 5, 1);
-    sqlite3_bind_int64(stmt, 6, now);
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
-    }
-
-    sqlite3_finalize(stmt);
-    return rc == SQLITE_DONE ? SQLITE_OK : rc;
-}
-
-int user_db_create_admin(database *db) {
+/**
+ * @brief Creates the default admin account
+ *
+ * Creates a special admin account with default credentials if one doesn't exist.
+ * This is automatically called during table creation if no admin exists.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @return SQLITE_OK on success, SQLITE_CONSTRAINT if admin exists, or other SQLite error code
+ * @note The default admin password is "admin" and cannot be deleted
+ */
+static int user_db_create_admin(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -145,7 +78,103 @@ int user_db_create_admin(database *db) {
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
-enum auth_result user_db_authenticate(database *db, const char *username, const char *password) {
+int user_db_create_table(database *db) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    const char *sql =
+        "CREATE TABLE IF NOT EXISTS Users ("
+        "Username TEXT PRIMARY KEY NOT NULL,"
+        "PasswordHash TEXT,"
+        "Salt TEXT,"
+        "PhoneNumber TEXT,"
+        "CPF TEXT UNIQUE NOT NULL,"
+        "IsAdmin INTEGER NOT NULL DEFAULT 0,"
+        "ResetPassword INTEGER NOT NULL DEFAULT 1,"
+        "CreatedAt INTEGER NOT NULL,"
+        "LastLogin INTEGER);";
+
+    char *errMsg = 0;
+    int rc = sqlite3_exec(db->db, sql, 0, 0, &errMsg);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "SQL error on init Users Table: %s\n", errMsg);
+        sqlite3_free(errMsg);
+        return rc;
+    }
+
+    if (!user_db_check_exists(db, "admin")) {
+        user_db_create_admin(db);
+    }
+
+    return SQLITE_OK;
+}
+
+static int _user_db_create_user(
+    database *db,
+    const char *username,
+    const char *cpf,
+    const char *phone_number,
+    bool is_admin
+) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    if (user_db_check_exists(db, username)) {
+        fprintf(stderr, "Username already exists.\n");
+        return SQLITE_CONSTRAINT;
+    }
+
+    if (user_db_check_cpf_exists(db, cpf)) {
+        fprintf(stderr, "CPF already exists.\n");
+        return SQLITE_CONSTRAINT;
+    }
+
+    const char *sql =
+        "INSERT INTO Users (Username, CPF, PhoneNumber, IsAdmin, ResetPassword, CreatedAt) "
+        "VALUES (?, ?, ?, ?, ?, ?);";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    time_t now = time(NULL);
+
+    sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, cpf, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, phone_number, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 4, is_admin ? 1 : 0);
+    sqlite3_bind_int(stmt, 5, 1);
+    sqlite3_bind_int64(stmt, 6, now);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE ? SQLITE_OK : rc;
+}
+
+int user_db_create_user(database *db, const char *username, const char *cpf, const char *phone_number, bool is_admin) {
+    int rc = _user_db_create_user(db, username, cpf, phone_number, is_admin);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Created user with username %s.", username);
+        }
+    }
+
+    return rc;
+}
+
+static enum auth_result _user_db_authenticate(database *db, const char *username, const char *password) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return AUTH_FAILURE;
@@ -192,7 +221,29 @@ enum auth_result user_db_authenticate(database *db, const char *username, const 
     return AUTH_SUCCESS;
 }
 
-int user_db_delete(database *db, const char *username) {
+enum auth_result user_db_authenticate(database *db, const char *username, const char *password) {
+    enum auth_result result = _user_db_authenticate(db, username, password);
+
+    switch (result) {
+    case AUTH_SUCCESS:
+        if (db->logger) {
+            logger_log(db->logger, "User with username %s successfully logged in.", username);
+        }
+        break;
+    case AUTH_FAILURE:
+        if (db->logger) {
+            logger_log(db->logger, "Unsuccessful attempt of login with username %s.", username);
+        }
+        break;
+    case AUTH_NEED_PASSWORD_RESET:
+    default:
+        break;
+    }
+
+    return result;
+}
+
+static int _user_db_delete(database *db, const char *username) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -228,7 +279,19 @@ int user_db_delete(database *db, const char *username) {
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
-int user_db_update_phone_number(database *db, const char *username, const char *phone_number) {
+int user_db_delete(database *db, const char *username) {
+    int rc = _user_db_delete(db, username);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Deleted User with username %s", username);
+        }
+    }
+
+    return rc;
+}
+
+static int _user_db_update_phone_number(database *db, const char *username, const char *phone_number) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -260,7 +323,19 @@ int user_db_update_phone_number(database *db, const char *username, const char *
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
-int user_db_update_cpf(database *db, const char *username, const char *cpf) {
+int user_db_update_phone_number(database *db, const char *username, const char *phone_number) {
+    int rc = _user_db_update_phone_number(db, username, phone_number);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Updated phone number to %s for username %s", phone_number, username);
+        }
+    }
+
+    return rc;
+}
+
+static int _user_db_update_cpf(database *db, const char *username, const char *cpf) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -292,7 +367,19 @@ int user_db_update_cpf(database *db, const char *username, const char *cpf) {
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
-int user_db_update_password(database *db, const char *username, const char *new_password) {
+int user_db_update_cpf(database *db, const char *username, const char *cpf) {
+    int rc = _user_db_update_cpf(db, username, cpf);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Updated cpf number to %s for username %s", cpf, username);
+        }
+    }
+
+    return rc;
+}
+
+static int _user_db_update_password(database *db, const char *username, const char *new_password) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -331,7 +418,19 @@ int user_db_update_password(database *db, const char *username, const char *new_
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
-int user_db_update_admin_status(database *db, const char *username, bool is_admin) {
+int user_db_update_password(database *db, const char *username, const char *new_password) {
+    int rc = _user_db_update_password(db, username, new_password);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Updated password.");
+        }
+    }
+
+    return rc;
+}
+
+static int _user_db_update_admin_status(database *db, const char *username, bool is_admin) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -366,6 +465,18 @@ int user_db_update_admin_status(database *db, const char *username, bool is_admi
 
     sqlite3_finalize(stmt);
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
+}
+
+int user_db_update_admin_status(database *db, const char *username, bool is_admin) {
+    int rc = _user_db_update_admin_status(db, username, is_admin);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Updated admin status to %s for user %s.", is_admin ? "true" : "false", username);
+        }
+    }
+
+    return rc;
 }
 
 bool user_db_check_cpf_exists(database *db, const char *cpf) {
@@ -496,7 +607,7 @@ int user_db_get_by_username(database *db, const char *username, struct user *use
     return rc;
 }
 
-int user_db_update_username(database *db, const char *old_username, const char *new_username) {
+static int _user_db_update_username(database *db, const char *old_username, const char *new_username) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -539,6 +650,18 @@ int user_db_update_username(database *db, const char *old_username, const char *
     return SQLITE_OK;
 }
 
+int user_db_update_username(database *db, const char *old_username, const char *new_username) {
+    int rc = _user_db_update_username(db, old_username, new_username);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Updated its username to %s.", new_username);
+        }
+    }
+
+    return rc;
+}
+
 bool user_db_check_admin_status(database *db, const char *username) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -573,7 +696,7 @@ bool user_db_check_admin_status(database *db, const char *username) {
     return is_admin;
 }
 
-int user_db_set_reset_password(database *db, const char *username) {
+static int _user_db_set_reset_password(database *db, const char *username) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -602,6 +725,18 @@ int user_db_set_reset_password(database *db, const char *username) {
 
     sqlite3_finalize(stmt);
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
+}
+
+int user_db_set_reset_password(database *db, const char *username) {
+    int rc = _user_db_set_reset_password(db, username);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Updated triggered a password reset to %s.", username);
+        }
+    }
+
+    return rc;
 }
 
 int user_db_get_count(database *db) {

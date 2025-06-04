@@ -54,18 +54,6 @@ int user_db_create_table(database *db);
 int user_db_create_user(database *db, const char *username, const char *cpf, const char *phone_number, bool is_admin);
 
 /**
- * @brief Creates the default admin account
- *
- * Creates a special admin account with default credentials if one doesn't exist.
- * This is automatically called during table creation if no admin exists.
- *
- * @param[in] db Pointer to initialized database structure
- * @return SQLITE_OK on success, SQLITE_CONSTRAINT if admin exists, or other SQLite error code
- * @note The default admin password is "admin" and cannot be deleted
- */
-int user_db_create_admin(database *db);
-
-/**
  * @brief Authenticates a user
  *
  * Verifies user credentials and returns authentication status. Updates last login
