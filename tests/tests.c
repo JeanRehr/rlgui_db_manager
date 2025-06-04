@@ -21,6 +21,7 @@
 #include "db/user_db.h"
 #include "utils/utils_hash.h"
 #include "utils/utilsfn.h"
+#include "utils/logger.h"
 
 // Global context structure
 struct test_cleanup_ctx {
@@ -82,7 +83,7 @@ void test_db_init(void) {
 
     printf("Testing initializing a database.\n");
 
-    int rc = db_init(&test_database, test_database_filename);
+    int rc = db_init(&test_database, test_database_filename, NULL);
 
     assert(rc == SQLITE_OK);
 
@@ -90,7 +91,7 @@ void test_db_init(void) {
 
     printf("Testing passing null as the database.\n");
 
-    rc = db_init(NULL, test_database_filename);
+    rc = db_init(NULL, test_database_filename, NULL);
 
     assert(rc == SQLITE_ERROR);
 
@@ -98,7 +99,7 @@ void test_db_init(void) {
 
     printf("Testing passing null as the filename.\n");
 
-    rc = db_init(&test_database, NULL);
+    rc = db_init(&test_database, NULL, NULL);
 
     assert(rc == SQLITE_ERROR);
 
@@ -117,7 +118,7 @@ void test_db_init_with_tbl(void) {
 
     printf("Testing passing a null to the callback.\n");
 
-    int rc = db_init_with_tbl(&test_database, test_database_filename, NULL);
+    int rc = db_init_with_tbl(&test_database, test_database_filename, NULL, NULL);
 
     assert(rc != SQLITE_OK);
 
@@ -125,7 +126,7 @@ void test_db_init_with_tbl(void) {
 
     printf("Testing passing null as the database.\n");
 
-    rc = db_init_with_tbl(NULL, test_database_filename, NULL);
+    rc = db_init_with_tbl(NULL, test_database_filename, NULL, NULL);
 
     assert(rc == SQLITE_ERROR);
 
@@ -133,7 +134,7 @@ void test_db_init_with_tbl(void) {
 
     printf("Testing passing null as the filename.\n");
 
-    rc = db_init_with_tbl(&test_database, NULL, NULL);
+    rc = db_init_with_tbl(&test_database, NULL, NULL, NULL);
 
     assert(rc == SQLITE_ERROR);
 
@@ -160,7 +161,7 @@ void test_db_is_init(void) {
 
     printf("Testing if an initialized a database is init.\n");
 
-    db_init(&test_database, test_database_filename);
+    db_init(&test_database, test_database_filename, NULL);
 
     init = db_is_init(&test_database);
 
@@ -189,7 +190,7 @@ void test_db_deinit(void) {
 
     printf("Testing deinitializing a database.\n");
 
-    db_init(&test_database, test_database_filename);
+    db_init(&test_database, test_database_filename, NULL);
 
     db_deinit(&test_database);
 
@@ -221,7 +222,7 @@ void test_db_deinit(void) {
 void test_resident_db_insert(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table, NULL);
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
@@ -291,7 +292,7 @@ void test_resident_db_insert(void) {
 void test_resident_db_retrieve(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table, NULL);
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
@@ -359,7 +360,7 @@ void test_resident_db_retrieve(void) {
 void test_resident_db_update(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table, NULL);
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
@@ -450,7 +451,7 @@ void test_resident_db_update(void) {
 void test_resident_db_check_cpf_exists(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table, NULL);
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
@@ -517,7 +518,7 @@ void test_resident_db_check_cpf_exists(void) {
 void test_resident_db_delete_by_cpf(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table, NULL);
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
@@ -583,7 +584,7 @@ void test_resident_db_delete_by_cpf(void) {
 void test_resident_db_get_count(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table, NULL);
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
@@ -630,7 +631,7 @@ void test_resident_db_get_count(void) {
 void test_resident_db_get_all_format(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table, NULL);
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
@@ -696,7 +697,7 @@ void test_resident_db_get_all_format(void) {
 void test_resident_db_get_all_format_old(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table, NULL);
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
@@ -756,7 +757,7 @@ void test_resident_db_get_all_format_old(void) {
 void test_resident_db_get_all(void) {
     const char *test_resident_filename = "test_resident_db.db";
     database test_resident_db;
-    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table);
+    db_init_with_tbl(&test_resident_db, test_resident_filename, resident_db_create_table, NULL);
 
     setup_cleanup(test_resident_filename, &test_resident_db);
 
@@ -787,7 +788,7 @@ void test_resident_db_get_all(void) {
 void test_foodbatch_db_insert(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
@@ -848,9 +849,10 @@ void test_foodbatch_db_insert(void) {
 }
 
 void test_foodbatch_db_retrieve(void) {
+
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
@@ -912,7 +914,7 @@ void test_foodbatch_db_retrieve(void) {
 void test_foodbatch_db_update(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
@@ -1002,7 +1004,7 @@ void test_foodbatch_db_update(void) {
 void test_foodbatch_db_check_batchid_exists(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
@@ -1061,7 +1063,7 @@ void test_foodbatch_db_check_batchid_exists(void) {
 void test_foodbatch_db_delete_by_id(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
@@ -1128,7 +1130,7 @@ void test_foodbatch_db_delete_by_id(void) {
 void test_foodbatch_db_get_all(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
@@ -1155,7 +1157,7 @@ void test_foodbatch_db_get_all(void) {
 void test_foodbatch_db_get_count(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
@@ -1202,7 +1204,7 @@ void test_foodbatch_db_get_count(void) {
 void test_foodbatch_db_get_all_format(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
@@ -1278,7 +1280,7 @@ void test_foodbatch_db_get_all_format(void) {
 void test_foodbatch_db_get_all_format_old(void) {
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
-    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table);
+    db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
 
     setup_cleanup(test_foodbatch_filename, &test_foodbatch_db);
 
@@ -1329,7 +1331,7 @@ void test_foodbatch_db_get_all_format_old(void) {
 void test_user_db_create_table(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1359,7 +1361,7 @@ void test_user_db_create_table(void) {
 void test_user_db_create_user(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1396,7 +1398,7 @@ void test_user_db_create_user(void) {
 void test_user_db_authenticate(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1448,7 +1450,7 @@ void test_user_db_authenticate(void) {
 void test_user_db_delete(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1489,7 +1491,7 @@ void test_user_db_delete(void) {
 void test_user_db_update_password(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1545,7 +1547,7 @@ void test_user_db_update_password(void) {
 void test_user_db_update_admin_status(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1600,7 +1602,7 @@ void test_user_db_update_admin_status(void) {
 void test_user_db_check_cpf_exists(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1631,7 +1633,7 @@ void test_user_db_check_cpf_exists(void) {
 void test_user_db_check_exists(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1662,7 +1664,7 @@ void test_user_db_check_exists(void) {
 void test_user_db_get_by_username(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1712,7 +1714,7 @@ void test_user_db_get_by_username(void) {
 void test_user_db_update_username(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1781,7 +1783,7 @@ void test_user_db_update_username(void) {
 void test_user_db_default_admin_changes(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1814,7 +1816,7 @@ void test_user_db_default_admin_changes(void) {
 void test_user_db_check_admin(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1844,7 +1846,7 @@ void test_user_db_check_admin(void) {
 void test_user_db_set_password_reset(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1884,7 +1886,7 @@ void test_user_db_set_password_reset(void) {
 void test_user_db_get_count(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1930,7 +1932,7 @@ void test_user_db_get_count(void) {
 void test_user_db_get_all(void) {
     const char *test_userdb_filename = "test_user_db.db";
     database test_user_db;
-    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table);
+    db_init_with_tbl(&test_user_db, test_userdb_filename, user_db_create_table, NULL);
 
     setup_cleanup(test_userdb_filename, &test_user_db);
 
@@ -1965,7 +1967,7 @@ void test_user_db_get_all(void) {
 void test_clothes_db_create_table(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2001,7 +2003,7 @@ void test_clothes_db_create_table(void) {
 void test_clothes_db_upsert(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2116,7 +2118,7 @@ void test_clothes_db_upsert(void) {
 void test_clothes_db_remove(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2233,7 +2235,7 @@ void test_clothes_db_remove(void) {
 void test_clothes_db_delete_entry(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2304,7 +2306,7 @@ void test_clothes_db_delete_entry(void) {
 void test_clothes_db_remove_by_id(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2406,7 +2408,7 @@ void test_clothes_db_remove_by_id(void) {
 void test_clothes_db_delete_entry_by_id(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2477,7 +2479,7 @@ void test_clothes_db_delete_entry_by_id(void) {
 void test_clothes_db_check_exists(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2523,7 +2525,7 @@ void test_clothes_db_check_exists(void) {
 void test_clothes_db_check_exists_by_id(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2569,7 +2571,7 @@ void test_clothes_db_check_exists_by_id(void) {
 void test_clothes_db_get(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2644,7 +2646,7 @@ void test_clothes_db_get(void) {
 void test_clothes_db_get_all(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
     database test_clothes_db;
-    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table);
+    db_init_with_tbl(&test_clothes_db, test_clothesdb_filename, clothes_db_create_table, NULL);
 
     setup_cleanup(test_clothesdb_filename, &test_clothes_db);
 
@@ -2675,7 +2677,7 @@ void test_clothes_db_get_all(void) {
 void test_medication_db_create_table(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
 
@@ -2713,7 +2715,7 @@ void test_medication_db_create_table(void) {
 void test_medication_db_upsert(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
 
@@ -2840,7 +2842,7 @@ void test_medication_db_upsert(void) {
 void test_medication_db_remove(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
     const char *name = "paracetamol";
@@ -2933,7 +2935,7 @@ void test_medication_db_remove(void) {
 void test_medication_db_delete_entry(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
 
@@ -2997,7 +2999,7 @@ void test_medication_db_delete_entry(void) {
 void test_medication_db_remove_by_id(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
 
@@ -3092,7 +3094,7 @@ void test_medication_db_remove_by_id(void) {
 void test_medication_db_delete_entry_by_id(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
 
@@ -3156,7 +3158,7 @@ void test_medication_db_delete_entry_by_id(void) {
 void test_medication_db_check_exists(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
 
@@ -3194,7 +3196,7 @@ void test_medication_db_check_exists(void) {
 void test_medication_db_check_exists_by_id(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
 
@@ -3232,7 +3234,7 @@ void test_medication_db_check_exists_by_id(void) {
 void test_medication_db_get(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
 
@@ -3303,7 +3305,7 @@ void test_medication_db_get(void) {
 void test_medication_db_get_all(void) {
     const char *test_medicationdb_filename = "test_medication_db.db";
     database test_medication_db;
-    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table);
+    db_init_with_tbl(&test_medication_db, test_medicationdb_filename, medication_db_create_table, NULL);
 
     setup_cleanup(test_medicationdb_filename, &test_medication_db);
 
@@ -3364,7 +3366,7 @@ void test_medication_db_get_all(void) {
 void test_supplies_db_create_table(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3390,7 +3392,7 @@ void test_supplies_db_create_table(void) {
 void test_supplies_db_upsert(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3476,7 +3478,7 @@ void test_supplies_db_upsert(void) {
 void test_supplies_db_remove(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3564,7 +3566,7 @@ void test_supplies_db_remove(void) {
 void test_supplies_db_delete_entry(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3622,7 +3624,7 @@ void test_supplies_db_delete_entry(void) {
 void test_supplies_db_remove_by_id(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3711,7 +3713,7 @@ void test_supplies_db_remove_by_id(void) {
 void test_supplies_db_delete_entry_by_id(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3769,7 +3771,7 @@ void test_supplies_db_delete_entry_by_id(void) {
 void test_supplies_db_check_exists(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3805,7 +3807,7 @@ void test_supplies_db_check_exists(void) {
 void test_supplies_db_check_exists_by_id(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3841,7 +3843,7 @@ void test_supplies_db_check_exists_by_id(void) {
 void test_supplies_db_get(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3904,7 +3906,7 @@ void test_supplies_db_get(void) {
 void test_supplies_db_get_all(void) {
     const char *test_suppliesdb_filename = "test_supplies_db.db";
     database test_supplies_db;
-    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table);
+    db_init_with_tbl(&test_supplies_db, test_suppliesdb_filename, supplies_db_create_table, NULL);
 
     setup_cleanup(test_suppliesdb_filename, &test_supplies_db);
 
@@ -3937,7 +3939,7 @@ void test_supplies_db_get_all(void) {
 void test_tasks_db_create_table(void) {
     const char *test_tasksdb_filename = "test_tasks_db.db";
     database test_tasks_db;
-    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table, NULL);
 
     setup_cleanup(test_tasksdb_filename, &test_tasks_db);
 
@@ -3970,7 +3972,7 @@ void test_tasks_db_create_table(void) {
 void test_tasks_db_upsert(void) {
     const char *test_tasksdb_filename = "test_tasks_db.db";
     database test_tasks_db;
-    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table, NULL);
     setup_cleanup(test_tasksdb_filename, &test_tasks_db);
 
     const char *title = "Restock Diapers";
@@ -4017,7 +4019,7 @@ void test_tasks_db_upsert(void) {
 void test_tasks_db_check_exists(void) {
     const char *test_tasksdb_filename = "test_tasks_db.db";
     database test_tasks_db;
-    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table, NULL);
     setup_cleanup(test_tasksdb_filename, &test_tasks_db);
 
     printf("Checking if a non-existent task id exists.\n");
@@ -4038,7 +4040,7 @@ void test_tasks_db_check_exists(void) {
 void test_tasks_db_get(void) {
     const char *test_tasksdb_filename = "test_tasks_db.db";
     database test_tasks_db;
-    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table, NULL);
     setup_cleanup(test_tasksdb_filename, &test_tasks_db);
 
     // Insert and then fetch
@@ -4073,7 +4075,7 @@ void test_tasks_db_get(void) {
 void test_tasks_db_get_count(void) {
     const char *test_tasksdb_filename = "test_tasks_db.db";
     database test_tasks_db;
-    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table, NULL);
     setup_cleanup(test_tasksdb_filename, &test_tasks_db);
 
     assert(tasks_db_get_count(&test_tasks_db) == 0);
@@ -4091,7 +4093,7 @@ void test_tasks_db_get_count(void) {
 void test_tasks_db_get_all_and_format(void) {
     const char *test_tasksdb_filename = "test_tasks_db.db";
     database test_tasks_db;
-    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table, NULL);
     setup_cleanup(test_tasksdb_filename, &test_tasks_db);
 
     // Insert a few diverse tasks
@@ -4117,7 +4119,7 @@ void test_tasks_db_get_all_and_format(void) {
 void test_tasks_db_get_all_format_old(void) {
     const char *test_tasksdb_filename = "test_tasks_db.db";
     database test_tasks_db;
-    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table);
+    db_init_with_tbl(&test_tasks_db, test_tasksdb_filename, tasks_db_create_table, NULL);
     setup_cleanup(test_tasksdb_filename, &test_tasks_db);
 
     // Insert a few tasks
