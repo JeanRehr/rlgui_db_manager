@@ -78,15 +78,9 @@ int resident_db_insert(
     localtime_r(&now, &curr_time);
 #endif
 
-    char date_string[32]; // Increased buffer to supress warning
-    snprintf(
-        date_string,
-        sizeof(date_string),
-        "%04d-%02d-%02d",
-        curr_time.tm_year + 1900,
-        curr_time.tm_mon + 1,
-        curr_time.tm_mday
-    );
+    char date_string[DATE_LEN]; // Increased buffer to supress warning
+
+    strftime(date_string, sizeof(date_string), "%Y-%m-%d %H:%M:%S", &curr_time);
 
     sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, name, -1, SQLITE_STATIC);
