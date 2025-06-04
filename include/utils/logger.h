@@ -31,6 +31,9 @@ struct logger {
  * @param log_path pointer to the path to write to file (passing null will print to stdout)
  * @param username Pointer to the name of the username currently logged-in
  * @return void
+ * 
+ * @note username is just a pointer, and can point to the current user logged in username to be set
+ *       up automatically, just need to be carefull with lifetime management
  *
  */
 void logger_init(struct logger *log, const char *log_path, const char *username);
