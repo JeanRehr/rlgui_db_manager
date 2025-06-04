@@ -65,7 +65,7 @@ int tasks_db_upsert(
         }
 
         const char *sql =
-            "UPDATE Tasks SET Title = ?, Description = ?, DueDate = ?, Priority = ?, Status = ?, AssignedTo = ?, CompletedAt = ? WHERE ID = ?";
+            "UPDATE Tasks SET Description = ?, DueDate = ?, Priority = ?, Status = ?, AssignedTo = ?, CompletedAt = ? WHERE ID = ?";
 
         rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
 
@@ -90,7 +90,6 @@ int tasks_db_upsert(
         }
 
         // Decide which fields to use for update based on inputs
-        const char *title_updt = (title && title[0] != '\0') ? title : tsk.title;
         const char *desc_updt = (description && description[0] != '\0') ? description : tsk.description;
         const char *due_date_updt = (due_date && due_date[0] != '\0') ? due_date : tsk.due_date;
         enum task_priority priority_updt;
@@ -119,25 +118,24 @@ int tasks_db_upsert(
             completed_at_updt = tsk.completed_at;
         }
 
-        sqlite3_bind_text(stmt, 1, title_updt, -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt, 2, desc_updt, -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt, 3, due_date_updt, -1, SQLITE_TRANSIENT);
-        sqlite3_bind_int(stmt, 4, priority_updt);
-        sqlite3_bind_int(stmt, 5, status_updt);
+        sqlite3_bind_text(stmt, 1, desc_updt, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, due_date_updt, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int(stmt, 3, priority_updt);
+        sqlite3_bind_int(stmt, 4, status_updt);
 
         if (assigned_to_updt) {
-            sqlite3_bind_text(stmt, 6, assigned_to_updt, -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 5, assigned_to_updt, -1, SQLITE_TRANSIENT);
+        } else {
+            sqlite3_bind_null(stmt, 5);
+        }
+
+        if (completed_at_updt) {
+            sqlite3_bind_text(stmt, 6, completed_at_updt, -1, SQLITE_TRANSIENT);
         } else {
             sqlite3_bind_null(stmt, 6);
         }
 
-        if (completed_at_updt) {
-            sqlite3_bind_text(stmt, 7, completed_at_updt, -1, SQLITE_TRANSIENT);
-        } else {
-            sqlite3_bind_null(stmt, 7);
-        }
-
-        sqlite3_bind_int(stmt, 8, id);
+        sqlite3_bind_int(stmt, 7, id);
     } else { // Insert
         const char *sql =
             "INSERT INTO Tasks (Title, Description, DueDate, Priority, Status, AssignedTo, CompletedAt) VALUES (?, ?, ?, ?, ?, ?, ?)";
