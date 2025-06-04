@@ -37,7 +37,7 @@ int foodbatch_db_create_table(database *db) {
     return SQLITE_OK;
 }
 
-int foodbatch_db_insert(
+static int _foodbatch_db_insert(
     database *db,
     const char *name,
     const float quantity,
@@ -94,7 +94,34 @@ int foodbatch_db_insert(
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
-int foodbatch_db_update(
+int foodbatch_db_insert(
+    database *db,
+    const char *name,
+    const float quantity,
+    const char *unit,
+    const bool is_perishable,
+    const char *arrival_date,
+    const char *expiration_date
+) {
+    int rc = _foodbatch_db_insert(db, name, quantity, unit, is_perishable, arrival_date, expiration_date);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Inserted FoodBatch with name: [%s], quantity [%.2f], Arrival Date [%s], Expiration Date.",
+                name,
+                quantity,
+                arrival_date,
+                expiration_date
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _foodbatch_db_update(
     database *db,
     const int batch_id,
     const char *name_input,
@@ -167,7 +194,45 @@ int foodbatch_db_update(
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
-int foodbatch_db_delete_by_id(database *db, int batch_id) {
+int foodbatch_db_update(
+    database *db,
+    const int batch_id,
+    const char *name_input,
+    const float quantity_input,
+    const char *unit_input,
+    const bool is_perishable_input,
+    const char *arrival_date_input,
+    const char *expiration_date_input
+) {
+    int rc = _foodbatch_db_update(
+        db,
+        batch_id,
+        name_input,
+        quantity_input,
+        unit_input,
+        is_perishable_input,
+        arrival_date_input,
+        expiration_date_input
+    );
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Updated FoodBatch with ID: [%d] name: [%s], quantity [%.2f], Arrival Date [%s], Expiration Date.",
+                batch_id,
+                name_input,
+                quantity_input,
+                arrival_date_input,
+                expiration_date_input
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _foodbatch_db_delete_by_id(database *db, int batch_id) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -200,6 +265,29 @@ int foodbatch_db_delete_by_id(database *db, int batch_id) {
     // Finalize the statement
     sqlite3_finalize(stmt);
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
+}
+
+int foodbatch_db_delete_by_id(database *db, int batch_id) {
+    struct foodbatch food_deleted = { 0 };
+    foodbatch_db_get_by_batchid(db, batch_id, &food_deleted);
+
+    int rc = _foodbatch_db_delete_by_id(db, batch_id);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Deleted FoodBatch with ID: [%d] name: [%s], quantity [%.2f], Arrival Date [%s], Expiration Date.",
+                batch_id,
+                food_deleted.name,
+                food_deleted.quantity,
+                food_deleted.arrival_date,
+                food_deleted.expiration_date
+            );
+        }
+    }
+
+    return rc;
 }
 
 int foodbatch_db_get_by_batchid(database *db, int batch_id, struct foodbatch *out_foodbatch) {
@@ -452,7 +540,6 @@ char *foodbatch_db_get_all_format_old(database *db) {
         "+-----------------------------------------------------------------------------------------+\n"
         "| ID  | Name             | Quantity | Unit  | Perishable | Arrival date | Expiration date |\n"
         "+-----+------------------+----------+-------+------------+--------------+-----------------+\n";
-
 
     // Check if buffer is large enough for the header
     if (strlen(header) + 1 > buffer_size) {
