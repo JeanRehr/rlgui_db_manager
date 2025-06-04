@@ -10,7 +10,7 @@
 
 #include "global/error_handling.h"
 
-int db_init(database *db, const char *filename) {
+int db_init(database *db, const char *filename, struct logger *logger) {
     if (!db || !filename) {
         fprintf(stderr, "Database variable or string filename is NULL!\n");
         return SQLITE_ERROR;
@@ -22,11 +22,13 @@ int db_init(database *db, const char *filename) {
         return rc;
     }
 
+    db->logger = logger;
+
     return SQLITE_OK;
 }
 
-int db_init_with_tbl(database *db, const char *filename, int (*create_table)(database *)) {
-    int rc = db_init(db, filename);
+int db_init_with_tbl(database *db, const char *filename, int (*create_table)(database *), struct logger *logger) {
+    int rc = db_init(db, filename, logger);
 
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Error opening database.\n");

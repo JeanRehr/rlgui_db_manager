@@ -13,12 +13,15 @@
 
 #include <external/sqlite3/sqlite3.h>
 
+#include "utils/logger.h"
+
 /**
  * @struct database
  * @brief Represents a SQLite3 database connection.
  */
 typedef struct database {
-    sqlite3 *db; ///< Internal SQLite3 database handle.
+    sqlite3 *db;           ///< Internal SQLite3 database handle.
+    struct logger *logger; ///< Logger to log database actions
 } database;
 
 /**
@@ -28,13 +31,15 @@ typedef struct database {
  *
  * @param[out] db Pointer to the database structure to initialize.
  * @param[in] filename Path to the SQLite3 database file.
+ * @param[in] logger Pointer to the app logger to call in database functions, can pass null.
  *
  * @return SQLITE_OK on success, SQLITE_ERROR on db or filename null, Sqlite error code another failure.
  *
  * @warning If this fails, `db->db` may be left in an invalid state.
+ *          Every database function must check for logger null before calling a logger function
  *
  */
-int db_init(database *db, const char *filename);
+int db_init(database *db, const char *filename, struct logger *logger);
 
 /**
  * @brief Initializes a database and creates a table via a callback.
@@ -45,12 +50,16 @@ int db_init(database *db, const char *filename);
  * @param[out] db Pointer to the database structure.
  * @param[in] filename Path to the database file.
  * @param[in] create_table Callback function to create tables.
+ * @param[in] logger Pointer to the app logger to call in database functions, can pass null.
  * @return SQLITE_OK on success SQLITE_ERROR if db_init or create_table fails
  *         or if create_table callback is null
  *
  * @note On create_table failure, the database connection is automatically closed.
+ * 
+ * @warning Every database function must check for logger null before calling a logger function
+ * 
  */
-int db_init_with_tbl(database *db, const char *filename, int (*create_table)(database *));
+int db_init_with_tbl(database *db, const char *filename, int (*create_table)(database *), struct logger *logger);
 
 /**
  * @brief Checks if the database connection is valid.
@@ -60,6 +69,7 @@ int db_init_with_tbl(database *db, const char *filename, int (*create_table)(dat
  * @return true if db->db is non-NULL, false otherwise and if db is null.
  *
  * @note This is a simple NULL check and doesn't verify connection liveliness.
+ *
  */
 bool db_is_init(database *db);
 
