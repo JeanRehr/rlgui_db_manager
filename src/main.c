@@ -43,6 +43,7 @@
 #include "ui/screens/ui_settings.h"
 #include "ui/screens/ui_supplies.h"
 #include "ui/screens/ui_tasks.h"
+#include "utils/logger.h"
 
 /**
   * @brief Application entry point
@@ -81,64 +82,72 @@ int main(void) {
     GuiSetStyle(DEFAULT, TEXT_SIZE, FONT_SIZE);
     SetTargetFPS(60);
 
-    // Database connections
-    database resident_db = { 0 };   ///< Resident records database
-    database foodbatch_db = { 0 };  ///< Food inventory database
-    database user_db = { 0 };       ///< User accounts database
-    database medication_db = { 0 }; ///< Medication database
-    database clothes_db = { 0 };    ///< Clothes database
-    database supplies_db = { 0 };   ///< Supplies database
-    database tasks_db = { 0 };      ///< Tasks database
+    // Application state tracking
+    struct user current_user = { 0 };              ///< Currently logged in user
+    enum error_code error = NO_ERROR;              ///< Application error state
+    enum app_state app_state = STATE_MANAGE_TASKS; ///< Current application screen
+    struct logger logger;                          ///< Application logger
 
+    /**
+     * Passing the current_user.username here will make the username be automatically managed
+     * everywhere current_user is also managed
+     */
+    logger_init(&logger, "app.log", current_user.username);
+
+    // Database connections
     // Initialize databases with tables
-    if (db_init_with_tbl(&resident_db, "resident_db.db", resident_db_create_table) != SQLITE_OK) {
+
+    database resident_db = { 0 }; ///< Resident records database
+    if (db_init_with_tbl(&resident_db, "resident_db.db", resident_db_create_table, &logger) != SQLITE_OK) {
         fprintf(stderr, "Error opening resident db.\n");
         return_code = ERROR_OPENING_DB;
         goto cleanup;
     }
 
-    if (db_init_with_tbl(&foodbatch_db, "foodbatch_db.db", foodbatch_db_create_table) != SQLITE_OK) {
+    database foodbatch_db = { 0 }; ///< Food inventory database
+    if (db_init_with_tbl(&foodbatch_db, "foodbatch_db.db", foodbatch_db_create_table, &logger) != SQLITE_OK) {
         fprintf(stderr, "Error opening foodbatch db.\n");
         return_code = ERROR_OPENING_DB;
         goto cleanup;
     }
 
-    if (db_init_with_tbl(&user_db, "user_db.db", user_db_create_table) != SQLITE_OK) {
+    database user_db = { 0 }; ///< User accounts database
+    if (db_init_with_tbl(&user_db, "user_db.db", user_db_create_table, &logger) != SQLITE_OK) {
         fprintf(stderr, "Error opening user db.\n");
         return_code = ERROR_OPENING_DB;
         goto cleanup;
     }
 
-    if (db_init_with_tbl(&medication_db, "medication_db.db", medication_db_create_table) != SQLITE_OK) {
+    database medication_db = { 0 }; ///< Medication database
+    if (db_init_with_tbl(&medication_db, "medication_db.db", medication_db_create_table, &logger) != SQLITE_OK) {
         fprintf(stderr, "Error opening medication db.\n");
         return_code = ERROR_OPENING_DB;
         goto cleanup;
     }
 
-    if (db_init_with_tbl(&clothes_db, "clothes_db.db", clothes_db_create_table) != SQLITE_OK) {
+    database clothes_db = { 0 }; ///< Clothes database
+    if (db_init_with_tbl(&clothes_db, "clothes_db.db", clothes_db_create_table, &logger) != SQLITE_OK) {
         fprintf(stderr, "Error opening clothes db.\n");
         return_code = ERROR_OPENING_DB;
         goto cleanup;
     }
 
-    if (db_init_with_tbl(&supplies_db, "supplies_db.db", supplies_db_create_table) != SQLITE_OK) {
+    database supplies_db = { 0 }; ///< Supplies database
+    if (db_init_with_tbl(&supplies_db, "supplies_db.db", supplies_db_create_table, &logger) != SQLITE_OK) {
         fprintf(stderr, "Error opening supplies db.\n");
         return_code = ERROR_OPENING_DB;
         goto cleanup;
     }
 
-    if (db_init_with_tbl(&tasks_db, "tasks_db.db", tasks_db_create_table) != SQLITE_OK) {
+    database tasks_db = { 0 }; ///< Tasks database
+    if (db_init_with_tbl(&tasks_db, "tasks_db.db", tasks_db_create_table, &logger) != SQLITE_OK) {
         fprintf(stderr, "Error opening tasks db.\n");
         return_code = ERROR_OPENING_DB;
         goto cleanup;
     }
 
-    // Application state tracking
-    struct user current_user = { 0 };            ///< Currently logged in user
-    enum error_code error = NO_ERROR;            ///< Application error state
-    enum app_state app_state = STATE_MANAGE_TASKS; ///< Current application screen
-
     // Initialize UI systems
+
     struct ui_login ui_login = { 0 }; ///< Login screen interface
     ui_login_init(&ui_login, &current_user);
 
@@ -196,6 +205,8 @@ int main(void) {
             statusbar_bounds.width = window_width;
         }
 
+        printf("%s\n", logger.username);
+
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -252,6 +263,8 @@ int main(void) {
     // De-initialization
     //--------------------------------------------------------------------------------------
 cleanup:
+    logger_deinit(&logger);
+
     // Cleanup database connections if initialized
     if (db_is_init(&resident_db)) {
         db_deinit(&resident_db);
