@@ -70,9 +70,9 @@ static void handle_back_button(struct ui_tasks *ui, enum app_state *state);
 
 static void handle_insert_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db);
 
-static void handle_delete_done_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db);
+static void handle_delete_done_button(struct ui_tasks *ui);
 
-static void handle_delete_cancelled_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db);
+static void handle_delete_cancelled_button(struct ui_tasks *ui);
 
 static void handle_view_all_button(struct ui_tasks *ui, database *tasks_db);
 
@@ -295,12 +295,12 @@ static void ui_tasks_handle_buttons(
     }
 
     if (button_draw_updt(&ui->butn_delete_status_done)) {
-        handle_delete_done_button(ui, error, tasks_db);
+        handle_delete_done_button(ui);
         return;
     }
 
     if (button_draw_updt(&ui->butn_delete_status_cancelled)) {
-        handle_delete_cancelled_button(ui, error, tasks_db);
+        handle_delete_cancelled_button(ui);
         return;
     }
 
@@ -341,7 +341,6 @@ static void ui_tasks_handle_warning_msg(
     struct ui_tasks_db_action_info action = { 0 };
     action.type = DB_ACTION_NONE;
 
-    // Warnings FLAG_TASKS_TITLE_EMPTY | FLAG_TASKS_INVALID_DUEDATE | FLAG_TASKS_NOTFOUND | FLAG_TASKS_GENERIC_ERROR
     if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_TITLE_EMPTY)) {
         message = "Title must not be empty.";
         flag_to_clear = FLAG_TASKS_TITLE_EMPTY;
@@ -351,6 +350,16 @@ static void ui_tasks_handle_warning_msg(
     } else if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_NOTFOUND)) {
         message = "Task ID not found.";
         flag_to_clear = FLAG_TASKS_NOTFOUND;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_CONFIRM_DELETION_DONE)) {
+        message = "Are you sure you want to delete\nall entries with status done?";
+        flag_to_clear = FLAG_TASKS_CONFIRM_DELETION_DONE;
+        action.type = DB_ACTION_DELETE;
+        action.delete.status = TSK_DONE;
+    } else if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_CONFIRM_DELETION_CANCELLED)) {
+        message = "Are you sure you want to delete\nall entries with status cancelled?.";
+        flag_to_clear = FLAG_TASKS_CONFIRM_DELETION_CANCELLED;
+        action.type = DB_ACTION_DELETE;
+        action.delete.status = TSK_CANCELLED;
     } else if (IS_FLAG_SET(&ui->flag, FLAG_TASKS_GENERIC_ERROR)) {
         message = "Database error.";
         flag_to_clear = FLAG_TASKS_GENERIC_ERROR;
@@ -397,8 +406,7 @@ static void ui_tasks_update_positions(struct ui_base *base) {
     ui->butn_delete_status_done.bounds.y = ui->butn_upsert.bounds.y;
     ui->butn_delete_status_cancelled.bounds.y = ui->butn_upsert.bounds.y;
     ui->butn_view_all.bounds.y = ui->butn_upsert.bounds.y;
-    ui->sp_table_view.panel_bounds.width =
-        window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20);
+    ui->sp_table_view.panel_bounds.width = window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20);
     ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
@@ -582,18 +590,14 @@ static void handle_insert_button(struct ui_tasks *ui, enum error_code *error, da
     *error = NO_ERROR;
 }
 
-static void handle_delete_done_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db) {
-    fprintf(stderr, "%s %d %p DELETE DONE TASK NOT IMPLEMENT YET.\n", ui->base.type_name, *error, (void *)tasks_db->db);
+static void handle_delete_done_button(struct ui_tasks *ui) {
+    CLEAR_FLAG(&ui->flag, FLAG_TASKS_CONFIRM_DELETION_DONE);
+    SET_FLAG(&ui->flag, FLAG_TASKS_CONFIRM_DELETION_DONE);
 }
 
-static void handle_delete_cancelled_button(struct ui_tasks *ui, enum error_code *error, database *tasks_db) {
-    fprintf(
-        stderr,
-        "%s %d %p DELETE CANCELLED TASK NOT IMPLEMENT YET.\n",
-        ui->base.type_name,
-        *error,
-        (void *)tasks_db->db
-    );
+static void handle_delete_cancelled_button(struct ui_tasks *ui) {
+    CLEAR_FLAG(&ui->flag, FLAG_TASKS_CONFIRM_DELETION_CANCELLED);
+    SET_FLAG(&ui->flag, FLAG_TASKS_CONFIRM_DELETION_CANCELLED);
 }
 
 static void handle_view_all_button(struct ui_tasks *ui, database *tasks_db) {
