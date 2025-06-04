@@ -220,6 +220,24 @@ int clothes_db_get(
 );
 
 /**
+ * 
+ * @brief Retrieves a clothing record by ID
+ *
+ * Fetches the complete record for the clothes table.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] id Entry ID of the clothing
+ * @param[out] clothing struct returned with the data
+ *
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
+ *
+ * @warning Should follow the same convention as the clothing struct on clothing.h
+ *          type, size, gender, color and condition are enums from the defition of clothing struct
+ *
+ */
+int clothes_db_get_by_id(database *db, const int id, struct clothing *clothing);
+
+/**
  * @brief Gets the count of registered clothes in the database
  * 
  * @param db Pointer to initialized database structure

@@ -41,7 +41,7 @@ int clothes_db_create_table(database *db) {
     return SQLITE_OK;
 }
 
-int clothes_db_upsert(
+static int _clothes_db_upsert(
     database *db,
     const enum clothing_type type,
     const enum clothing_size size,
@@ -49,7 +49,8 @@ int clothes_db_upsert(
     const enum clothing_color color,
     const enum clothing_condition condition,
     const int quantity,
-    const char *notes
+    const char *notes,
+    int *was_updated
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -89,8 +90,58 @@ int clothes_db_upsert(
         sqlite3_bind_null(stmt, 7);
 
     rc = sqlite3_step(stmt);
+
+    // Check if any row was updated
+    if (was_updated) {
+        *was_updated = sqlite3_changes(db->db) > 0;
+    }
+
     sqlite3_finalize(stmt);
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
+}
+
+int clothes_db_upsert(
+    database *db,
+    const enum clothing_type type,
+    const enum clothing_size size,
+    const enum clothing_gender gender,
+    const enum clothing_color color,
+    const enum clothing_condition condition,
+    const int quantity,
+    const char *notes
+) {
+    int was_updated = 0;
+    int rc = _clothes_db_upsert(db, type, size, gender, color, condition, quantity, notes, &was_updated);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            if (was_updated) {
+                logger_log(
+                    db->logger,
+                    "Updated Clothing with type: [%s], size: [%s], gender: [%s], color: [%s], condition: [%s] by quantity %d",
+                    clothing_type_str[type],
+                    clothing_size_str[size],
+                    clothing_gender_str[gender],
+                    clothing_color_str[color],
+                    clothing_condition_str[condition],
+                    quantity
+                );
+            } else {
+                logger_log(
+                    db->logger,
+                    "Created Clothing with type: [%s], size: [%s], gender: [%s], color: [%s], condition: [%s] with quantity %d",
+                    clothing_type_str[type],
+                    clothing_size_str[size],
+                    clothing_gender_str[gender],
+                    clothing_color_str[color],
+                    clothing_condition_str[condition],
+                    quantity
+                );
+            }
+        }
+    }
+
+    return rc;
 }
 
 bool clothes_db_check_exists(
@@ -140,10 +191,7 @@ bool clothes_db_check_exists(
     return exists;
 }
 
-bool clothes_db_check_exists_by_id(
-    database *db,
-    const int id
-) {
+bool clothes_db_check_exists_by_id(database *db, const int id) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return false;
@@ -179,7 +227,7 @@ bool clothes_db_check_exists_by_id(
     return exists;
 }
 
-int clothes_db_remove(
+static int _clothes_db_remove(
     database *db,
     const enum clothing_type type,
     const enum clothing_size size,
@@ -244,11 +292,36 @@ int clothes_db_remove(
     return SQLITE_CONSTRAINT;
 }
 
-int clothes_db_remove_by_id(
+int clothes_db_remove(
     database *db,
-    const int id,
+    const enum clothing_type type,
+    const enum clothing_size size,
+    const enum clothing_gender gender,
+    const enum clothing_color color,
+    const enum clothing_condition condition,
     const int quantity_to_remove
 ) {
+    int rc = _clothes_db_remove(db, type, size, gender, color, condition, quantity_to_remove);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Removed Clothing with type: [%s], size: [%s], gender: [%s], color: [%s], condition: [%s], by quantity %d",
+                clothing_type_str[type],
+                clothing_size_str[size],
+                clothing_gender_str[gender],
+                clothing_color_str[color],
+                clothing_condition_str[condition],
+                quantity_to_remove
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _clothes_db_remove_by_id(database *db, const int id, const int quantity_to_remove) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database not initialized.\n");
         return SQLITE_ERROR;
@@ -264,9 +337,7 @@ int clothes_db_remove_by_id(
         return SQLITE_NOTFOUND; // Row not found
     }
 
-    const char *update_sql =
-        "UPDATE Clothes SET Quantity=Quantity-? "
-        "WHERE ID=? AND Quantity >= ?;";
+    const char *update_sql = "UPDATE Clothes SET Quantity=Quantity-? WHERE ID=? AND Quantity >= ?;";
 
     sqlite3_stmt *stmt;
 
@@ -301,7 +372,30 @@ int clothes_db_remove_by_id(
     return SQLITE_CONSTRAINT;
 }
 
-int clothes_db_delete_entry(
+int clothes_db_remove_by_id(database *db, const int id, const int quantity_to_remove) {
+    struct clothing removed_clothing = { 0 };
+    int rc = _clothes_db_remove_by_id(db, id, quantity_to_remove);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Removed Clothing with ID %d, type: [%s], size: [%s], gender: [%s], color: [%s], condition: [%s], by quantity %d",
+                id,
+                clothing_type_str[removed_clothing.type],
+                clothing_size_str[removed_clothing.size],
+                clothing_gender_str[removed_clothing.gender],
+                clothing_color_str[removed_clothing.color],
+                clothing_condition_str[removed_clothing.condition],
+                quantity_to_remove
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _clothes_db_delete_entry(
     database *db,
     const enum clothing_type type,
     const enum clothing_size size,
@@ -347,10 +441,34 @@ int clothes_db_delete_entry(
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
-int clothes_db_delete_entry_by_id(
+int clothes_db_delete_entry(
     database *db,
-    const int id
+    const enum clothing_type type,
+    const enum clothing_size size,
+    const enum clothing_gender gender,
+    const enum clothing_color color,
+    const enum clothing_condition condition
 ) {
+    int rc = _clothes_db_delete_entry(db, type, size, gender, color, condition);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Deleted Clothing entry with type: [%s], size: [%s], gender: [%s], color: [%s], condition: [%s].",
+                clothing_type_str[type],
+                clothing_size_str[size],
+                clothing_gender_str[gender],
+                clothing_color_str[color],
+                clothing_condition_str[condition]
+            );
+        }
+    }
+
+    return rc;
+}
+
+static int _clothes_db_delete_entry_by_id(database *db, const int id) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -385,6 +503,28 @@ int clothes_db_delete_entry_by_id(
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
+int clothes_db_delete_entry_by_id(database *db, const int id) {
+    struct clothing deleted_clothing = { 0 };
+    int rc = _clothes_db_delete_entry_by_id(db, id);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(
+                db->logger,
+                "Deleted Clothing entry with ID %d, type: [%s], size: [%s], gender: [%s], color: [%s], condition: [%s].",
+                id,
+                clothing_type_str[deleted_clothing.type],
+                clothing_size_str[deleted_clothing.size],
+                clothing_gender_str[deleted_clothing.gender],
+                clothing_color_str[deleted_clothing.color],
+                clothing_condition_str[deleted_clothing.condition]
+            );
+        }
+    }
+
+    return rc;
+}
+
 int clothes_db_get(
     database *db,
     const enum clothing_type type,
@@ -415,6 +555,51 @@ int clothes_db_get(
     sqlite3_bind_int(stmt, 3, gender);
     sqlite3_bind_int(stmt, 4, color);
     sqlite3_bind_int(stmt, 5, condition);
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        // Type (0), Size (1), Gender (2), Color (3), Condition (4), Quantity (5), Notes (6)
+        clothing->type = sqlite3_column_int(stmt, 0);
+        clothing->size = sqlite3_column_int(stmt, 1);
+        clothing->gender = sqlite3_column_int(stmt, 2);
+        clothing->color = sqlite3_column_int(stmt, 3);
+        clothing->condition = sqlite3_column_int(stmt, 4);
+        clothing->quantity = sqlite3_column_int(stmt, 5);
+        const char *note_val = (const char *)sqlite3_column_text(stmt, 6);
+        if (note_val) {
+            strcpy(clothing->notes, note_val);
+        } else {
+            clothing->notes[0] = '\0';
+        }
+        rc = SQLITE_OK; // Found and read successfully
+    } else if (rc == SQLITE_DONE) {
+        fprintf(stderr, "No clothing found with the given data.\n");
+        rc = SQLITE_NOTFOUND;
+    } else {
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc;
+}
+
+int clothes_db_get_by_id(database *db, const int id, struct clothing *clothing) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    const char *sql = "SELECT Type, Size, Gender, Color, Condition, Quantity, Notes FROM Clothes WHERE ID=?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    // Bind the parameters
+    sqlite3_bind_int(stmt, 1, id);
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
