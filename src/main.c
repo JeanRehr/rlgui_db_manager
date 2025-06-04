@@ -189,7 +189,7 @@ int main(void) {
             ui_supplies.base.update_positions(&ui_supplies.base);
             ui_create_user.base.update_positions(&ui_create_user.base);
             ui_settings.base.update_positions(&ui_settings.base);
-            ui_tasks.base.update_positions(&ui_settings.base);
+            ui_tasks.base.update_positions(&ui_tasks.base);
 
             // Persistent element
             statusbar_bounds.y = window_height - 20;
