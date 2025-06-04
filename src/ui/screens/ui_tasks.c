@@ -398,7 +398,7 @@ static void ui_tasks_update_positions(struct ui_base *base) {
     ui->butn_delete_status_cancelled.bounds.y = ui->butn_upsert.bounds.y;
     ui->butn_view_all.bounds.y = ui->butn_upsert.bounds.y;
     ui->sp_table_view.panel_bounds.width =
-        window_width - (ui->butn_upsert.bounds.x + ui->butn_upsert.bounds.width + 20);
+        window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20);
     ui->sp_table_view.panel_bounds.height = window_height - 100;
 }
 
@@ -546,23 +546,14 @@ static void handle_insert_button(struct ui_tasks *ui, enum error_code *error, da
 
     // For when the status is completed when inserting
     char str_datetime_tsk_done[DATETIME_LEN] = { 0 };
-    if (updating) {
-        enum task_status status;
-        tasks_db_get_status(tasks_db, ui->ib_task_id.input, &status);
-        if (status == TSK_DONE && status != (enum task_status)ui->ddb_status.active_option) {
-            // Reset CompletedAt if task was done and is being changed to another status
-            tasks_db_reset_completed_at(tasks_db, ui->ib_task_id.input);
-        }
-    } else {
-        if (ui->ddb_status.active_option == TSK_DONE) {
-            time_t rawtime;
-            struct tm *timeinfo;
+    if (ui->ddb_status.active_option == TSK_DONE) {
+        time_t rawtime;
+        struct tm *timeinfo;
 
-            time(&rawtime);
+        time(&rawtime);
 
-            timeinfo = localtime(&rawtime);
-            strftime(str_datetime_tsk_done, sizeof(str_datetime_tsk_done), "%Y-%m-%d %H:%M:%S", timeinfo);
-        }
+        timeinfo = localtime(&rawtime);
+        strftime(str_datetime_tsk_done, sizeof(str_datetime_tsk_done), "%Y-%m-%d %H:%M:%S", timeinfo);
     }
 
     int rc = tasks_db_upsert(
