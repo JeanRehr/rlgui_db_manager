@@ -1180,8 +1180,8 @@ void test_foodbatch_db_get_count(void) {
 
     // Add multiple batches
     printf("Adding multiple food batches...\n");
-    foodbatch_db_insert(&test_foodbatch_db, "Rice", 5, "piece", false, "2025-12-12", NULL);
-    foodbatch_db_insert(&test_foodbatch_db, "Beans", 10, "piece", false, "2025-12-30", NULL);
+    foodbatch_db_insert(&test_foodbatch_db, "Rice", 5, "piece", false, "2025-12-12", "");
+    foodbatch_db_insert(&test_foodbatch_db, "Beans", 10, "piece", false, "2025-12-30", "");
 
     // Verify count is now 3
     printf("Verifying count after multiple insertions...\n");
