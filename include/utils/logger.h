@@ -32,8 +32,8 @@ struct logger {
  * @param username Pointer to the name of the username currently logged-in
  * @return void
  * 
- * @note username is just a pointer, and can point to the current user logged in username to be set
- *       up automatically, just need to be carefull with lifetime management
+ * @note Username is just a pointer, and can point to the current user logged in username to be set
+ *       up automatically, just need to be careful with lifetime management
  *
  */
 void logger_init(struct logger *log, const char *log_path, const char *username);
