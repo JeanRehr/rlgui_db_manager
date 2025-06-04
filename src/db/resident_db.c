@@ -39,7 +39,7 @@ int resident_db_create_table(database *db) {
     return SQLITE_OK;
 }
 
-int resident_db_insert(
+static int _resident_db_insert(
     database *db,
     const char *cpf,
     const char *name,
@@ -108,7 +108,28 @@ int resident_db_insert(
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
-int resident_db_update(
+int resident_db_insert(
+    database *db,
+    const char *cpf,
+    const char *name,
+    int age,
+    const char *health_status,
+    const char *needs,
+    bool medical_assistance,
+    int gender
+) {
+    int rc = _resident_db_insert(db, cpf, name, age, health_status, needs, medical_assistance, gender);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Inserted Resident with CPF: [%s], name [%s], age [%d].", cpf, name, age);
+        }
+    }
+
+    return rc;
+}
+
+static int _resident_db_update(
     database *db,
     const char *cpf,
     const char *name_input,
@@ -181,7 +202,37 @@ int resident_db_update(
     return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
-int resident_db_delete_by_cpf(database *db, const char *cpf) {
+int resident_db_update(
+    database *db,
+    const char *cpf,
+    const char *name_input,
+    int age_input,
+    const char *health_status_input,
+    const char *needs_input,
+    int medical_assistance_input,
+    int gender_input
+) {
+    int rc = _resident_db_update(
+        db,
+        cpf,
+        name_input,
+        age_input,
+        health_status_input,
+        needs_input,
+        medical_assistance_input,
+        gender_input
+    );
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Updated Resident with CPF: [%s], name [%s], age [%d].", cpf, name_input, age_input);
+        }
+    }
+
+    return rc;
+}
+
+static int _resident_db_delete_by_cpf(database *db, const char *cpf) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
@@ -214,6 +265,18 @@ int resident_db_delete_by_cpf(database *db, const char *cpf) {
     // Finalize the statement
     sqlite3_finalize(stmt);
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
+}
+
+int resident_db_delete_by_cpf(database *db, const char *cpf) {
+    int rc = _resident_db_delete_by_cpf(db, cpf);
+
+    if (rc == SQLITE_OK) {
+        if (db->logger) {
+            logger_log(db->logger, "Deleted Resident with CPF: [%s].", cpf);
+        }
+    }
+
+    return rc;
 }
 
 bool resident_db_check_cpf_exists(database *db, const char *cpf) {
