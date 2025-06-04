@@ -205,8 +205,6 @@ int main(void) {
             statusbar_bounds.width = window_width;
         }
 
-        printf("%s\n", logger.username);
-
         //----------------------------------------------------------------------------------
 
         // Draw
