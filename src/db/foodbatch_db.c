@@ -233,10 +233,13 @@ int foodbatch_db_update(
 }
 
 static int _foodbatch_db_delete_by_id(database *db, int batch_id) {
+    printf("test1\n");
+
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
         return SQLITE_ERROR;
     }
+
 
     if (!foodbatch_db_check_batchid_exists(db, batch_id)) {
         fprintf(stderr, "Batch ID not found in the dabatase.\n");
@@ -253,6 +256,7 @@ static int _foodbatch_db_delete_by_id(database *db, int batch_id) {
         return rc;
     }
 
+
     // Bind the BatchId parameter
     sqlite3_bind_int(stmt, 1, batch_id);
 
@@ -262,12 +266,17 @@ static int _foodbatch_db_delete_by_id(database *db, int batch_id) {
         fprintf(stderr, "Failed to execute delete statement: %s\n", sqlite3_errmsg(db->db));
     }
 
+
+
     // Finalize the statement
     sqlite3_finalize(stmt);
+    printf("test2\n");
+
     return rc == SQLITE_DONE ? SQLITE_OK : rc; // Return based on step result
 }
 
 int foodbatch_db_delete_by_id(database *db, int batch_id) {
+    printf("test1\n");
     struct foodbatch food_deleted = { 0 };
     foodbatch_db_get_by_batchid(db, batch_id, &food_deleted);
 
@@ -277,7 +286,7 @@ int foodbatch_db_delete_by_id(database *db, int batch_id) {
         if (db->logger) {
             logger_log(
                 db->logger,
-                "Deleted FoodBatch with ID: [%d] name: [%s], quantity [%.2f], Arrival Date [%s], Expiration Date.",
+                "Deleted FoodBatch with ID: [%d] name: [%s], quantity [%.2f], Arrival Date [%s], Expiration Date [%s].",
                 batch_id,
                 food_deleted.name,
                 food_deleted.quantity,
@@ -317,6 +326,8 @@ int foodbatch_db_get_by_batchid(database *db, int batch_id, struct foodbatch *ou
         strcpy(out_foodbatch->unit, (const char *)sqlite3_column_text(stmt, 3));
         out_foodbatch->is_perishable = sqlite3_column_int(stmt, 4);
         strcpy(out_foodbatch->arrival_date, (const char *)sqlite3_column_text(stmt, 5));
+    printf("null?%s\n",(const char *)sqlite3_column_text(stmt, 6));
+    printf("test2\n");
         strcpy(out_foodbatch->expiration_date, (const char *)sqlite3_column_text(stmt, 6));
         rc = SQLITE_OK; // Found and read successfully
     } else if (rc == SQLITE_DONE) {
@@ -429,7 +440,7 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size) 
     } else {
         // Truncate but ensure null termination
         if (buffer_size > 0) {
-            strncpy(buffer, header, buffer_size - 1);
+            strncpy(buffer, header, buffer_size);
             buffer[buffer_size - 1] = '\0';
         }
         sqlite3_finalize(stmt);

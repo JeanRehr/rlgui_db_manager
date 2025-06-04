@@ -802,7 +802,7 @@ int user_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
     } else {
         // Truncate but ensure null termination
         if (buffer_size > 0) {
-            strncpy(buffer, header, buffer_size - 1);
+            strncpy(buffer, header, buffer_size);
             buffer[buffer_size - 1] = '\0';
         }
         sqlite3_finalize(stmt);
