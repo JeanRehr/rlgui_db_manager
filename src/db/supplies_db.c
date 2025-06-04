@@ -406,6 +406,59 @@ int supplies_db_get(database *db, const char *name, const char *category, const 
     return rc;
 }
 
+int supplies_db_get_by_id(database *db, const int id, struct supply *out_supply) {
+    if (!db_is_init(db)) {
+        fprintf(stderr, "Database connection is not initialized.\n");
+        return SQLITE_ERROR;
+    }
+
+    const char *sql = "SELECT Name, Category, Size, Unit, Stock, Notes FROM Supplies WHERE ID=?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
+        return rc;
+    }
+
+    // Bind the parameters
+    sqlite3_bind_int(stmt, 1, id);
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        strcpy(out_supply->name, (const char *)sqlite3_column_text(stmt, 0));
+        strcpy(out_supply->category, (const char *)sqlite3_column_text(stmt, 1));
+
+        const char *size_val = (const char *)sqlite3_column_text(stmt, 2);
+        if (size_val) {
+            strcpy(out_supply->size, size_val);
+        } else {
+            out_supply->size[0] = '\0';
+        }
+
+        strcpy(out_supply->unit, (const char *)sqlite3_column_text(stmt, 3));
+
+        out_supply->stock = sqlite3_column_int(stmt, 4);
+
+        const char *note_val = (const char *)sqlite3_column_text(stmt, 5);
+        if (note_val) {
+            strcpy(out_supply->notes, note_val);
+        } else {
+            out_supply->notes[0] = '\0';
+        }
+
+        rc = SQLITE_OK; // Found and read successfully
+    } else if (rc == SQLITE_DONE) {
+        fprintf(stderr, "No supply found with the given data.\n");
+        rc = SQLITE_NOTFOUND;
+    } else {
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc;
+}
+
 int supplies_db_get_count(database *db) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");

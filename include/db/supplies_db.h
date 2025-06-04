@@ -161,6 +161,21 @@ int supplies_db_delete_entry_by_id(database *db, const int id);
 int supplies_db_get(database *db, const char *name, const char *category, const char *size, struct supply *out_supply);
 
 /**
+ * 
+ * @brief Retrieves a supply record by ID
+ *
+ * Fetches the complete record for the Supplies table.
+ *
+ * @param[in] db Pointer to initialized database structure
+ * @param[in] id ID of the entry to fetch
+ * @param[out] out_supply struct returned with the data
+ *
+ * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
+ *
+ */
+int supplies_db_get_by_id(database *db, const int id, struct supply *out_supply);
+
+/**
  * @brief Gets the count of registered supplies in the database
  * 
  * @param db Pointer to initialized database structure
