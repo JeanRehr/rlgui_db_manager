@@ -83,10 +83,16 @@ int tasks_db_upsert(
         struct task tsk = { 0 };
         rc = tasks_db_get(db, id, &tsk);
 
+        if (rc != SQLITE_OK) {
+            sqlite3_finalize(stmt);
+            fprintf(stderr, "Could not fetch task for update.\n");
+            return rc;
+        }
+
         // Decide which fields to use for update based on inputs
-        const char *title_updt = (title[0] != '\0') ? title : tsk.title;
-        const char *desc_updt = (description[0] != '\0') ? description : tsk.description;
-        const char *due_date_updt = (due_date[0] != '\0') ? due_date : tsk.due_date;
+        const char *title_updt = (title && title[0] != '\0') ? title : tsk.title;
+        const char *desc_updt = (description && description[0] != '\0') ? description : tsk.description;
+        const char *due_date_updt = (due_date && due_date[0] != '\0') ? due_date : tsk.due_date;
         enum task_priority priority_updt;
         if (priority != tsk.priority) {
             priority_updt = priority;
@@ -101,8 +107,17 @@ int tasks_db_upsert(
             status_updt = tsk.status;
         }
 
-        const char *assigned_to_updt = (assigned_to[0] != '\0') ? assigned_to : tsk.assigned_to;
-        const char *completed_at_updt = (completed_at[0] != '\0') ? completed_at : tsk.completed_at;
+        const char *assigned_to_updt = (assigned_to && assigned_to[0] != '\0') ? assigned_to : tsk.assigned_to;
+
+        // If we are changing status FROM TSK_DONE to NOT TSK_DONE, set CompletedAt to NULL.
+        const char *completed_at_updt = NULL;
+        if (tsk.status == TSK_DONE && status_updt != TSK_DONE) {
+            completed_at_updt = NULL; // Will bind as null for reset
+        } else if (completed_at && completed_at[0] != '\0') {
+            completed_at_updt = completed_at;
+        } else {
+            completed_at_updt = tsk.completed_at;
+        }
 
         sqlite3_bind_text(stmt, 1, title_updt, -1, SQLITE_STATIC);
         sqlite3_bind_text(stmt, 2, desc_updt, -1, SQLITE_STATIC);
@@ -110,13 +125,13 @@ int tasks_db_upsert(
         sqlite3_bind_int(stmt, 4, priority_updt);
         sqlite3_bind_int(stmt, 5, status_updt);
 
-        if (assigned_to) {
+        if (assigned_to_updt) {
             sqlite3_bind_text(stmt, 6, assigned_to_updt, -1, SQLITE_STATIC);
         } else {
             sqlite3_bind_null(stmt, 6);
         }
 
-        if (completed_at) {
+        if (completed_at_updt) {
             sqlite3_bind_text(stmt, 7, completed_at_updt, -1, SQLITE_STATIC);
         } else {
             sqlite3_bind_null(stmt, 7);
@@ -152,11 +167,8 @@ int tasks_db_upsert(
         }
     }
 
-    printf("ABORTED HERE 1\n");
     rc = sqlite3_step(stmt);
-    printf("ABORTED HERE 2\n");
     sqlite3_finalize(stmt);
-    printf("ABORTED HERE 3\n");
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
 }
 
@@ -289,8 +301,7 @@ int tasks_db_get_status(database *db, int id, enum task_status *out_status) {
         return SQLITE_ERROR;
     }
 
-    const char *sql =
-        "SELECT Status FROM Tasks WHERE ID=?;";
+    const char *sql = "SELECT Status FROM Tasks WHERE ID=?;";
 
     sqlite3_stmt *stmt;
 
@@ -309,37 +320,6 @@ int tasks_db_get_status(database *db, int id, enum task_status *out_status) {
         fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->db));
     }
 
-    sqlite3_finalize(stmt);
-    return rc;
-}
-
-int tasks_db_reset_completed_at(database *db, int id) {
-    if (!db_is_init(db)) {
-        fprintf(stderr, "Database connection is not initialized.\n");
-        return SQLITE_ERROR;
-    }
-
-    if (!tasks_db_check_exists(db, id)) {
-        fprintf(stderr, "Given ID not found.\n");
-        return SQLITE_NOTFOUND;
-    }
-
-    const char *sql = "UPDATE Tasks SET CompletedAt = 0 WHERE ID = ?;";
-    sqlite3_stmt *stmt;
-    
-    int rc = sqlite3_prepare_v2(db->db, sql, -1, &stmt, NULL);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db->db));
-        return rc;
-    }
-    
-    sqlite3_bind_int(stmt, 1, id);
-    
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        fprintf(stderr, "Failed to reset CompletedAt: %s\n", sqlite3_errmsg(db->db));
-    }
-    
     sqlite3_finalize(stmt);
     return rc;
 }
