@@ -188,15 +188,8 @@ int tasks_db_upsert(
             if (db == 0) {
                 logger_log(
                     db->logger,
-                    "Created a task with title: %s where status and priority are %s %s",
-                    title,
-                    task_priority_str[priority],
-                    task_status_str[status]
-                );
-            } else {
-                logger_log(
-                    db->logger,
-                    "Updated a task with title: %s where status and priority are %s %s",
+                    "%s a task with title: [%s] with priority [%s] and status [%s].",
+                    db == 0 ? "Created" : "Updated",
                     title,
                     task_priority_str[priority],
                     task_status_str[status]
@@ -286,7 +279,7 @@ int tasks_db_delete_entry_status(database *db, enum task_status status) {
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Delete all tasks where status is ", task_status_str[status]);
+            logger_log(db->logger, "Delete all tasks where status is [%s]", task_status_str[status]);
         }
     }
 

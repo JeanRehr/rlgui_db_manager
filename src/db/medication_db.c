@@ -132,7 +132,7 @@ int medication_db_upsert(
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Inserted Medication %s %s %s by quantity %d", name, form, strength, stock);
+            logger_log(db->logger, "Inserted Medication name: [%s], form: [%s], strength: [%s] by quantity [%d].", name, form, strength, stock);
         }
     }
 
@@ -287,7 +287,7 @@ int medication_db_remove(
         if (db->logger) {
             logger_log(
                 db->logger,
-                "Removed Medication %s %s %s by quantity %d",
+                "Removed Medication name: [%s], form: [%s], strength: [%s] by quantity %d.",
                 name,
                 form,
                 strength,
@@ -418,7 +418,7 @@ int medication_db_delete_entry(database *db, const char *name, const char *form,
         if (db->logger) {
             logger_log(
                 db->logger,
-                "Deleted Medication entry with name: [%s], form: [%s] strength [%s]",
+                "Deleted Medication entry with name: [%s], form: [%s], strength [%s].",
                 name,
                 form,
                 strength
@@ -474,7 +474,7 @@ int medication_db_delete_entry_by_id(database *db, const int id) {
         if (db->logger) {
             logger_log(
                 db->logger,
-                "Deleted Medication entry with ID [%d], name: [%s], form: [%s] strength [%s].",
+                "Deleted Medication entry with ID [%d], name: [%s], form: [%s], strength [%s].",
                 id,
                 med_deleted.name,
                 med_deleted.form,

@@ -167,7 +167,7 @@ int user_db_create_user(database *db, const char *username, const char *cpf, con
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Created user with username %s.", username);
+            logger_log(db->logger, "Created user with username [%s].", username);
         }
     }
 
@@ -227,12 +227,12 @@ enum auth_result user_db_authenticate(database *db, const char *username, const 
     switch (result) {
     case AUTH_SUCCESS:
         if (db->logger) {
-            logger_log(db->logger, "User with username %s successfully logged in.", username);
+            logger_log(db->logger, "User with username [%s] successfully logged in.", username);
         }
         break;
     case AUTH_FAILURE:
         if (db->logger) {
-            logger_log(db->logger, "Unsuccessful attempt of login with username %s.", username);
+            logger_log(db->logger, "Unsuccessful attempt of login with username [%s].", username);
         }
         break;
     case AUTH_NEED_PASSWORD_RESET:
@@ -284,7 +284,7 @@ int user_db_delete(database *db, const char *username) {
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Deleted User with username %s", username);
+            logger_log(db->logger, "Deleted User with username [%s].", username);
         }
     }
 
@@ -328,7 +328,7 @@ int user_db_update_phone_number(database *db, const char *username, const char *
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Updated phone number to %s for username %s", phone_number, username);
+            logger_log(db->logger, "Updated phone number to [%s] for username [%s].", phone_number, username);
         }
     }
 
@@ -372,7 +372,7 @@ int user_db_update_cpf(database *db, const char *username, const char *cpf) {
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Updated cpf number to %s for username %s", cpf, username);
+            logger_log(db->logger, "Updated cpf number to [%s] for username [%s].", cpf, username);
         }
     }
 
@@ -472,7 +472,7 @@ int user_db_update_admin_status(database *db, const char *username, bool is_admi
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Updated admin status to %s for user %s.", is_admin ? "true" : "false", username);
+            logger_log(db->logger, "Updated admin status to [%s] for user [%s].", is_admin ? "true" : "false", username);
         }
     }
 
@@ -655,7 +655,7 @@ int user_db_update_username(database *db, const char *old_username, const char *
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Updated its username to %s.", new_username);
+            logger_log(db->logger, "Updated its username to [%s].", new_username);
         }
     }
 
@@ -732,7 +732,7 @@ int user_db_set_reset_password(database *db, const char *username) {
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Triggered a password reset to %s.", username);
+            logger_log(db->logger, "Triggered a password reset to [%s].", username);
         }
     }
 
