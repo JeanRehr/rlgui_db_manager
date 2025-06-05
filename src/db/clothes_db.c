@@ -49,8 +49,7 @@ static int _clothes_db_upsert(
     const enum clothing_color color,
     const enum clothing_condition condition,
     const int quantity,
-    const char *notes,
-    int *was_updated
+    const char *notes
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -90,12 +89,6 @@ static int _clothes_db_upsert(
         sqlite3_bind_null(stmt, 7);
 
     rc = sqlite3_step(stmt);
-
-    // Check if any row was updated
-    if (was_updated) {
-        *was_updated = sqlite3_changes(db->db) > 0;
-    }
-
     sqlite3_finalize(stmt);
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
 }
@@ -110,34 +103,20 @@ int clothes_db_upsert(
     const int quantity,
     const char *notes
 ) {
-    int was_updated = 0;
-    int rc = _clothes_db_upsert(db, type, size, gender, color, condition, quantity, notes, &was_updated);
+    int rc = _clothes_db_upsert(db, type, size, gender, color, condition, quantity, notes);
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            if (was_updated) {
-                logger_log(
-                    db->logger,
-                    "Updated Clothing with type: [%s], size: [%s], gender: [%s], color: [%s], condition: [%s] by quantity %d",
-                    clothing_type_str[type],
-                    clothing_size_str[size],
-                    clothing_gender_str[gender],
-                    clothing_color_str[color],
-                    clothing_condition_str[condition],
-                    quantity
-                );
-            } else {
-                logger_log(
-                    db->logger,
-                    "Created Clothing with type: [%s], size: [%s], gender: [%s], color: [%s], condition: [%s] with quantity %d",
-                    clothing_type_str[type],
-                    clothing_size_str[size],
-                    clothing_gender_str[gender],
-                    clothing_color_str[color],
-                    clothing_condition_str[condition],
-                    quantity
-                );
-            }
+            logger_log(
+                db->logger,
+                "Inserted Clothing with type: [%s], size: [%s], gender: [%s], color: [%s], condition: [%s] by quantity %d",
+                clothing_type_str[type],
+                clothing_size_str[size],
+                clothing_gender_str[gender],
+                clothing_color_str[color],
+                clothing_condition_str[condition],
+                quantity
+            );
         }
     }
 

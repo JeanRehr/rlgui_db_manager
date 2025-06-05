@@ -47,8 +47,7 @@ static int _supplies_db_upsert(
     const char *size,
     const char *unit,
     const int stock,
-    const char *notes,
-    int *was_updated
+    const char *notes
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -88,11 +87,6 @@ static int _supplies_db_upsert(
 
     rc = sqlite3_step(stmt);
 
-    // Check if any row was updated
-    if (was_updated) {
-        *was_updated = sqlite3_changes(db->db) > 0;
-    }
-
     sqlite3_finalize(stmt);
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
 }
@@ -106,16 +100,11 @@ int supplies_db_upsert(
     const int stock,
     const char *notes
 ) {
-    int was_updated = 0;
-    int rc = _supplies_db_upsert(db, name, category, size, unit, stock, notes, &was_updated);
+    int rc = _supplies_db_upsert(db, name, category, size, unit, stock, notes);
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            if (was_updated) {
-                logger_log(db->logger, "Updated Supply %s %s %s by quantity %d", name, category, size, stock);
-            } else {
-                logger_log(db->logger, "Created Supply %s %s %s with stock %d", name, category, size, stock);
-            }
+            logger_log(db->logger, "Inserted Supply %s %s %s by quantity %d", name, category, size, stock);
         }
     }
 

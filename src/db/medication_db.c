@@ -64,8 +64,7 @@ static int _medication_db_upsert(
     const char *unit,
     const int stock,
     const char *expiration_date,
-    const char *notes,
-    int *was_updated
+    const char *notes
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -114,11 +113,6 @@ static int _medication_db_upsert(
 
     rc = sqlite3_step(stmt);
 
-    // Check if the operation was an INSERT or UPDATE
-    if (was_updated) {
-        *was_updated = sqlite3_changes(db->db) > 0;
-    }
-
     sqlite3_finalize(stmt);
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
 }
@@ -134,27 +128,11 @@ int medication_db_upsert(
     const char *expiration_date,
     const char *notes
 ) {
-    int was_updated = 0;
-    int rc = _medication_db_upsert(
-        db,
-        name,
-        generic_name,
-        form,
-        strength,
-        unit,
-        stock,
-        expiration_date,
-        notes,
-        &was_updated
-    );
+    int rc = _medication_db_upsert(db, name, generic_name, form, strength, unit, stock, expiration_date, notes);
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            if (was_updated) {
-                logger_log(db->logger, "Updated Medication %s %s %s by quantity %d", name, form, strength, stock);
-            } else {
-                logger_log(db->logger, "Created Medication %s %s %s with stock %d", name, form, strength, stock);
-            }
+            logger_log(db->logger, "Inserted Medication %s %s %s by quantity %d", name, form, strength, stock);
         }
     }
 
