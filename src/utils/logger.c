@@ -20,8 +20,9 @@ void logger_init(struct logger *log, const char *log_path, const char *username)
     log->log_file = fopen(log_path, "a");
     
     if (!log->log_file) {
-        fprintf(stderr, "Failed to open log file: %s\n", log_path);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Failed to open log file: %s\nUsing stdout.\n", log_path);
+        log->log_file = stdout;
+        return;
     }
 }
 
