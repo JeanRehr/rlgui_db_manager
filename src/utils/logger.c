@@ -10,6 +10,8 @@
 #include "global/CONSTANTS.h"
 
 void logger_init(struct logger *log, const char *log_path, const char *username) {
+    log->username = username;
+
     if (!log_path) {
         log->log_file = stdout;
         return;
@@ -21,8 +23,6 @@ void logger_init(struct logger *log, const char *log_path, const char *username)
         fprintf(stderr, "Failed to open log file: %s\n", log_path);
         exit(EXIT_FAILURE);
     }
-
-    log->username = username;
 }
 
 void logger_log(struct logger *log, const char *format, ...) {
