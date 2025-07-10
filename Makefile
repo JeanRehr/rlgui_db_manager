@@ -48,7 +48,7 @@ MAIN_OUT_FILES = $(addprefix $(OUT_DIR)/,$(notdir $(SRC_FILES:.c=.o)))
 TEST_OUT_FILES = $(addprefix $(OUT_DIR)/,$(notdir $(TEST_FILES:.c=.o))) $(filter-out $(OUT_DIR)/main.o, $(MAIN_OUT_FILES))
 
 # Compiler and linker flags
-# -Weverything
+# -ferror-limit=0 -Weverything -Wno-padded -Wno-reserved-macro-identifier -Wno-declaration-after-statement -Wno-unsafe-buffer-usage -Wno-bad-function-cast -Wno-reserved-identifier -Wno-float-equal -Wno-vla -Wno-pre-c11-compat
 RELEASE_CFLAGS = -O3 -Wall -Wextra -Wpedantic -Werror -std=c11
 DEBUG_CFLAGS = -ggdb3 -Wno-switch-default -Wall -Wextra -Wpedantic -Werror -Wshadow -Wconversion -Wcast-qual -Wformat -Wnull-dereference -std=c11 $(SAN_FLAGS)
 
