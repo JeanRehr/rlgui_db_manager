@@ -86,7 +86,7 @@ bool supplies_db_check_exists_by_id(database *db, const int id);
  * @param[in] db Pointer to initialized database structure
  * @param[in] name e.g. "diaper", "tampon"
  * @param[in] category e.g. "hygiene", "cleaning", "personal care"
- * @param[in] size "adult", "small", "XXL"
+ * @param[in] unit "adult", "small", "XXL"
  * @param[in] quantity_to_remove Quantity to remove
  *
  * @return SQLITE_OK on success, SQLITE_NOTFOUND if the supply doesn't exist, SQLITE_CONSTRAINT if
@@ -136,7 +136,6 @@ int supplies_db_delete_entry(database *db, const char *name, const char *categor
  *
  * @param[in] db Pointer to initialized database structure
  * @param[in] id ID of the supply to remove the quantity
- * @param[in] quantity_to_remove Quantity to remove
  *
  * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
  *
@@ -219,9 +218,7 @@ int supplies_db_get_count(database *db);
  */
 int supplies_db_get_all_format(database *db, char *buffer, size_t buffer_size);
 
-/**
- * @deprecated
- * 
+/** 
  * @brief Retrieves all supplies records as a formatted string
  *
  * Executes a database query and formats all supplies records into a human-readable
@@ -256,6 +253,8 @@ int supplies_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * - Validates SQL preparation
  * - Handles memory allocation failures
  * - Reports SQL execution errors
+ *
+ * @warning THIS SHOULD NOT BE USED
  *
  */
 char *supplies_db_get_all_format_old(database *db);

@@ -166,7 +166,6 @@ static int _resident_db_update(
     const char *needs = (needs_input[0] != '\0') ? needs_input : currentResident.needs;
     int medical_assistance =
         (medical_assistance_input > 0) ? medical_assistance_input : currentResident.medical_assistance;
-    enum gender gender = (gender_input >= 0) ? gender_input : currentResident.gender;
 
     const char *sql =
         "UPDATE Resident SET Name = ?, Age = ?, HealthStatus = ?, Needs = ?, MedicalAssistance = ?, Gender "
@@ -184,7 +183,7 @@ static int _resident_db_update(
     sqlite3_bind_text(stmt, 3, health_status, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 4, needs, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 5, medical_assistance ? 1 : 0);
-    sqlite3_bind_int(stmt, 6, (int)gender);
+    sqlite3_bind_int(stmt, 6, (int)gender_input);
     sqlite3_bind_text(stmt, 7, cpf, -1, SQLITE_STATIC);
 
     rc = sqlite3_step(stmt);

@@ -119,46 +119,46 @@ void ui_create_user_init(struct ui_create_user *ui) {
         "Admin:"
     );
 
-    ui->butn_create_user = button_init((Rectangle) { 20, window_height - 60, 100, 30 }, "Create User");
+    ui->butn_create_user = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Create User");
 
     ui->butn_reset_password = button_init(
         (
             Rectangle
-        ) { ui->butn_create_user.bounds.x + ui->butn_create_user.bounds.width + 10, window_height - 60, 100, 30 },
+        ) { ui->butn_create_user.bounds.x + ui->butn_create_user.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Reset Password"
     );
 
     ui->butn_update_adm_stat = button_init(
         (
             Rectangle
-        ) { ui->butn_reset_password.bounds.x + ui->butn_reset_password.bounds.width + 10, window_height - 60, 100, 30 },
+        ) { ui->butn_reset_password.bounds.x + ui->butn_reset_password.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Update Admin Status"
     );
 
     ui->butn_delete = button_init(
         (Rectangle) { ui->butn_update_adm_stat.bounds.x + ui->butn_update_adm_stat.bounds.width + 10,
-                      window_height - 60,
+                      (float)window_height - 60,
                       100,
                       30 },
         "Delete User"
     );
 
     ui->butn_get_all = button_init(
-        (Rectangle) { ui->butn_delete.bounds.x + ui->butn_delete.bounds.width + 10, window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_delete.bounds.x + ui->butn_delete.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Retrieve Users"
     );
 
     ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->tb_username.bounds.x + ui->tb_username.bounds.width + 10,
                       10,
-                      window_width - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20),
-                      window_height - 100 },
+                      (float)window_width - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20),
+                      (float)window_height - 100 },
         "Database view",
         (Rectangle) { 0, 0, 0, 0 }
     );
     ui->str_table_content = NULL;
 
-    ui->flag = 0;
+    ui->flag = (enum create_user_screen_flags)0;
 }
 
 /* ======================= BASE INTERFACE OVERRIDES ======================= */
@@ -289,7 +289,7 @@ static void ui_create_user_handle_warning_msg(
     (void)state; // Explicitly mark as unused
 
     const char *message = NULL;
-    enum create_user_screen_flags flag_to_clear = 0;
+    enum create_user_screen_flags flag_to_clear = (enum create_user_screen_flags)0;
     struct ui_user_db_action_info action = { 0 };
     action.type = DB_ACTION_NONE;
 
@@ -331,7 +331,7 @@ static void ui_create_user_handle_warning_msg(
     if (message) {
         const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            (Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -365,14 +365,14 @@ static void ui_create_user_handle_warning_msg(
  */
 static void ui_create_user_update_positions(struct ui_base *base) {
     struct ui_create_user *ui = (struct ui_create_user *)base;
-    ui->butn_create_user.bounds.y = window_height - 60;
-    ui->butn_reset_password.bounds.y = window_height - 60;
-    ui->butn_update_adm_stat.bounds.y = window_height - 60;
-    ui->butn_delete.bounds.y = window_height - 60;
-    ui->butn_get_all.bounds.y = window_height - 60;
+    ui->butn_create_user.bounds.y = (float)window_height - 60;
+    ui->butn_reset_password.bounds.y = (float)window_height - 60;
+    ui->butn_update_adm_stat.bounds.y = (float)window_height - 60;
+    ui->butn_delete.bounds.y = (float)window_height - 60;
+    ui->butn_get_all.bounds.y = (float)window_height - 60;
     ui->sp_table_view.panel_bounds.width =
-        window_width - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20);
-    ui->sp_table_view.panel_bounds.height = window_height - 100;
+        (float)window_width - (ui->tb_username.bounds.x + ui->tb_username.bounds.width + 20);
+    ui->sp_table_view.panel_bounds.height = (float)window_height - 100;
 }
 
 /**
@@ -439,7 +439,6 @@ static void process_db_action_in_warning(
     }
 
     case DB_ACTION_NONE:
-    default:
         break;
     }
 }

@@ -9,6 +9,12 @@
 #ifndef UI_MEDICATION_H
 #define UI_MEDICATION_H
 
+#include "ui/components/button.h"
+#include "ui/components/intbox.h"
+#include "ui/components/scrollpanel.h"
+#include "ui/components/textbox.h"
+#include "ui/screens/ui_base.h"
+
 /**
  * @enum medication_screen_flags
  * @brief State flags for the medication screen
@@ -29,12 +35,6 @@ enum medication_screen_flags {
     FLAG_MEDICATION_FORM_EMPTY = 1 << 10,            ///< Form textbox empty
     FLAG_MEDICATION_STRENGTH_EMPTY = 1 << 11,        ///< Strength textbox empty
 };
-
-#include "ui/components/button.h"
-#include "ui/components/intbox.h"
-#include "ui/components/scrollpanel.h"
-#include "ui/components/textbox.h"
-#include "ui/screens/ui_base.h"
 
 /**
  * @struct ui_medication

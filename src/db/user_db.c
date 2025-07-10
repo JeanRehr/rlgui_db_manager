@@ -236,7 +236,6 @@ enum auth_result user_db_authenticate(database *db, const char *username, const 
         }
         break;
     case AUTH_NEED_PASSWORD_RESET:
-    default:
         break;
     }
 

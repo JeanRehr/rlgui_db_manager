@@ -71,7 +71,7 @@ static int _foodbatch_db_insert(
 
     // Bind values to the prepared statement
     sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
-    sqlite3_bind_double(stmt, 2, quantity);
+    sqlite3_bind_double(stmt, 2, (double)quantity);
     sqlite3_bind_text(stmt, 3, unit, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 4, is_perishable ? 1 : 0);
     sqlite3_bind_text(stmt, 5, arrival_date, -1, SQLITE_STATIC);
@@ -111,7 +111,7 @@ int foodbatch_db_insert(
                 db->logger,
                 "Inserted FoodBatch with name: [%s], quantity [%.2f], Arrival Date [%s], Expiration Date [%s].",
                 name,
-                quantity,
+                (double)quantity,
                 arrival_date,
                 expiration_date
             );
@@ -172,7 +172,7 @@ static int _foodbatch_db_update(
     }
 
     sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
-    sqlite3_bind_double(stmt, 2, quantity);
+    sqlite3_bind_double(stmt, 2, (double)quantity);
     sqlite3_bind_text(stmt, 3, unit, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 4, is_perishable);
     sqlite3_bind_text(stmt, 5, arrival_date, -1, SQLITE_STATIC);
@@ -222,7 +222,7 @@ int foodbatch_db_update(
                 "Updated FoodBatch with ID: [%d] name: [%s], quantity [%.2f], arrival date [%s], expiration date [%s].",
                 batch_id,
                 name_input,
-                quantity_input,
+                (double)quantity_input,
                 arrival_date_input,
                 expiration_date_input
             );
@@ -285,7 +285,7 @@ int foodbatch_db_delete_by_id(database *db, int batch_id) {
                 "Deleted FoodBatch with ID: [%d] name: [%s], quantity [%.2f], arrival date [%s], expiration date [%s].",
                 batch_id,
                 food_deleted.name,
-                food_deleted.quantity,
+                (double)food_deleted.quantity,
                 food_deleted.arrival_date,
                 food_deleted.expiration_date
             );
@@ -448,7 +448,7 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size) 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int batch_id = sqlite3_column_int(stmt, 0);
         const char *name = (const char *)sqlite3_column_text(stmt, 1);
-        float quantity = (float)sqlite3_column_double(stmt, 2);
+        double quantity = sqlite3_column_double(stmt, 2);
         const char *unit = (const char *)sqlite3_column_text(stmt, 3);
         int is_perishable = sqlite3_column_int(stmt, 4);
         const char *arrival_date = (const char *)sqlite3_column_text(stmt, 5);
@@ -566,7 +566,7 @@ char *foodbatch_db_get_all_format_old(database *db) {
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int batch_id = sqlite3_column_int(stmt, 0);
         const char *name = (const char *)sqlite3_column_text(stmt, 1);
-        float quantity = (float)sqlite3_column_double(stmt, 2);
+        double quantity = sqlite3_column_double(stmt, 2);
         const char *unit = (const char *)sqlite3_column_text(stmt, 3);
         int is_perishable = sqlite3_column_int(stmt, 4);
         const char *arrival_date = (const char *)sqlite3_column_text(stmt, 5);
@@ -664,7 +664,7 @@ int foodbatch_db_get_all(database *db) {
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int batch_id = sqlite3_column_int(stmt, 0);
         const char *name = (const char *)sqlite3_column_text(stmt, 1);
-        float quantity = (float)sqlite3_column_double(stmt, 2);
+        double quantity = sqlite3_column_double(stmt, 2);
         const char *unit = (const char *)sqlite3_column_text(stmt, 3);
         int is_perishable = sqlite3_column_int(stmt, 4);
         const char *arrival_date = (const char *)sqlite3_column_text(stmt, 5);

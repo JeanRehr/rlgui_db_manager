@@ -103,11 +103,11 @@ void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
         "Tasks"
     );
 
-    ui->settings_butn = button_init((Rectangle) { window_width - 250, 50, 200, 50 }, "Settings");
+    ui->settings_butn = button_init((Rectangle) { (float)window_width - 250, 50, 200, 50 }, "Settings");
 
-    ui->logout_butn = button_init((Rectangle) { window_width - 100, window_height - 60, 0, 30 }, "Log Out");
+    ui->logout_butn = button_init((Rectangle) { (float)window_width - 100, (float)window_height - 60, 0, 30 }, "Log Out");
 
-    ui->flag = 0;
+    ui->flag = (enum main_menu_screen_flags)0;
 }
 
 /* ======================= BASE INTERFACE OVERRIDES ======================= */
@@ -241,7 +241,7 @@ static void ui_main_menu_handle_warning_msg(
     struct ui_main_menu *ui = (struct ui_main_menu *)base;
 
     const char *message = NULL;
-    enum main_menu_screen_flags flag_to_clear = 0;
+    enum main_menu_screen_flags flag_to_clear = (enum main_menu_screen_flags)0;
 
     if (IS_FLAG_SET(&ui->flag, FLAG_MAIN_MENU_WARN_NOT_ADMIN)) {
         message = "User is not an admin.";
@@ -252,7 +252,7 @@ static void ui_main_menu_handle_warning_msg(
         const char *buttons = "OK";
 
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            (Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -267,9 +267,9 @@ static void ui_main_menu_handle_warning_msg(
 static void ui_main_menu_update_positions(struct ui_base *base) {
     struct ui_main_menu *ui = (struct ui_main_menu *)base;
 
-    ui->settings_butn.bounds.x = window_width - 250;
-    ui->logout_butn.bounds.x = window_width - 100;
-    ui->logout_butn.bounds.y = window_height - 60;
+    ui->settings_butn.bounds.x = (float)window_width - 250;
+    ui->logout_butn.bounds.x = (float)window_width - 100;
+    ui->logout_butn.bounds.y = (float)window_height - 60;
 }
 /** @} */
 

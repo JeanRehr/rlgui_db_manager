@@ -194,7 +194,8 @@ int resident_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * - Handles memory allocation failures
  * - Reports SQL execution errors
  *
- * @deprecated
+ * @warning THIS SHOULD NOT BE USED
+ *
  */
 char *resident_db_get_all_format_old(database *db);
 

@@ -190,7 +190,7 @@ void ui_food_init(struct ui_food *ui) {
         INT_MAX
     );
 
-    ui->butn_submit = button_init((Rectangle) { 20, window_height - 60, 100, 30 }, "Submit");
+    ui->butn_submit = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Submit");
 
     ui->butn_update = button_init(
         (Rectangle) { ui->butn_submit.bounds.x + ui->butn_submit.bounds.width + 10, ui->butn_submit.bounds.y, 100, 30 },
@@ -222,15 +222,15 @@ void ui_food_init(struct ui_food *ui) {
     ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->panel_bounds.x + ui->panel_bounds.width + 10,
                       10,
-                      window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20),
-                      window_height - 100 },
+                      (float)window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20),
+                      (float)window_height - 100 },
         "Database view",
         (Rectangle) { 0, 0, 0, 0 }
     );
 
     ui->str_table_content = NULL;
 
-    ui->flag = 0;
+    ui->flag = (enum food_screen_flags)0;
 }
 
 /* ======================= BASE INTERFACE OVERRIDES ======================= */
@@ -423,7 +423,7 @@ static void ui_food_handle_warning_msg(
     struct ui_food *ui = (struct ui_food *)base;
 
     const char *message = NULL;
-    enum food_screen_flags flag_to_clear = 0;
+    enum food_screen_flags flag_to_clear = (enum food_screen_flags)0;
     struct ui_food_db_action_info action = { 0 };
     action.type = DB_ACTION_NONE;
 
@@ -466,7 +466,7 @@ static void ui_food_handle_warning_msg(
         const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
 
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            (Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -498,12 +498,12 @@ static void ui_food_handle_warning_msg(
 static void ui_food_update_positions(struct ui_base *base) {
     struct ui_food *ui = (struct ui_food *)base;
 
-    ui->butn_submit.bounds.y = window_height - 60;
+    ui->butn_submit.bounds.y = (float)window_height - 60;
     ui->butn_retrieve.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_delete.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_retrieve_all.bounds.y = ui->butn_submit.bounds.y;
-    ui->sp_table_view.panel_bounds.width = window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20);
-    ui->sp_table_view.panel_bounds.height = window_height - 100;
+    ui->sp_table_view.panel_bounds.width = (float)window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20);
+    ui->sp_table_view.panel_bounds.height = (float)window_height - 100;
 }
 
 /**
@@ -565,7 +565,7 @@ static void draw_foodbatch_info_panel(struct ui_food *ui) {
 
     GuiLabel(
         (Rectangle) { ui->panel_bounds.x + 10, ui->panel_bounds.y + 60, 280, 20 },
-        TextFormat("Quantity: %.2f", ui->foodbatch_retrieved.quantity)
+        TextFormat("Quantity: %.2f", (double)ui->foodbatch_retrieved.quantity)
     );
 
     GuiLabel(
@@ -814,7 +814,7 @@ static void handle_retrieve_button(struct ui_food *ui, database *foodbatch_db) {
         "Retrieved Food Batch - BatchID: %d, Name: %s, Quantity: %.2f, Unit: %s, Is Perishable: %d, Arrival Date: %s, Expiration Date: %s\n",
         ui->foodbatch_retrieved.batch_id,
         ui->foodbatch_retrieved.name,
-        ui->foodbatch_retrieved.quantity,
+        (double)ui->foodbatch_retrieved.quantity,
         ui->foodbatch_retrieved.unit,
         ui->foodbatch_retrieved.is_perishable,
         ui->foodbatch_retrieved.arrival_date,
@@ -904,7 +904,6 @@ static void process_db_action_in_warning(
         break;
 
     case DB_ACTION_NONE:
-    default:
         break;
     }
 }

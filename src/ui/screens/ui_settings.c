@@ -11,7 +11,7 @@
 // raygui embedded styles
 // Embedded a monospace font in them as well.
 // NOTE: Included in the same order as selector
-#define MAX_GUI_STYLES_AVAILABLE 15 // NOTE: Included light style
+//#define MAX_GUI_STYLES_AVAILABLE 15 // NOTE: Included light style
 #include "styles/amber.h"           // raygui styleL amber
 #include "styles/ashes.h"           // raygui style: ashes
 #include "styles/bluish.h"          // raygui style: bluish
@@ -101,7 +101,7 @@ void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
     );
 
     ui->ddb_style_options = dropdownbox_init(
-        (Rectangle) { window_width - 110, 30, 100, 30 },
+        (Rectangle) { (float)window_width - 110, 30, 100, 30 },
         "Amber;Ashes;Bluish;Candy;Cherry;Cyber;Dark;Enefete;Genesis;Jungle;Lavanda;Light;RLTech;Sunny;Terminal",
         "Style:"
     );
@@ -109,7 +109,7 @@ void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
     ui->ddb_style_options.active_option = 8;                         ///< Currently active GUI style (default: Genesis)
     ui->prev_active_style = ui->ddb_style_options.active_option - 1; ///< Previously active style for change detection
 
-    ui->butn_submit = button_init((Rectangle) { 20, window_height - 60, 100, 30 }, "Submit");
+    ui->butn_submit = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Submit");
 
     ui->butn_reset_password = button_init(
         (Rectangle) { ui->butn_submit.bounds.x + ui->butn_submit.bounds.width + 10, ui->butn_submit.bounds.y, 100, 30 },
@@ -120,7 +120,7 @@ void ui_settings_init(struct ui_settings *ui, struct user *current_user) {
     ui->panel_bounds =
         (Rectangle) { ui->tb_new_username.bounds.x + ui->tb_new_username.bounds.width + 10, 10, 300, 250 };
 
-    ui->flag = 0;
+    ui->flag = (enum settings_screen_flags)0;
 
     // Set a default theme in init
     // Reset to default internal style
@@ -249,7 +249,7 @@ static void ui_settings_handle_warning_msg(
     (void)user_db;
 
     const char *message = NULL;
-    enum settings_screen_flags flag_to_clear = 0;
+    enum settings_screen_flags flag_to_clear = (enum settings_screen_flags)0;
 
     if (IS_FLAG_SET(&ui->flag, FLAG_SETTINGS_USERNAME_EXISTS)) {
         message = "This username already\nexists.";
@@ -275,7 +275,7 @@ static void ui_settings_handle_warning_msg(
     if (message) {
         const char *buttons = "OK";
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            (Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -305,9 +305,9 @@ static void ui_settings_handle_warning_msg(
  */
 static void ui_settings_update_positions(struct ui_base *base) {
     struct ui_settings *ui = (struct ui_settings *)base;
-    ui->butn_submit.bounds.y = window_height - 60;
-    ui->butn_reset_password.bounds.y = window_height - 60;
-    ui->ddb_style_options.bounds.x = window_width - 110;
+    ui->butn_submit.bounds.y = (float)window_height - 60;
+    ui->butn_reset_password.bounds.y = (float)window_height - 60;
+    ui->ddb_style_options.bounds.x = (float)window_width - 110;
 }
 
 /**

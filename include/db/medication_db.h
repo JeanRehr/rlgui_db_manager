@@ -139,8 +139,7 @@ int medication_db_delete_entry(database *db, const char *name, const char *form,
  * @brief Deletes a medication record by its ID data
  *
  * @param[in] db Pointer to initialized database structure
- * @param[in] id ID of the medication to remove the quantity
- * @param[in] quantity_to_remove Quantity to remove
+ * @param[in] id ID of the medication to remove the quantity\
  *
  * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
  *
@@ -239,9 +238,7 @@ int medication_db_get_count(database *db);
  */
 int medication_db_get_all_format(database *db, char *buffer, size_t buffer_size);
 
-/**
- * @deprecated
- * 
+/** 
  * @brief Retrieves all medication records as a formatted string
  *
  * Executes a database query and formats all medication records into a human-readable
@@ -280,6 +277,8 @@ int medication_db_get_all_format(database *db, char *buffer, size_t buffer_size)
  * - Handles memory allocation failures
  * 
  * - Reports SQL execution errors
+ *
+ * @warning THIS SHOULD NOT BE USED
  *
  */
 char *medication_db_get_all_format_old(database *db);

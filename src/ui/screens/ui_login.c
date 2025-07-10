@@ -86,7 +86,7 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
     ui->current_user = current_user;
 
     ui->tb_username =
-        textbox_init((Rectangle) { window_width / 2 - 150, window_height / 2 - 15, 300, 30 }, "Username:");
+        textbox_init((Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 15, 300, 30 }, "Username:");
 
     ui->tbs_password = textboxsecret_init(
         (Rectangle) { ui->tb_username.bounds.x,
@@ -104,7 +104,7 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
         "Login"
     );
 
-    ui->flag = 0;
+    ui->flag = (enum login_screen_flags)0;
 }
 
 /* ======================= BASE INTERFACE OVERRIDES ======================= */
@@ -206,7 +206,7 @@ static void ui_login_handle_warning_msg(
     struct ui_login *ui = (struct ui_login *)base;
 
     const char *message = NULL;
-    enum login_screen_flags flag_to_clear = 0;
+    enum login_screen_flags flag_to_clear = (enum login_screen_flags)0;
     struct ui_login_db_action_info action = { 0 };
     action.type = DB_ACTION_NONE;
 
@@ -218,7 +218,7 @@ static void ui_login_handle_warning_msg(
         flag_to_clear = FLAG_PASSWD_EMPTY;
     } else if (IS_FLAG_SET(&ui->flag, FLAG_USER_NOT_EXISTS | FLAG_WRONG_PASSWD)) {
         message = "Invalid username or password";
-        flag_to_clear = FLAG_USER_NOT_EXISTS | FLAG_WRONG_PASSWD;
+        flag_to_clear = (enum login_screen_flags)(FLAG_USER_NOT_EXISTS | FLAG_WRONG_PASSWD);
     } else if (IS_FLAG_SET(&ui->flag, FLAG_PASSWD_RESET)) {
         message = "New password must be set.\nThe password you entered will become\nyour new password.";
         flag_to_clear = FLAG_PASSWD_RESET;
@@ -234,7 +234,7 @@ static void ui_login_handle_warning_msg(
     if (message) {
         const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "Ok";
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            (Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -269,8 +269,8 @@ static void ui_login_handle_warning_msg(
 static void ui_login_updt_pos(struct ui_base *base) {
     struct ui_login *ui = (struct ui_login *)base;
 
-    ui->tb_username.bounds.x = window_width / 2 - 150;
-    ui->tb_username.bounds.y = window_height / 2 - 15;
+    ui->tb_username.bounds.x = (float)window_width / 2 - 150;
+    ui->tb_username.bounds.y = (float)window_height / 2 - 15;
 
     ui->tbs_password.bounds.x = ui->tb_username.bounds.x;
     ui->tbs_password.bounds.y = ui->tb_username.bounds.y + ui->tb_username.bounds.height + (FONT_SIZE * 2);
@@ -336,7 +336,6 @@ static void process_db_action_in_warning(
         break;
 
     case DB_ACTION_NONE:
-    default:
         break;
     }
 }
@@ -423,7 +422,6 @@ static void handle_login_button(
     }
 
     case AUTH_FAILURE:
-    default:
         SET_FLAG(&ui->flag, FLAG_WRONG_PASSWD);
         break;
     }

@@ -189,35 +189,35 @@ void ui_clothes_init(struct ui_clothes *ui) {
         INT_MAX
     );
 
-    ui->butn_insert = button_init((Rectangle) { 20, window_height - 60, 100, 30 }, "Insert");
+    ui->butn_insert = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Insert");
 
     ui->butn_remove = button_init(
-        (Rectangle) { ui->butn_insert.bounds.x + ui->butn_insert.bounds.width + 10, window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_insert.bounds.x + ui->butn_insert.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Remove Quantity"
     );
 
     ui->butn_delete_entry = button_init(
-        (Rectangle) { ui->butn_remove.bounds.x + ui->butn_remove.bounds.width + 10, window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_remove.bounds.x + ui->butn_remove.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Delete Entry"
     );
 
     ui->butn_remove_by_id = button_init(
         (
             Rectangle
-        ) { ui->butn_delete_entry.bounds.x + ui->butn_delete_entry.bounds.width + 10, window_height - 60, 100, 30 },
+        ) { ui->butn_delete_entry.bounds.x + ui->butn_delete_entry.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Remove Quantity by ID"
     );
 
     ui->butn_delete_entry_by_id = button_init(
         (
             Rectangle
-        ) { ui->butn_remove_by_id.bounds.x + ui->butn_remove_by_id.bounds.width + 10, window_height - 60, 100, 30 },
+        ) { ui->butn_remove_by_id.bounds.x + ui->butn_remove_by_id.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Delete Entry by ID"
     );
 
     ui->butn_view_all = button_init(
         (Rectangle) { ui->butn_delete_entry_by_id.bounds.x + ui->butn_delete_entry_by_id.bounds.width + 10,
-                      window_height - 60,
+                      (float)window_height - 60,
                       100,
                       30 },
         "View All"
@@ -226,15 +226,15 @@ void ui_clothes_init(struct ui_clothes *ui) {
     ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->tb_notes.bounds.x + ui->tb_notes.bounds.width + 10,
                       10,
-                      window_width - (ui->tb_notes.bounds.x + ui->tb_notes.bounds.width + 20),
-                      window_height - 100 },
+                      (float)window_width - (ui->tb_notes.bounds.x + ui->tb_notes.bounds.width + 20),
+                      (float)window_height - 100 },
         "Database view",
         (Rectangle) { 0, 0, 0, 0 }
     );
 
     ui->str_table_content = NULL;
 
-    ui->flag = 0;
+    ui->flag = (enum clothes_screen_flags)0;
 }
 
 /* ======================= BASE INTERFACE OVERRIDES ======================= */
@@ -376,7 +376,7 @@ static void ui_clothes_handle_warning_msg(
     struct ui_clothes *ui = (struct ui_clothes *)base;
 
     const char *message = NULL;
-    enum clothes_screen_flags flag_to_clear = 0;
+    enum clothes_screen_flags flag_to_clear = (enum clothes_screen_flags)0;
     struct ui_clothes_db_action_info action = { 0 };
     action.type = DB_ACTION_NONE;
 
@@ -425,7 +425,7 @@ static void ui_clothes_handle_warning_msg(
     if (message) {
         const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            (Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -457,15 +457,15 @@ static void ui_clothes_handle_warning_msg(
 static void ui_clothes_update_positions(struct ui_base *base) {
     struct ui_clothes *ui = (struct ui_clothes *)base;
 
-    ui->butn_insert.bounds.y = window_height - 60;
-    ui->butn_remove.bounds.y = window_height - 60;
-    ui->butn_delete_entry.bounds.y = window_height - 60;
-    ui->butn_remove_by_id.bounds.y = window_height - 60;
-    ui->butn_delete_entry_by_id.bounds.y = window_height - 60;
-    ui->butn_view_all.bounds.y = window_height - 60;
+    ui->butn_insert.bounds.y = (float)window_height - 60;
+    ui->butn_remove.bounds.y = (float)window_height - 60;
+    ui->butn_delete_entry.bounds.y = (float)window_height - 60;
+    ui->butn_remove_by_id.bounds.y = (float)window_height - 60;
+    ui->butn_delete_entry_by_id.bounds.y = (float)window_height - 60;
+    ui->butn_view_all.bounds.y = (float)window_height - 60;
 
-    ui->sp_table_view.panel_bounds.width = window_width - (ui->tb_notes.bounds.x + ui->tb_notes.bounds.width + 20);
-    ui->sp_table_view.panel_bounds.height = window_height - 100;
+    ui->sp_table_view.panel_bounds.width = (float)window_width - (ui->tb_notes.bounds.x + ui->tb_notes.bounds.width + 20);
+    ui->sp_table_view.panel_bounds.height = (float)window_height - 100;
 }
 
 /**
@@ -625,7 +625,6 @@ static void process_db_action_in_warning(
         break;
     }
     case DB_ACTION_NONE:
-    default:
         break;
     }
 }

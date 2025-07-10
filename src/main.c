@@ -179,7 +179,7 @@ int main(void) {
     ui_tasks_init(&ui_tasks);
 
     // Status bar is a persistent element
-    Rectangle statusbar_bounds = (Rectangle) { 0, window_height - 20, window_width, 20 };
+    Rectangle statusbar_bounds = (Rectangle) { 0, (float)window_height - 20, (float)window_width, 20 };
 
     // Main application loop
     while (!WindowShouldClose()) {
@@ -188,7 +188,7 @@ int main(void) {
 
         // Handle window resize events
         if (IsWindowResized()) {
-            update_window_size((float)GetScreenWidth(), (float)GetScreenHeight());
+            update_window_size(GetScreenWidth(), GetScreenHeight());
             ui_login.base.update_positions(&ui_login.base);
             ui_main_menu.base.update_positions(&ui_main_menu.base);
             ui_resident.base.update_positions(&ui_resident.base);
@@ -201,8 +201,8 @@ int main(void) {
             ui_tasks.base.update_positions(&ui_tasks.base);
 
             // Persistent element
-            statusbar_bounds.y = window_height - 20;
-            statusbar_bounds.width = window_width;
+            statusbar_bounds.y = (float)window_height - 20;
+            statusbar_bounds.width = (float)window_width;
         }
 
         //----------------------------------------------------------------------------------
@@ -243,8 +243,6 @@ int main(void) {
             break;
         case STATE_SETTINGS:
             ui_settings.base.render(&ui_settings.base, &app_state, &error, &user_db);
-            break;
-        default:
             break;
         }
 

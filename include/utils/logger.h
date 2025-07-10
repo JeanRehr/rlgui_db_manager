@@ -30,7 +30,6 @@ struct logger {
  * @param log Pointer to a logger struct to initialize
  * @param log_path pointer to the path to write to file (passing null will print to stdout)
  * @param username Pointer to the name of the username currently logged-in
- * @return void
  * 
  * @note Username is just a pointer, and can point to the current user logged in username to be set
  *       up automatically, just need to be careful with lifetime management
@@ -47,7 +46,6 @@ void logger_init(struct logger *log, const char *log_path, const char *username)
  * @param log Pointer to an initialized logger struct
  * @param format format printf style (%d for integers, %s for strings, etc.)
  * @param ... Variadic arguments
- * @return void
  *
  * @code{.c}
  * #define LOG_PATH "log/application.log"
@@ -64,14 +62,15 @@ void logger_init(struct logger *log, const char *log_path, const char *username)
  * 
  * [2025-06-05 16:30:45] User: alice | Inserted 10 Milk.
  *
+ * @note __attribute__ is used to suppress warning about -Wformat-nonliteral
+ *
  */
-void logger_log(struct logger *log, const char *format, ...);
+void logger_log(struct logger *log, const char *format, ...) __attribute__((format(printf, 2, 3)));
 
 /**
  * @brief Cleans-up after the logger structure
  *
  * @param log Pointer to an initialized logger struct
- * @return void
  *
  */
 void logger_deinit(struct logger *log);

@@ -22,14 +22,14 @@
  * @brief Current width of the application window in pixels
  * @warning Should only be modified through update_window_size()
  */
-extern float window_width;
+extern int window_width;
 
 /**
  * @var window_height
  * @brief Current height of the application window in pixels
  * @warning Should only be modified through update_window_size()
  */
-extern float window_height;
+extern int window_height;
 
 /**
  * @brief Updates the global window dimensions
@@ -39,11 +39,10 @@ extern float window_height;
  *
  * @param[in] new_width New window width in pixels (must be > 0)
  * @param[in] new_height New window height in pixels (must be > 0)
- * @return void
  *
  * @note Emits window resize events to subscribed modules
  * @warning Fails silently if invalid dimensions provided
  */
-void update_window_size(float new_width, float new_height);
+void update_window_size(int new_width, int new_height);
 
 #endif // GLOBALS_H

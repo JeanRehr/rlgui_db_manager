@@ -179,7 +179,6 @@ int clothes_db_delete_entry(
  *
  * @param[in] db Pointer to initialized database structure
  * @param[in] id ID of the clothes to remove the quantity
- * @param[in] quantity_to_remove Quantity to remove
  *
  * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
  *
@@ -281,8 +280,6 @@ int clothes_db_get_count(database *db);
 int clothes_db_get_all_format(database *db, char *buffer, size_t buffer_size);
 
 /**
- * @deprecated
- * 
  * @brief Retrieves all clothes records as a formatted string
  *
  * Executes a database query and formats all clothes records into a human-readable
@@ -317,6 +314,8 @@ int clothes_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * - Validates SQL preparation
  * - Handles memory allocation failures
  * - Reports SQL execution errors
+ *
+ * @warning THIS SHOULD NOT BE USED
  *
  */
 char *clothes_db_get_all_format_old(database *db);

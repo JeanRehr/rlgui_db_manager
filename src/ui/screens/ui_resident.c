@@ -146,7 +146,7 @@ void ui_resident_init(struct ui_resident *ui) {
         "Gender"
     );
 
-    ui->butn_submit = button_init((Rectangle) { 20, window_height - 60, 100, 30 }, "Submit");
+    ui->butn_submit = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Submit");
     ui->butn_retrieve = button_init(
         (Rectangle) { ui->butn_submit.bounds.x + ui->butn_submit.bounds.width + 10, ui->butn_submit.bounds.y, 100, 30 },
         "Retrieve"
@@ -169,15 +169,15 @@ void ui_resident_init(struct ui_resident *ui) {
     ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->panel_bounds.x + ui->panel_bounds.width + 10,
                       10,
-                      window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20),
-                      window_height - 100 },
+                      (float)window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20),
+                      (float)window_height - 100 },
         "Database view",
         (Rectangle) { 0, 0, 0, 0 }
     );
 
     ui->str_table_content = NULL;
 
-    ui->flag = 0;
+    ui->flag = (enum resident_screen_flags)0;
 }
 
 /* ======================= BASE INTERFACE OVERRIDES ======================= */
@@ -321,7 +321,7 @@ static void ui_resident_handle_warning_msg(
     (void)state; // Explicitly mark as unused
 
     const char *message = NULL;
-    enum resident_screen_flags flag_to_clear = 0;
+    enum resident_screen_flags flag_to_clear = (enum resident_screen_flags)0;
     struct ui_resident_db_action_info action = { 0 };
     action.type = DB_ACTION_NONE;
 
@@ -361,7 +361,7 @@ static void ui_resident_handle_warning_msg(
     if (message) {
         const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            (Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -396,12 +396,12 @@ static void ui_resident_handle_warning_msg(
 static void ui_resident_update_positions(struct ui_base *base) {
     struct ui_resident *ui = (struct ui_resident *)base;
 
-    ui->butn_submit.bounds.y = window_height - 60;
+    ui->butn_submit.bounds.y = (float)window_height - 60;
     ui->butn_retrieve.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_delete.bounds.y = ui->butn_submit.bounds.y;
     ui->butn_retrieve_all.bounds.y = ui->butn_submit.bounds.y;
-    ui->sp_table_view.panel_bounds.width = window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20);
-    ui->sp_table_view.panel_bounds.height = window_height - 100;
+    ui->sp_table_view.panel_bounds.width = (float)window_width - (ui->panel_bounds.x + ui->panel_bounds.width + 20);
+    ui->sp_table_view.panel_bounds.height = (float)window_height - 100;
 }
 
 /**
@@ -498,7 +498,6 @@ static void process_db_action_in_warning(
         break;
 
     case DB_ACTION_NONE:
-    default:
         break;
     }
 }
@@ -576,7 +575,7 @@ static void draw_resident_info_panel(struct ui_resident *ui) {
         char wrapped_text[dyn_max_input];
         wrap_text(ui->resident_retrieved.health_status, wrapped_text, (int)ui->panel_bounds.width);
         GuiMessageBox(
-            (Rectangle) { ui->panel_bounds.x, window_height / 2 - 50, ui->panel_bounds.width, 300 },
+            (Rectangle) { ui->panel_bounds.x, (float)window_height / 2 - 50, ui->panel_bounds.width, 300 },
             "#191#Full Health Status",
             wrapped_text,
             ""
@@ -588,7 +587,7 @@ static void draw_resident_info_panel(struct ui_resident *ui) {
         char wrapped_text[dyn_max_input];
         wrap_text(ui->resident_retrieved.needs, wrapped_text, (int)ui->panel_bounds.width);
         GuiMessageBox(
-            (Rectangle) { ui->panel_bounds.x, window_height / 2, ui->panel_bounds.width, 300 },
+            (Rectangle) { ui->panel_bounds.x, (float)window_height / 2, ui->panel_bounds.width, 300 },
             "#191#Full Needs",
             wrapped_text,
             ""

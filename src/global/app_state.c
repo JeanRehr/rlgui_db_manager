@@ -26,7 +26,7 @@ const char *app_state_to_string(const enum app_state *const state) {
         return "Manage Tasks";
     case STATE_SETTINGS:
         return "Settings screen";
-    default:
-        return "!!!*UNKNOWN MENU*!!!";
     }
+
+    return "NULL"; // Never happens
 }

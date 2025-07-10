@@ -9,6 +9,10 @@
 #ifndef UI_MAIN_MENU_H
 #define UI_MAIN_MENU_H
 
+#include "entities/user.h"
+#include "ui/components/button.h"
+#include "ui/screens/ui_base.h"
+
 /**
  * @enum main_menu_screen_flags
  * @brief State flags for the main menu
@@ -18,10 +22,6 @@
 enum main_menu_screen_flags {
     FLAG_MAIN_MENU_WARN_NOT_ADMIN = 1 << 0, ///< Flag for warning current user is not admin
 };
-
-#include "entities/user.h"
-#include "ui/components/button.h"
-#include "ui/screens/ui_base.h"
 
 /**
  * @struct ui_main_menu

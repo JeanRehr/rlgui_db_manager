@@ -159,16 +159,16 @@ void ui_tasks_init(struct ui_tasks *ui) {
         INT_MAX
     );
 
-    ui->butn_upsert = button_init((Rectangle) { 20, window_height - 60, 100, 30 }, "Insert/Update");
+    ui->butn_upsert = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Insert/Update");
 
     ui->butn_delete_status_done = button_init(
-        (Rectangle) { ui->butn_upsert.bounds.x + ui->butn_upsert.bounds.width + 10, window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_upsert.bounds.x + ui->butn_upsert.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Delete all Done entries"
     );
 
     ui->butn_delete_status_cancelled = button_init(
         (Rectangle) { ui->butn_delete_status_done.bounds.x + ui->butn_delete_status_done.bounds.width + 10,
-                      window_height - 60,
+                      (float)window_height - 60,
                       100,
                       30 },
         "Delete all Cancelled entries"
@@ -176,7 +176,7 @@ void ui_tasks_init(struct ui_tasks *ui) {
 
     ui->butn_view_all = button_init(
         (Rectangle) { ui->butn_delete_status_cancelled.bounds.x + ui->butn_delete_status_cancelled.bounds.width + 10,
-                      window_height - 60,
+                      (float)window_height - 60,
                       100,
                       30 },
         "View All"
@@ -185,15 +185,15 @@ void ui_tasks_init(struct ui_tasks *ui) {
     ui->sp_table_view = scrollpanel_init(
         (Rectangle) { ui->tb_title.bounds.x + ui->tb_title.bounds.width + 10,
                       10,
-                      window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20),
-                      window_height - 100 },
+                      (float)window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20),
+                      (float)window_height - 100 },
         "Database view",
         (Rectangle) { 0, 0, 0, 0 }
     );
 
     ui->str_table_content = NULL;
 
-    ui->flag = 0;
+    ui->flag = (enum tasks_screen_flags)0;
 }
 
 /* ======================= BASE INTERFACE OVERRIDES ======================= */
@@ -337,7 +337,7 @@ static void ui_tasks_handle_warning_msg(
     struct ui_tasks *ui = (struct ui_tasks *)base;
 
     const char *message = NULL;
-    enum tasks_screen_flags flag_to_clear = 0;
+    enum tasks_screen_flags flag_to_clear = (enum tasks_screen_flags)0;
     struct ui_tasks_db_action_info action = { 0 };
     action.type = DB_ACTION_NONE;
 
@@ -370,7 +370,7 @@ static void ui_tasks_handle_warning_msg(
         const char *buttons = (action.type != DB_ACTION_NONE) ? "Yes;No" : "OK";
 
         int result = GuiMessageBox(
-            (Rectangle) { window_width / 2 - 150, window_height / 2 - 50, 300, 150 },
+            (Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 50, 300, 150 },
             "#191#Warning!",
             message,
             buttons
@@ -402,12 +402,12 @@ static void ui_tasks_handle_warning_msg(
 static void ui_tasks_update_positions(struct ui_base *base) {
     struct ui_tasks *ui = (struct ui_tasks *)base;
 
-    ui->butn_upsert.bounds.y = window_height - 60;
+    ui->butn_upsert.bounds.y = (float)window_height - 60;
     ui->butn_delete_status_done.bounds.y = ui->butn_upsert.bounds.y;
     ui->butn_delete_status_cancelled.bounds.y = ui->butn_upsert.bounds.y;
     ui->butn_view_all.bounds.y = ui->butn_upsert.bounds.y;
-    ui->sp_table_view.panel_bounds.width = window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20);
-    ui->sp_table_view.panel_bounds.height = window_height - 100;
+    ui->sp_table_view.panel_bounds.width = (float)window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20);
+    ui->sp_table_view.panel_bounds.height = (float)window_height - 100;
 }
 
 /**
@@ -485,7 +485,6 @@ static void process_db_action_in_warning(
         break;
 
     case DB_ACTION_NONE:
-    default:
         break;
     }
 }

@@ -158,8 +158,6 @@ int foodbatch_db_get_count(database *db);
 int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size);
 
 /**
- * @deprecated
- * 
  * @brief Retrieves all foodbatch records as a formatted string
  *
  * Executes a database query and formats all foodbatch records into a human-readable
@@ -194,6 +192,8 @@ int foodbatch_db_get_all_format(database *db, char *buffer, size_t buffer_size);
  * - Validates SQL preparation
  * - Handles memory allocation failures
  * - Reports SQL execution errors
+ *
+ * @warning THIS SHOULD NOT BE USED
  *
  */
 char *foodbatch_db_get_all_format_old(database *db);

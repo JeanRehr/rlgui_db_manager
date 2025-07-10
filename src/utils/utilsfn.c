@@ -23,7 +23,7 @@ void wrap_text(const char *input, char *output, const int wrap_width) {
     strncpy(buffer, input, sizeof(buffer) - 1);
     buffer[sizeof(buffer) - 1] = '\0'; // Ensure buffer is null-terminated
     int text_width = 0;
-    int output_index = 0;
+    size_t output_index = 0;
 
     const int SPACE_WIDTH = MeasureText(" ", FONT_SIZE);
 
