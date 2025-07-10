@@ -390,21 +390,21 @@ static void ui_clothes_handle_warning_msg(
         message = "Do you want to remove the\nselected quantity?";
         flag_to_clear = FLAG_CLOTHES_CONFIRM_REMOVAL;
         action.type = DB_ACTION_REMOVE;
-        action.remove.type = ui->lv_type.active_option;
-        action.remove.size = ui->lv_size.active_option;
-        action.remove.gender = ui->ddb_gender.active_option;
-        action.remove.color = ui->lv_color.active_option;
-        action.remove.condition = ui->ddb_condition.active_option;
+        action.remove.type = (enum clothing_type)ui->lv_type.active_option;
+        action.remove.size = (enum clothing_size)ui->lv_size.active_option;
+        action.remove.gender = (enum clothing_gender)ui->ddb_gender.active_option;
+        action.remove.color = (enum clothing_color)ui->lv_color.active_option;
+        action.remove.condition = (enum clothing_condition)ui->ddb_condition.active_option;
         action.remove.quantity = ui->ib_quantity.input;
     } else if (IS_FLAG_SET(&ui->flag, FLAG_CLOTHES_CONFIRM_DELETION)) {
         message = "Are you sure you want to\ndelete this entry?";
         flag_to_clear = FLAG_CLOTHES_CONFIRM_DELETION;
         action.type = DB_ACTION_DELETE_ENTRY;
-        action.delete_entry.type = ui->lv_type.active_option;
-        action.delete_entry.size = ui->lv_size.active_option;
-        action.delete_entry.gender = ui->ddb_gender.active_option;
-        action.delete_entry.color = ui->lv_color.active_option;
-        action.delete_entry.condition = ui->ddb_condition.active_option;
+        action.delete_entry.type = (enum clothing_type)ui->lv_type.active_option;
+        action.delete_entry.size = (enum clothing_size)ui->lv_size.active_option;
+        action.delete_entry.gender = (enum clothing_gender)ui->ddb_gender.active_option;
+        action.delete_entry.color = (enum clothing_color)ui->lv_color.active_option;
+        action.delete_entry.condition = (enum clothing_condition)ui->ddb_condition.active_option;
     } else if (IS_FLAG_SET(&ui->flag, FLAG_CLOTHES_CONFIRM_REMOVAL_BY_ID)) {
         message = "Do you want to remove the\nselected quantity by ID?";
         flag_to_clear = FLAG_CLOTHES_CONFIRM_REMOVAL_BY_ID;
@@ -654,11 +654,11 @@ static void handle_insert_button(struct ui_clothes *ui, enum error_code *error, 
      */
     if (clothes_db_upsert(
             clothes_db,
-            ui->lv_type.active_option,
-            ui->lv_size.active_option,
-            ui->ddb_gender.active_option,
-            ui->lv_color.active_option,
-            ui->ddb_condition.active_option,
+            (enum clothing_type)ui->lv_type.active_option,
+            (enum clothing_size)ui->lv_size.active_option,
+            (enum clothing_gender)ui->ddb_gender.active_option,
+            (enum clothing_color)ui->lv_color.active_option,
+            (enum clothing_condition)ui->ddb_condition.active_option,
             ui->ib_quantity.input,
             ui->tb_notes.input
         )
@@ -711,7 +711,7 @@ static void handle_view_all_button(struct ui_clothes *ui, database *clothes_db) 
     }
 
     // 512 for header + 512 for each row
-    size_t buffer_size = 512 + 512 * total_clothes;
+    size_t buffer_size = 512 + 512 * (size_t)total_clothes;
 
     ui->str_table_content = malloc(buffer_size);
     if (!ui->str_table_content) {
@@ -729,8 +729,8 @@ static void handle_view_all_button(struct ui_clothes *ui, database *clothes_db) 
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
     if (ui->str_table_content) {
         Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
-        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
-        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9F;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7F;
     }
 
     clothes_db_get_all(clothes_db); // Print to stdout

@@ -47,7 +47,7 @@ static int _resident_db_insert(
     const char *health_status,
     const char *needs,
     bool medical_assistance,
-    int gender
+    enum gender gender
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -88,7 +88,7 @@ static int _resident_db_insert(
     sqlite3_bind_text(stmt, 4, health_status, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 5, needs, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 6, medical_assistance ? 1 : 0);
-    sqlite3_bind_int(stmt, 7, gender);
+    sqlite3_bind_int(stmt, 7, (int)gender);
     sqlite3_bind_text(stmt, 8, date_string, -1, SQLITE_STATIC);
 
     rc = sqlite3_step(stmt);
@@ -116,7 +116,7 @@ int resident_db_insert(
     const char *health_status,
     const char *needs,
     bool medical_assistance,
-    int gender
+    enum gender gender
 ) {
     int rc = _resident_db_insert(db, cpf, name, age, health_status, needs, medical_assistance, gender);
 
@@ -137,7 +137,7 @@ static int _resident_db_update(
     const char *health_status_input,
     const char *needs_input,
     int medical_assistance_input,
-    int gender_input
+    enum gender gender_input
 ) {
     if (!db_is_init(db)) {
         fprintf(stderr, "Database connection is not initialized.\n");
@@ -166,7 +166,7 @@ static int _resident_db_update(
     const char *needs = (needs_input[0] != '\0') ? needs_input : currentResident.needs;
     int medical_assistance =
         (medical_assistance_input > 0) ? medical_assistance_input : currentResident.medical_assistance;
-    int gender = (gender_input >= 0) ? gender_input : (int)currentResident.gender;
+    enum gender gender = (gender_input >= 0) ? gender_input : currentResident.gender;
 
     const char *sql =
         "UPDATE Resident SET Name = ?, Age = ?, HealthStatus = ?, Needs = ?, MedicalAssistance = ?, Gender "
@@ -184,7 +184,7 @@ static int _resident_db_update(
     sqlite3_bind_text(stmt, 3, health_status, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 4, needs, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 5, medical_assistance ? 1 : 0);
-    sqlite3_bind_int(stmt, 6, gender);
+    sqlite3_bind_int(stmt, 6, (int)gender);
     sqlite3_bind_text(stmt, 7, cpf, -1, SQLITE_STATIC);
 
     rc = sqlite3_step(stmt);
@@ -210,7 +210,7 @@ int resident_db_update(
     const char *health_status_input,
     const char *needs_input,
     int medical_assistance_input,
-    int gender_input
+    enum gender gender_input
 ) {
     int rc = _resident_db_update(
         db,
@@ -340,7 +340,7 @@ int resident_db_get_by_cpf(database *db, const char *cpf, struct resident *resid
         strcpy(resident->health_status, (const char *)sqlite3_column_text(stmt, 3));
         strcpy(resident->needs, (const char *)sqlite3_column_text(stmt, 4));
         resident->medical_assistance = sqlite3_column_int(stmt, 5);
-        resident->gender = sqlite3_column_int(stmt, 6);
+        resident->gender = (enum gender)sqlite3_column_int(stmt, 6);
         strcpy(resident->entry_date, (const char *)sqlite3_column_text(stmt, 7));
         rc = SQLITE_OK; // Found and read successfully
     } else if (rc == SQLITE_DONE) {
@@ -497,7 +497,7 @@ int resident_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
     }
 
     sqlite3_finalize(stmt);
-    return written;
+    return (int)written;
 }
 
 char *resident_db_get_all_format_old(database *db) {

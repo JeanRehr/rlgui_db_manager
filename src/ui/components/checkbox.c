@@ -19,7 +19,7 @@ struct checkbox checkbox_init(Rectangle bounds, const char *title) {
 
 int checkbox_draw(struct checkbox *cb) {
     GuiLabel(
-        (Rectangle) { cb->bounds.x, cb->bounds.y - (FONT_SIZE + 5), MeasureText(cb->title, FONT_SIZE) + 10, 20 },
+        (Rectangle) { cb->bounds.x, cb->bounds.y - (FONT_SIZE + 5), (float)MeasureText(cb->title, FONT_SIZE) + 10, 20 },
         cb->title
     );
 

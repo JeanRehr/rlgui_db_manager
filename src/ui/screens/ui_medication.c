@@ -151,7 +151,7 @@ void ui_medication_init(struct ui_medication *ui) {
 
     ui->expirationDateText = (Rectangle) { 20,
                                            ui->ib_stock.bounds.y + ui->ib_stock.bounds.height + (FONT_SIZE * 2),
-                                           MeasureText("Expiration date:", FONT_SIZE),
+                                           (float)MeasureText("Expiration date:", FONT_SIZE),
                                            20 };
 
     ui->ib_year = intbox_init(
@@ -791,7 +791,7 @@ static void handle_view_all_button(struct ui_medication *ui, database *medicatio
     }
 
     // 1024 for header + 2048 for each row
-    size_t buffer_size = 1024 + 2048 * total_medication;
+    size_t buffer_size = 1024 + 2048 * (size_t)total_medication;
 
     ui->str_table_content = malloc(buffer_size);
     if (!ui->str_table_content) {
@@ -809,8 +809,8 @@ static void handle_view_all_button(struct ui_medication *ui, database *medicatio
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
     if (ui->str_table_content) {
         Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
-        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
-        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9F;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7F;
     }
 
     medication_db_get_all(medication_db);

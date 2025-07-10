@@ -24,8 +24,8 @@ struct intbox intbox_init(Rectangle bounds, const char *title, const int min_val
 void intbox_draw(struct intbox *ib) {
     // Check whether the provided width of the box is higher than the width of the title.
     // If not, use the width of the title as width of the GuiLabel
-    int title_width =
-        MeasureText(ib->title, FONT_SIZE) > ib->bounds.width ? MeasureText(ib->title, FONT_SIZE) : ib->bounds.width;
+    float measured_width = (float)MeasureText(ib->title, FONT_SIZE);
+    float title_width = (measured_width > ib->bounds.width) ? measured_width : ib->bounds.width;
     // Draw title above the intbox
     GuiLabel((Rectangle) { ib->bounds.x, ib->bounds.y - (FONT_SIZE + 5), title_width, 20 }, ib->title);
 

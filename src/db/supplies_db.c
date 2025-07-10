@@ -692,7 +692,7 @@ int supplies_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
     }
 
     sqlite3_finalize(stmt);
-    return written;
+    return (int)written;
 }
 
 char *supplies_db_get_all_format_old(database *db) {

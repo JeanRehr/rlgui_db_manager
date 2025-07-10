@@ -10,6 +10,7 @@
 #define UTILSFN_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 /**
  * @def SET_FLAG(flag, flags)
@@ -20,11 +21,13 @@
  * 
  * @param flag Pointer to the flag variable to modify
  * @param flags Bitmask of flags to set
+ *
+ * @warning Will implicitly cast to unsigned
  * 
  * @note Example: SET_FLAG(&status, STATUS_ACTIVE | STATUS_VISIBLE)
  * 
  */
-#define SET_FLAG(flag, flags) ((*flag) |= (flags))
+#define SET_FLAG(flag, flags) ((*(unsigned *)(flag)) |= ((unsigned)(flags)))
 
 /**
  * @def CLEAR_FLAG(flag, flags)
@@ -35,11 +38,13 @@
  * 
  * @param flag Pointer to the flag variable to modify
  * @param flags Bitmask of flags to clear
- * 
+ *
+ * @warning Will implicitly cast to unsigned
+ *
  * @note Example: CLEAR_FLAG(&status, STATUS_ACTIVE)
  * 
  */
-#define CLEAR_FLAG(flag, flags) ((*flag) &= ~(flags))
+#define CLEAR_FLAG(flag, flags) ((*(unsigned *)(flag)) &= ~((unsigned)(flags)))
 
 /**
  * @def IS_FLAG_SET(flag, flags)
@@ -51,11 +56,13 @@
  * @param flag Pointer to the flag variable to check
  * @param flags Bitmask of flags to test
  * @return true if all specified flags are set, false otherwise
+ *
+ * @warning Will implicitly cast to unsigned
  * 
  * @note Example: if (IS_FLAG_SET(&status, STATUS_READY)) {...}
  * 
  */
-#define IS_FLAG_SET(flag, flags) (((*flag) & (flags)) != 0)
+#define IS_FLAG_SET(flag, flags) (((*(unsigned *)(flag)) & ((unsigned)(flags))) != 0)
 
 /**
  * @brief Validates if an integer string falls within length bounds
@@ -69,7 +76,7 @@
  * @return true if length is within bounds, false otherwise
  * @note Does not validate if the string contains only digits
  */
-bool is_int_between_min_max(const char *input, const int min_len, const int max_len);
+bool is_int_between_min_max(const char *input, const size_t min_len, const size_t max_len);
 
 /**
  * @brief Wraps text to fit within a specified pixel width

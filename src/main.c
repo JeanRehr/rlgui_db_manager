@@ -70,7 +70,7 @@ int main(void) {
 
     // Configure and create application window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(window_width, window_height, "Shelter Management");
+    InitWindow((int)window_width, (int)window_height, "Shelter Management");
 
     if (!IsWindowReady()) {
         fprintf(stderr, "Error opening graphics window.\n");
@@ -188,7 +188,7 @@ int main(void) {
 
         // Handle window resize events
         if (IsWindowResized()) {
-            update_window_size(GetScreenWidth(), GetScreenHeight());
+            update_window_size((float)GetScreenWidth(), (float)GetScreenHeight());
             ui_login.base.update_positions(&ui_login.base);
             ui_main_menu.base.update_positions(&ui_main_menu.base);
             ui_resident.base.update_positions(&ui_resident.base);
@@ -210,7 +210,7 @@ int main(void) {
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
-        ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+        ClearBackground(GetColor((unsigned int)GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
 
         // State machine for screen rendering
         switch (app_state) {

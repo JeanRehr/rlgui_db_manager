@@ -18,7 +18,7 @@
 #include <external/openssl/sha.h>
 
 void generate_salt(char *salt, size_t len) {
-    if (RAND_bytes((unsigned char *)salt, len) != 1) {
+    if (RAND_bytes((unsigned char *)salt, (int)len) != 1) {
         // Fallback to less secure method if RAND_bytes fails
         for (size_t i = 0; i < len; i++) {
             salt[i] = (char)(rand() % 256);

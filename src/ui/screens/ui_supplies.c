@@ -699,7 +699,7 @@ static void handle_view_all_button(struct ui_supplies *ui, database *supplies_db
     }
 
     // 406 for header + 1450 for each row
-    size_t buffer_size = 512 + 2048 * total_supplies;
+    size_t buffer_size = 512 + 2048 * (size_t)total_supplies;
 
     ui->str_table_content = malloc(buffer_size);
     if (!ui->str_table_content) {
@@ -717,8 +717,8 @@ static void handle_view_all_button(struct ui_supplies *ui, database *supplies_db
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
     if (ui->str_table_content) {
         Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
-        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
-        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9F;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7F;
     }
 
     supplies_db_get_all(supplies_db);

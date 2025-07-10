@@ -120,8 +120,8 @@ static int _tasks_db_upsert(
 
         sqlite3_bind_text(stmt, 1, desc_updt, -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, due_date_updt, -1, SQLITE_TRANSIENT);
-        sqlite3_bind_int(stmt, 3, priority_updt);
-        sqlite3_bind_int(stmt, 4, status_updt);
+        sqlite3_bind_int(stmt, 3, (int)priority_updt);
+        sqlite3_bind_int(stmt, 4, (int)status_updt);
 
         if (assigned_to_updt) {
             sqlite3_bind_text(stmt, 5, assigned_to_updt, -1, SQLITE_TRANSIENT);
@@ -149,8 +149,8 @@ static int _tasks_db_upsert(
         sqlite3_bind_text(stmt, 1, title, -1, SQLITE_STATIC);
         sqlite3_bind_text(stmt, 2, description, -1, SQLITE_STATIC);
         sqlite3_bind_text(stmt, 3, due_date, -1, SQLITE_STATIC);
-        sqlite3_bind_int(stmt, 4, priority);
-        sqlite3_bind_int(stmt, 5, status);
+        sqlite3_bind_int(stmt, 4, (int)priority);
+        sqlite3_bind_int(stmt, 5, (int)status);
 
         if (assigned_to) {
             sqlite3_bind_text(stmt, 6, assigned_to, -1, SQLITE_STATIC);
@@ -253,7 +253,7 @@ static int _tasks_db_delete_entry_status(database *db, enum task_status status) 
         return rc;
     }
 
-    sqlite3_bind_int(stmt, 1, status);
+    sqlite3_bind_int(stmt, 1, (int)status);
 
     // Execute the DELETE statement
     rc = sqlite3_step(stmt);
@@ -313,8 +313,8 @@ int tasks_db_get(database *db, int id, struct task *out_task) {
         strcpy(out_task->title, (const char *)sqlite3_column_text(stmt, 1));
         strcpy(out_task->description, (const char *)sqlite3_column_text(stmt, 2));
         strcpy(out_task->due_date, (const char *)sqlite3_column_text(stmt, 3));
-        out_task->priority = sqlite3_column_int(stmt, 4);
-        out_task->status = sqlite3_column_int(stmt, 5);
+        out_task->priority = (enum task_priority)sqlite3_column_int(stmt, 4);
+        out_task->status = (enum task_status)sqlite3_column_int(stmt, 5);
         strcpy(out_task->assigned_to, (const char *)sqlite3_column_text(stmt, 6));
         strcpy(out_task->created_at, (const char *)sqlite3_column_text(stmt, 7));
         const char *completed_at_val = (const char *)sqlite3_column_text(stmt, 8);
@@ -352,7 +352,7 @@ int tasks_db_get_status(database *db, int id, enum task_status *out_status) {
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        *out_status = sqlite3_column_int(stmt, 0);
+        *out_status = (enum task_status)sqlite3_column_int(stmt, 0);
         rc = SQLITE_OK; // Found and read successfully
     } else if (rc == SQLITE_DONE) {
         fprintf(stderr, "No Task found with the given data.\n");
@@ -441,8 +441,8 @@ int tasks_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
         const char *title = (const char *)sqlite3_column_text(stmt, 1);
         const char *description = (const char *)sqlite3_column_text(stmt, 2);
         const char *due_date = (const char *)sqlite3_column_text(stmt, 3);
-        enum task_priority priority = sqlite3_column_int(stmt, 4);
-        enum task_status status = sqlite3_column_int(stmt, 5);
+        enum task_priority priority = (enum task_priority)sqlite3_column_int(stmt, 4);
+        enum task_status status = (enum task_status)sqlite3_column_int(stmt, 5);
         const char *assigned_to = (const char *)sqlite3_column_text(stmt, 6);
         const char *created_at = (const char *)sqlite3_column_text(stmt, 7);
         const char *completed_at = (const char *)sqlite3_column_text(stmt, 8);
@@ -504,7 +504,7 @@ int tasks_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
     }
 
     sqlite3_finalize(stmt);
-    return written;
+    return (int)written;
 }
 
 char *tasks_db_get_all_format_old(database *db) {
@@ -561,8 +561,8 @@ char *tasks_db_get_all_format_old(database *db) {
         const char *title = (const char *)sqlite3_column_text(stmt, 1);
         const char *description = (const char *)sqlite3_column_text(stmt, 2);
         const char *due_date = (const char *)sqlite3_column_text(stmt, 3);
-        enum task_priority priority = sqlite3_column_int(stmt, 4);
-        enum task_status status = sqlite3_column_int(stmt, 5);
+        enum task_priority priority = (enum task_priority)sqlite3_column_int(stmt, 4);
+        enum task_status status = (enum task_status)sqlite3_column_int(stmt, 5);
         const char *assigned_to = (const char *)sqlite3_column_text(stmt, 6);
         const char *created_at = (const char *)sqlite3_column_text(stmt, 7);
         const char *completed_at = (const char *)sqlite3_column_text(stmt, 8);
@@ -665,8 +665,8 @@ int tasks_db_get_all(database *db) {
         const char *title = (const char *)sqlite3_column_text(stmt, 1);
         const char *description = (const char *)sqlite3_column_text(stmt, 2);
         const char *due_date = (const char *)sqlite3_column_text(stmt, 3);
-        enum task_priority priority = sqlite3_column_int(stmt, 4);
-        enum task_status status = sqlite3_column_int(stmt, 5);
+        enum task_priority priority = (enum task_priority)sqlite3_column_int(stmt, 4);
+        enum task_status status = (enum task_status)sqlite3_column_int(stmt, 5);
         const char *assigned_to = (const char *)sqlite3_column_text(stmt, 6);
         const char *created_at = (const char *)sqlite3_column_text(stmt, 7);
         const char *completed_at = (const char *)sqlite3_column_text(stmt, 8);

@@ -477,7 +477,7 @@ static void process_db_action_in_warning(
                 action->update.health_status,
                 action->update.needs,
                 action->update.medical_assistance,
-                action->update.gender
+                (enum gender)action->update.gender
             )
             != SQLITE_OK)
         {
@@ -574,7 +574,7 @@ static void draw_resident_info_panel(struct ui_resident *ui) {
     if (IS_FLAG_SET(&ui->flag, FLAG_SHOW_HEALTH)) {
         int dyn_max_input = (int)(MAX_INPUT / 0.9);
         char wrapped_text[dyn_max_input];
-        wrap_text(ui->resident_retrieved.health_status, wrapped_text, ui->panel_bounds.width);
+        wrap_text(ui->resident_retrieved.health_status, wrapped_text, (int)ui->panel_bounds.width);
         GuiMessageBox(
             (Rectangle) { ui->panel_bounds.x, window_height / 2 - 50, ui->panel_bounds.width, 300 },
             "#191#Full Health Status",
@@ -586,7 +586,7 @@ static void draw_resident_info_panel(struct ui_resident *ui) {
     if (IS_FLAG_SET(&ui->flag, FLAG_SHOW_NEEDS)) {
         int dyn_max_input = (int)(MAX_INPUT / 0.9);
         char wrapped_text[dyn_max_input];
-        wrap_text(ui->resident_retrieved.needs, wrapped_text, ui->panel_bounds.width);
+        wrap_text(ui->resident_retrieved.needs, wrapped_text, (int)ui->panel_bounds.width);
         GuiMessageBox(
             (Rectangle) { ui->panel_bounds.x, window_height / 2, ui->panel_bounds.width, 300 },
             "#191#Full Needs",
@@ -662,7 +662,7 @@ static void handle_submit_button(struct ui_resident *ui, enum error_code *error,
             ui->tb_health_status.input,
             ui->tb_needs.input,
             ui->cb_medical_assistance.checked,
-            ui->ddb_gender.active_option
+            (enum gender)ui->ddb_gender.active_option
         )
         != SQLITE_OK)
     {
@@ -740,7 +740,7 @@ static void handle_retrieve_all_button(struct ui_resident *ui, database *residen
     }
 
     // 1024 for header + 2048 for each row
-    size_t buffer_size = 1024 + 2048 * total_residents;
+    size_t buffer_size = 1024 + 2048 * (size_t)total_residents;
 
     ui->str_table_content = malloc(buffer_size);
     if (!ui->str_table_content) {
@@ -758,8 +758,8 @@ static void handle_retrieve_all_button(struct ui_resident *ui, database *residen
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
     if (ui->str_table_content) {
         Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
-        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
-        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9F;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7F;
     }
 
     resident_db_get_all(resident_db); // also prints to stdout

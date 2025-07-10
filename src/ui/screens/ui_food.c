@@ -120,7 +120,7 @@ void ui_food_init(struct ui_food *ui) {
     ui->arrival_date_text =
         (Rectangle) { 20,
                       ui->cb_is_perishable.bounds.y + ui->cb_is_perishable.bounds.height + (FONT_SIZE * 2),
-                      MeasureText("Arrival date:", FONT_SIZE),
+                      (float)MeasureText("Arrival date:", FONT_SIZE),
                       20 };
 
     ui->ib_arrival_year = intbox_init(
@@ -153,7 +153,7 @@ void ui_food_init(struct ui_food *ui) {
     ui->expiration_date_text =
         (Rectangle) { 20,
                       ui->ib_arrival_year.bounds.y + ui->ib_arrival_year.bounds.height + (FONT_SIZE * 2),
-                      MeasureText("Expiration date:", FONT_SIZE),
+                      (float)MeasureText("Expiration date:", FONT_SIZE),
                       20 };
 
     ui->ib_exp_year = intbox_init(
@@ -848,7 +848,7 @@ static void handle_retrieve_all_button(struct ui_food *ui, database *foodbatch_d
     }
 
     // 277 for header + 687 for each row as documented on foodbatch_db_get_all_format
-    size_t buffer_size = 512 + 1024 * total_foodbatch;
+    size_t buffer_size = 512 + 1024 * (size_t)total_foodbatch;
 
     ui->str_table_content = malloc(buffer_size);
     if (!ui->str_table_content) {
@@ -866,8 +866,8 @@ static void handle_retrieve_all_button(struct ui_food *ui, database *foodbatch_d
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
     if (ui->str_table_content) {
         Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
-        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
-        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9F;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7F;
     }
 
     foodbatch_db_get_all(foodbatch_db); // also prints to stdout

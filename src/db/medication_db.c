@@ -774,7 +774,7 @@ int medication_db_get_all_format(database *db, char *buffer, size_t buffer_size)
     }
 
     sqlite3_finalize(stmt);
-    return written;
+    return (int)written;
 }
 
 char *medication_db_get_all_format_old(database *db) {

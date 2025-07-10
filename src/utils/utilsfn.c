@@ -13,8 +13,8 @@
 
 #include "global/CONSTANTS.h"
 
-bool is_int_between_min_max(const char *input, const int min_len, const int max_len) {
-    int length = strlen(input);
+bool is_int_between_min_max(const char *input, const size_t min_len, const size_t max_len) {
+    size_t length = strlen(input);
     return length >= min_len && length <= max_len;
 }
 
@@ -36,7 +36,7 @@ void wrap_text(const char *input, char *output, const int wrap_width) {
             text_width = 0;                // Reset line width
         }
 
-        int len = strlen(token);
+        size_t len = strlen(token);
         memcpy(&output[output_index], token, len);
 
         output_index += len;

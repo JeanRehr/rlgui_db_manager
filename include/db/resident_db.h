@@ -51,7 +51,7 @@ int resident_db_insert(
     const char *health_status,
     const char *needs,
     bool medical_assistance,
-    int gender
+    enum gender gender
 );
 
 /**
@@ -78,7 +78,7 @@ int resident_db_update(
     const char *health_status_input,
     const char *needs_input,
     int medical_assistance_input,
-    int gender_input
+    enum gender gender_input
 );
 
 /**

@@ -105,7 +105,7 @@ void ui_tasks_init(struct ui_tasks *ui) {
 
     ui->due_date_text = (Rectangle) { 20,
                                       ui->tb_desc.bounds.y + ui->tb_desc.bounds.height + (FONT_SIZE * 2),
-                                      MeasureText("Expiration date:", FONT_SIZE),
+                                      (float)MeasureText("Expiration date:", FONT_SIZE),
                                       20 };
 
     ui->ib_year = intbox_init(
@@ -570,8 +570,8 @@ static void handle_insert_button(struct ui_tasks *ui, enum error_code *error, da
         ui->tb_title.input,
         ui->tb_desc.input,
         str_due_date,
-        ui->ddb_priority.active_option,
-        ui->ddb_status.active_option,
+        (enum task_priority)ui->ddb_priority.active_option,
+        (enum task_status)ui->ddb_status.active_option,
         ui->tb_assigned_to.input,
         str_datetime_tsk_done
     );
@@ -613,7 +613,7 @@ static void handle_view_all_button(struct ui_tasks *ui, database *tasks_db) {
     }
 
     // 492 for header + 1029 (at max) for each row
-    size_t buffer_size = 512 + 2048 * total_tasks;
+    size_t buffer_size = 512 + 2048 * (size_t)total_tasks;
 
     ui->str_table_content = malloc(buffer_size);
     if (!ui->str_table_content) {
@@ -631,8 +631,8 @@ static void handle_view_all_button(struct ui_tasks *ui, database *tasks_db) {
     // Set the panel_content_bounds rectangle based on the width and height of the retrieved text
     if (ui->str_table_content) {
         Vector2 text_size = MeasureTextEx(GuiGetFont(), ui->str_table_content, FONT_SIZE, 0);
-        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9;
-        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7;
+        ui->sp_table_view.panel_content_bounds.width = text_size.x * 0.9F;
+        ui->sp_table_view.panel_content_bounds.height = text_size.y / 0.7F;
     }
 
     tasks_db_get_all(tasks_db);

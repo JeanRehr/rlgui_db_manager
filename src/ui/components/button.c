@@ -12,7 +12,7 @@ struct button button_init(Rectangle bounds, const char *title) {
     struct button button = { 0 };
 
     // Calculate the width of the title
-    int title_width = MeasureText(title, FONT_SIZE);
+    float title_width = (float)MeasureText(title, FONT_SIZE);
     if (title_width > bounds.width) {
         button.bounds.x = bounds.x;
         button.bounds.y = bounds.y;

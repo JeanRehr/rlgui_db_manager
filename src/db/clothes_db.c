@@ -77,11 +77,11 @@ static int _clothes_db_upsert(
     }
 
     // Bind params
-    sqlite3_bind_int(stmt, 1, type);
-    sqlite3_bind_int(stmt, 2, size);
-    sqlite3_bind_int(stmt, 3, gender);
-    sqlite3_bind_int(stmt, 4, color);
-    sqlite3_bind_int(stmt, 5, condition);
+    sqlite3_bind_int(stmt, 1, (int)type);
+    sqlite3_bind_int(stmt, 2, (int)size);
+    sqlite3_bind_int(stmt, 3, (int)gender);
+    sqlite3_bind_int(stmt, 4, (int)color);
+    sqlite3_bind_int(stmt, 5, (int)condition);
     sqlite3_bind_int(stmt, 6, quantity);
     if (notes) // Only substitute notes if it is not null
         sqlite3_bind_text(stmt, 7, notes, -1, SQLITE_STATIC);
@@ -146,11 +146,11 @@ bool clothes_db_check_exists(
     }
 
     // Bind params
-    sqlite3_bind_int(stmt, 1, type);
-    sqlite3_bind_int(stmt, 2, size);
-    sqlite3_bind_int(stmt, 3, gender);
-    sqlite3_bind_int(stmt, 4, color);
-    sqlite3_bind_int(stmt, 5, condition);
+    sqlite3_bind_int(stmt, 1, (int)type);
+    sqlite3_bind_int(stmt, 2, (int)size);
+    sqlite3_bind_int(stmt, 3, (int)gender);
+    sqlite3_bind_int(stmt, 4, (int)color);
+    sqlite3_bind_int(stmt, 5, (int)condition);
 
     bool exists = false;
     rc = sqlite3_step(stmt);
@@ -244,11 +244,11 @@ static int _clothes_db_remove(
     }
 
     sqlite3_bind_int(stmt, 1, quantity_to_remove);
-    sqlite3_bind_int(stmt, 2, type);
-    sqlite3_bind_int(stmt, 3, size);
-    sqlite3_bind_int(stmt, 4, gender);
-    sqlite3_bind_int(stmt, 5, color);
-    sqlite3_bind_int(stmt, 6, condition);
+    sqlite3_bind_int(stmt, 2, (int)type);
+    sqlite3_bind_int(stmt, 3, (int)size);
+    sqlite3_bind_int(stmt, 4, (int)gender);
+    sqlite3_bind_int(stmt, 5, (int)color);
+    sqlite3_bind_int(stmt, 6, (int)condition);
     sqlite3_bind_int(stmt, 7, quantity_to_remove);
 
     rc = sqlite3_step(stmt);
@@ -403,11 +403,11 @@ static int _clothes_db_delete_entry(
     }
 
     // Bind the parameters
-    sqlite3_bind_int(stmt, 1, type);
-    sqlite3_bind_int(stmt, 2, size);
-    sqlite3_bind_int(stmt, 3, gender);
-    sqlite3_bind_int(stmt, 4, color);
-    sqlite3_bind_int(stmt, 5, condition);
+    sqlite3_bind_int(stmt, 1, (int)type);
+    sqlite3_bind_int(stmt, 2, (int)size);
+    sqlite3_bind_int(stmt, 3, (int)gender);
+    sqlite3_bind_int(stmt, 4, (int)color);
+    sqlite3_bind_int(stmt, 5, (int)condition);
 
     // Execute the DELETE statement
     rc = sqlite3_step(stmt);
@@ -529,20 +529,20 @@ int clothes_db_get(
     }
 
     // Bind the parameters
-    sqlite3_bind_int(stmt, 1, type);
-    sqlite3_bind_int(stmt, 2, size);
-    sqlite3_bind_int(stmt, 3, gender);
-    sqlite3_bind_int(stmt, 4, color);
-    sqlite3_bind_int(stmt, 5, condition);
+    sqlite3_bind_int(stmt, 1, (int)type);
+    sqlite3_bind_int(stmt, 2, (int)size);
+    sqlite3_bind_int(stmt, 3, (int)gender);
+    sqlite3_bind_int(stmt, 4, (int)color);
+    sqlite3_bind_int(stmt, 5, (int)condition);
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
         // Type (0), Size (1), Gender (2), Color (3), Condition (4), Quantity (5), Notes (6)
-        clothing->type = sqlite3_column_int(stmt, 0);
-        clothing->size = sqlite3_column_int(stmt, 1);
-        clothing->gender = sqlite3_column_int(stmt, 2);
-        clothing->color = sqlite3_column_int(stmt, 3);
-        clothing->condition = sqlite3_column_int(stmt, 4);
+        clothing->type = (enum clothing_type)sqlite3_column_int(stmt, (enum clothing_type)0);
+        clothing->size = (enum clothing_size)sqlite3_column_int(stmt, (enum clothing_size)1);
+        clothing->gender = (enum clothing_gender)sqlite3_column_int(stmt, (enum clothing_gender)2);
+        clothing->color = (enum clothing_color)sqlite3_column_int(stmt, (enum clothing_color)3);
+        clothing->condition = (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)4);
         clothing->quantity = sqlite3_column_int(stmt, 5);
         const char *note_val = (const char *)sqlite3_column_text(stmt, 6);
         if (note_val) {
@@ -583,11 +583,11 @@ int clothes_db_get_by_id(database *db, const int id, struct clothing *clothing) 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
         // Type (0), Size (1), Gender (2), Color (3), Condition (4), Quantity (5), Notes (6)
-        clothing->type = sqlite3_column_int(stmt, 0);
-        clothing->size = sqlite3_column_int(stmt, 1);
-        clothing->gender = sqlite3_column_int(stmt, 2);
-        clothing->color = sqlite3_column_int(stmt, 3);
-        clothing->condition = sqlite3_column_int(stmt, 4);
+        clothing->type = (enum clothing_type)sqlite3_column_int(stmt, (enum clothing_type)0);
+        clothing->size = (enum clothing_size)sqlite3_column_int(stmt, (enum clothing_size)1);
+        clothing->gender = (enum clothing_gender)sqlite3_column_int(stmt, (enum clothing_gender)2);
+        clothing->color = (enum clothing_color)sqlite3_column_int(stmt, (enum clothing_color)3);
+        clothing->condition = (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)4);
         clothing->quantity = sqlite3_column_int(stmt, 5);
         const char *note_val = (const char *)sqlite3_column_text(stmt, 6);
         if (note_val) {
@@ -680,11 +680,11 @@ int clothes_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
     // Process each row
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int id = sqlite3_column_int(stmt, 0);
-        enum clothing_type type = sqlite3_column_int(stmt, 1);
-        enum clothing_size size = sqlite3_column_int(stmt, 2);
-        enum clothing_gender gender = sqlite3_column_int(stmt, 3);
-        enum clothing_color color = sqlite3_column_int(stmt, 4);
-        enum clothing_condition condition = sqlite3_column_int(stmt, 5);
+        enum clothing_type type = (enum clothing_type)sqlite3_column_int(stmt, (enum clothing_type)1);
+        enum clothing_size size = (enum clothing_size)sqlite3_column_int(stmt, (enum clothing_size)2);
+        enum clothing_gender gender = (enum clothing_gender)sqlite3_column_int(stmt, (enum clothing_gender)3);
+        enum clothing_color color = (enum clothing_color)sqlite3_column_int(stmt, (enum clothing_color)4);
+        enum clothing_condition condition = (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)5);
         int quantity = sqlite3_column_int(stmt, 6);
         const char *notes = (const char *)sqlite3_column_text(stmt, 7);
 
@@ -744,7 +744,7 @@ int clothes_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
     }
 
     sqlite3_finalize(stmt);
-    return written;
+    return (int)written;
 }
 
 char *clothes_db_get_all_format_old(database *db) {
@@ -798,11 +798,11 @@ char *clothes_db_get_all_format_old(database *db) {
     // Process each row
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int id = sqlite3_column_int(stmt, 0);
-        enum clothing_type type = sqlite3_column_int(stmt, 1);
-        enum clothing_size size = sqlite3_column_int(stmt, 2);
-        enum clothing_gender gender = sqlite3_column_int(stmt, 3);
-        enum clothing_color color = sqlite3_column_int(stmt, 4);
-        enum clothing_condition condition = sqlite3_column_int(stmt, 5);
+        enum clothing_type type = (enum clothing_type)sqlite3_column_int(stmt, (enum clothing_type)1);
+        enum clothing_size size = (enum clothing_size)sqlite3_column_int(stmt, (enum clothing_size)2);
+        enum clothing_gender gender = (enum clothing_gender)sqlite3_column_int(stmt, (enum clothing_gender)3);
+        enum clothing_color color = (enum clothing_color)sqlite3_column_int(stmt, (enum clothing_color)4);
+        enum clothing_condition condition = (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)5);
         int quantity = sqlite3_column_int(stmt, 6);
         const char *notes = (const char *)sqlite3_column_text(stmt, 7);
 
@@ -900,11 +900,11 @@ int clothes_db_get_all(database *db) {
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         int id = sqlite3_column_int(stmt, 0);
-        enum clothing_type type = sqlite3_column_int(stmt, 1);
-        enum clothing_size size = sqlite3_column_int(stmt, 2);
-        enum clothing_gender gender = sqlite3_column_int(stmt, 3);
-        enum clothing_color color = sqlite3_column_int(stmt, 4);
-        enum clothing_condition condition = sqlite3_column_int(stmt, 5);
+        enum clothing_type type = (enum clothing_type)sqlite3_column_int(stmt, (enum clothing_type)1);
+        enum clothing_size size = (enum clothing_size)sqlite3_column_int(stmt, (enum clothing_size)2);
+        enum clothing_gender gender = (enum clothing_gender)sqlite3_column_int(stmt, (enum clothing_gender)3);
+        enum clothing_color color = (enum clothing_color)sqlite3_column_int(stmt, (enum clothing_color)4);
+        enum clothing_condition condition = (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)5);
         int quantity = sqlite3_column_int(stmt, 6);
         const char *notes = (const char *)sqlite3_column_text(stmt, 7);
 

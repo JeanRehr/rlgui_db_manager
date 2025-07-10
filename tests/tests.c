@@ -685,7 +685,7 @@ void test_resident_db_get_all_format(void) {
     // Test with exact buffer size
     printf("Testing format with exact buffer size...\n");
     written = exact_bytes;
-    written = resident_db_get_all_format(&test_resident_db, buffer, written + 1);
+    written = resident_db_get_all_format(&test_resident_db, buffer, (size_t)written + 1);
     assert(written > 0);
     printf("Format with exact buffer size successful.\n");
 
@@ -1211,7 +1211,7 @@ void test_foodbatch_db_get_all_format(void) {
     // Test empty database
     printf("Testing format on empty database...\n");
     int count = foodbatch_db_get_count(&test_foodbatch_db);
-    size_t buffer_size = 512 + 1024 * count;
+    size_t buffer_size = 512 + 1024 * (size_t)count;
 
     char *str_content = malloc(buffer_size);
     assert(str_content);
@@ -1227,7 +1227,7 @@ void test_foodbatch_db_get_all_format(void) {
 
     count = foodbatch_db_get_count(&test_foodbatch_db);
 
-    buffer_size += 1024 * count;
+    buffer_size += 1024 * (size_t)count;
 
     str_content = realloc(str_content, buffer_size);
 
@@ -1266,7 +1266,7 @@ void test_foodbatch_db_get_all_format(void) {
     // Test with exact buffer size
     printf("Testing format with exact buffer size...\n");
     written = exact_bytes;
-    written = foodbatch_db_get_all_format(&test_foodbatch_db, str_content, written + 1);
+    written = foodbatch_db_get_all_format(&test_foodbatch_db, str_content, (size_t)written + 1);
     assert(written > 0);
     printf("Format with exact buffer size successful.\n");
 
@@ -3978,8 +3978,8 @@ void test_tasks_db_upsert(void) {
     const char *title = "Restock Diapers";
     const char *desc = "Restock all diaper supplies";
     const char *due_date = "2024-07-01";
-    int priority = TSK_HIGH;
-    int status = TSK_PENDING;
+    enum task_priority priority = TSK_HIGH;
+    enum task_status status = TSK_PENDING;
     const char *assigned = "alice";
 
     printf("Attempting to insert a new task...\n");
@@ -4173,8 +4173,8 @@ void test_generate_salt(void) {
     printf("Testing with different length...\n");
     int short_len = 16;
     char short_salt[short_len + 1];
-    generate_salt(short_salt, short_len);
-    assert(count_non_null_bytes(short_salt, short_len) == short_len);
+    generate_salt(short_salt, (size_t)short_len);
+    assert(count_non_null_bytes(short_salt, (size_t)short_len) == short_len);
     assert(short_salt[short_len] == '\0');
     printf("Variable length salt generation successful.\n");
 
