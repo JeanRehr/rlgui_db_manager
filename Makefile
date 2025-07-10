@@ -50,7 +50,7 @@ TEST_OUT_FILES = $(addprefix $(OUT_DIR)/,$(notdir $(TEST_FILES:.c=.o))) $(filter
 # Compiler and linker flags
 # -Weverything
 RELEASE_CFLAGS = -O3 -Wall -Wextra -Wpedantic -Werror -std=c11
-DEBUG_CFLAGS = -ggdb3 -Wall -Wextra -Wshadow -Wconversion -Wcast-qual -Wformat -Wnull-dereference -Wpedantic -Werror -std=c11 $(SAN_FLAGS)
+DEBUG_CFLAGS = -ggdb3 -Wno-switch-default -Wall -Wextra -Wpedantic -Werror -Wshadow -Wconversion -Wcast-qual -Wformat -Wnull-dereference -std=c11 $(SAN_FLAGS)
 
 RELEASE_LDFLAGS = $(BASE_LDFLAGS)
 DEBUG_LDFLAGS = $(BASE_LDFLAGS) $(SAN_FLAGS)
