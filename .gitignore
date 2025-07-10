@@ -7,4 +7,6 @@
 out/*
 !out/.gitkeep
 
+compile_commands.json
+
 app.log
