@@ -13,7 +13,11 @@
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "make debug",
             "environment": [],
-            "externalConsole": false
+            "externalConsole": false,
+            "windows": {
+                "type": "lldb",
+                "program": "${workspaceFolder}\\main.exe"
+            }
         },
         {
             "name": "Debug Tests",
@@ -25,7 +29,11 @@
             "preLaunchTask": "make debug",
             "postDebugTask": "run tests only",
             "environment": [],
-            "externalConsole": false
+            "externalConsole": false,
+            "windows": {
+                "type": "lldb",
+                "program": "${workspaceFolder}\\tests.exe"
+            }
         }
     ]
 }
