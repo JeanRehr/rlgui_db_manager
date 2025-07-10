@@ -1,0 +1,33 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "make debug",
+            "type": "shell",
+            "command": "make",
+            "args": ["debug"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Builds the debug version using make"
+        },
+        {
+            "label": "make release",
+            "type": "shell",
+            "command": "make",
+            "args": ["release"],
+            "problemMatcher": ["$gcc"],
+            "detail": "Builds the release version using make"
+        },
+        {
+            "label": "make clean",
+            "type": "shell",
+            "command": "make",
+            "args": ["clean"],
+            "problemMatcher": [],
+            "detail": "Cleans build artifacts"
+        }
+    ]
+}

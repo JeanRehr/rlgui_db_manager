@@ -1,0 +1,17 @@
+{
+  "clangd.path": "clangd",
+  "clangd.arguments": [
+    "--background-index",
+    "--clang-tidy",
+    "--completion-style=detailed",
+    "--header-insertion=never",
+    "--pch-storage=memory",
+    "--pretty",
+    "--query-driver=/usr/bin/clang"
+  ],
+  "clangd.fallbackFlags": [
+    "-I${workspaceFolder}/include",
+    "-I${workspaceFolder}/include/external/raylib"
+  ],
+  "C_Cpp.default.configurationProvider": "llvm-vs-code-extensions.vscode-clangd"
+}
