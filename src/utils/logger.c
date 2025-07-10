@@ -4,8 +4,7 @@
  */
 #include "utils/logger.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <time.h>
 
 #include "global/CONSTANTS.h"
 

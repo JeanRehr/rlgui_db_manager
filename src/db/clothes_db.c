@@ -684,7 +684,8 @@ int clothes_db_get_all_format(database *db, char *buffer, size_t buffer_size) {
         enum clothing_size size = (enum clothing_size)sqlite3_column_int(stmt, (enum clothing_size)2);
         enum clothing_gender gender = (enum clothing_gender)sqlite3_column_int(stmt, (enum clothing_gender)3);
         enum clothing_color color = (enum clothing_color)sqlite3_column_int(stmt, (enum clothing_color)4);
-        enum clothing_condition condition = (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)5);
+        enum clothing_condition condition =
+            (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)5);
         int quantity = sqlite3_column_int(stmt, 6);
         const char *notes = (const char *)sqlite3_column_text(stmt, 7);
 
@@ -802,7 +803,8 @@ char *clothes_db_get_all_format_old(database *db) {
         enum clothing_size size = (enum clothing_size)sqlite3_column_int(stmt, (enum clothing_size)2);
         enum clothing_gender gender = (enum clothing_gender)sqlite3_column_int(stmt, (enum clothing_gender)3);
         enum clothing_color color = (enum clothing_color)sqlite3_column_int(stmt, (enum clothing_color)4);
-        enum clothing_condition condition = (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)5);
+        enum clothing_condition condition =
+            (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)5);
         int quantity = sqlite3_column_int(stmt, 6);
         const char *notes = (const char *)sqlite3_column_text(stmt, 7);
 
@@ -904,7 +906,8 @@ int clothes_db_get_all(database *db) {
         enum clothing_size size = (enum clothing_size)sqlite3_column_int(stmt, (enum clothing_size)2);
         enum clothing_gender gender = (enum clothing_gender)sqlite3_column_int(stmt, (enum clothing_gender)3);
         enum clothing_color color = (enum clothing_color)sqlite3_column_int(stmt, (enum clothing_color)4);
-        enum clothing_condition condition = (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)5);
+        enum clothing_condition condition =
+            (enum clothing_condition)sqlite3_column_int(stmt, (enum clothing_condition)5);
         int quantity = sqlite3_column_int(stmt, 6);
         const char *notes = (const char *)sqlite3_column_text(stmt, 7);
 

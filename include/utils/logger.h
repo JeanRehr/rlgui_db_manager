@@ -8,7 +8,6 @@
 
 #include <stdarg.h> // For va_list
 #include <stdio.h>
-#include <time.h>
 
 /**
  * @struct logger

@@ -104,7 +104,14 @@ int supplies_db_upsert(
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Inserted Supply name: [%s], category: [%s], stock: [%s] by quantity [%d].", name, category, size, stock);
+            logger_log(
+                db->logger,
+                "Inserted Supply name: [%s], category: [%s], stock: [%s] by quantity [%d].",
+                name,
+                category,
+                size,
+                stock
+            );
         }
     }
 
@@ -257,7 +264,14 @@ int supplies_db_remove(
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Removed Supply name: [%s], category: [%s], stock: [%s] by quantity [%d].", name, category, size, quantity_to_remove);
+            logger_log(
+                db->logger,
+                "Removed Supply name: [%s], category: [%s], stock: [%s] by quantity [%d].",
+                name,
+                category,
+                size,
+                quantity_to_remove
+            );
         }
     }
 

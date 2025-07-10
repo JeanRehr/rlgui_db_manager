@@ -93,10 +93,7 @@ bool clothes_db_check_exists(
  *
  * @return true if the record exists, false otherwise
  */
-bool clothes_db_check_exists_by_id(
-    database *db,
-    const int id
-);
+bool clothes_db_check_exists_by_id(database *db, const int id);
 
 /**
  * @brief Removes a clothing from the Clothes table by a quantity amount
@@ -143,11 +140,7 @@ int clothes_db_remove(
  *         or other SQLite error code
  *
  */
-int clothes_db_remove_by_id(
-    database *db,
-    const int id,
-    const int quantity_to_remove
-);
+int clothes_db_remove_by_id(database *db, const int id, const int quantity_to_remove);
 
 /**
  * @brief Deletes a clothes record by its UNIQUE data
@@ -183,10 +176,7 @@ int clothes_db_delete_entry(
  * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
  *
  */
-int clothes_db_delete_entry_by_id(
-    database *db,
-    const int id
-);
+int clothes_db_delete_entry_by_id(database *db, const int id);
 
 /**
  * 

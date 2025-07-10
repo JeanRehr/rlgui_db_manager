@@ -4,12 +4,11 @@
  */
 #include "db/user_db.h"
 
+#include <inttypes.h> // For PRIu64 (compatibility for both windows and linux)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-#include <inttypes.h> // For PRIu64 (compatibility for both windows and linux)
 
 #include "utils/logger.h"
 #include "utils/utils_hash.h"
@@ -471,7 +470,12 @@ int user_db_update_admin_status(database *db, const char *username, bool is_admi
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Updated admin status to [%s] for user [%s].", is_admin ? "true" : "false", username);
+            logger_log(
+                db->logger,
+                "Updated admin status to [%s] for user [%s].",
+                is_admin ? "true" : "false",
+                username
+            );
         }
     }
 

@@ -85,8 +85,10 @@ void ui_login_init(struct ui_login *ui, struct user *current_user) {
     // Initialize screen specific fields
     ui->current_user = current_user;
 
-    ui->tb_username =
-        textbox_init((Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 15, 300, 30 }, "Username:");
+    ui->tb_username = textbox_init(
+        (Rectangle) { (float)window_width / 2 - 150, (float)window_height / 2 - 15, 300, 30 },
+        "Username:"
+    );
 
     ui->tbs_password = textboxsecret_init(
         (Rectangle) { ui->tb_username.bounds.x,
@@ -385,16 +387,19 @@ static void handle_login_button(
 
     // Validate inputs
     if (ui->tb_username.input[0] == '\0') {
+        printf("Username must not be empty.\n");
         SET_FLAG(&ui->flag, FLAG_USERNAME_EMPTY);
         return;
     }
 
     if (ui->tbs_password.input[0] == '\0') {
+        printf("Password must not be empty.\n");
         SET_FLAG(&ui->flag, FLAG_PASSWD_EMPTY);
         return;
     }
 
     if (!user_db_check_exists(user_db, ui->tb_username.input)) {
+        printf("Username does not exists.\n");
         SET_FLAG(&ui->flag, FLAG_USER_NOT_EXISTS);
         return;
     }
@@ -404,6 +409,7 @@ static void handle_login_button(
 
     switch (result) {
     case AUTH_NEED_PASSWORD_RESET:
+        printf("Needs password reset.\n");
         SET_FLAG(&ui->flag, FLAG_PASSWD_RESET);
         break;
 
@@ -412,16 +418,19 @@ static void handle_login_button(
         // warning: a label can only be part of a statement and a declaration is not a statement [-Wpedantic]
         int rc = user_db_get_by_username(user_db, ui->tb_username.input, current_user);
         if (rc != SQLITE_OK && rc != SQLITE_NOTFOUND) {
+            printf("Database error.\n");
             SET_FLAG(&ui->flag, FLAG_LOGIN_GENERIC_ERROR);
             *error = ERROR_DB_STMT;
             break;
         }
         *state = STATE_MAIN_MENU;
+        printf("Login successful.\n");
         SET_FLAG(&ui->flag, FLAG_LOGIN_DONE);
         break;
     }
 
     case AUTH_FAILURE:
+        printf("Auth failure.\n");
         SET_FLAG(&ui->flag, FLAG_WRONG_PASSWD);
         break;
     }

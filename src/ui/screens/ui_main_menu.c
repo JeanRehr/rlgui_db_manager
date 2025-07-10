@@ -105,7 +105,8 @@ void ui_main_menu_init(struct ui_main_menu *ui, struct user *current_user) {
 
     ui->settings_butn = button_init((Rectangle) { (float)window_width - 250, 50, 200, 50 }, "Settings");
 
-    ui->logout_butn = button_init((Rectangle) { (float)window_width - 100, (float)window_height - 60, 0, 30 }, "Log Out");
+    ui->logout_butn =
+        button_init((Rectangle) { (float)window_width - 100, (float)window_height - 60, 0, 30 }, "Log Out");
 
     ui->flag = (enum main_menu_screen_flags)0;
 }

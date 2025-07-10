@@ -1,6 +1,6 @@
 /**
  * @file task.c
- * @brief This is just to implement the lookup tables, there are no method here (yet)
+ * @brief This is just to implement the lookup tables, there are no methods here
  */
 
 #include "entities/task.h"

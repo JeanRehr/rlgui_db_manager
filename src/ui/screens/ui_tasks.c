@@ -162,7 +162,9 @@ void ui_tasks_init(struct ui_tasks *ui) {
     ui->butn_upsert = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Insert/Update");
 
     ui->butn_delete_status_done = button_init(
-        (Rectangle) { ui->butn_upsert.bounds.x + ui->butn_upsert.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (
+            Rectangle
+        ) { ui->butn_upsert.bounds.x + ui->butn_upsert.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Delete all Done entries"
     );
 
@@ -406,7 +408,8 @@ static void ui_tasks_update_positions(struct ui_base *base) {
     ui->butn_delete_status_done.bounds.y = ui->butn_upsert.bounds.y;
     ui->butn_delete_status_cancelled.bounds.y = ui->butn_upsert.bounds.y;
     ui->butn_view_all.bounds.y = ui->butn_upsert.bounds.y;
-    ui->sp_table_view.panel_bounds.width = (float)window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20);
+    ui->sp_table_view.panel_bounds.width =
+        (float)window_width - (ui->tb_title.bounds.x + ui->tb_title.bounds.width + 20);
     ui->sp_table_view.panel_bounds.height = (float)window_height - 100;
 }
 

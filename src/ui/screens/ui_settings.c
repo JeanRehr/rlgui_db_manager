@@ -12,21 +12,21 @@
 // Embedded a monospace font in them as well.
 // NOTE: Included in the same order as selector
 //#define MAX_GUI_STYLES_AVAILABLE 15 // NOTE: Included light style
-#include "styles/amber.h"           // raygui styleL amber
-#include "styles/ashes.h"           // raygui style: ashes
-#include "styles/bluish.h"          // raygui style: bluish
-#include "styles/candy.h"           // raygui style: candy
-#include "styles/cherry.h"          // raygui style: cherry
-#include "styles/cyber.h"           // raygui style: cyber
-#include "styles/dark.h"            // raygui style: dark
-#include "styles/enefete.h"         // raygui style: enefete
-#include "styles/genesis.h"         // raygui style: genesis
-#include "styles/jungle.h"          // raygui style: jungle
-#include "styles/lavanda.h"         // raygui style: lavanda
-#include "styles/light.h"           // raygui style: default
-#include "styles/rltech.h"          // raygui style: rltech
-#include "styles/sunny.h"           // raygui style: sunny
-#include "styles/terminal.h"        // raygui style: terminal
+#include "styles/amber.h"    // raygui styleL amber
+#include "styles/ashes.h"    // raygui style: ashes
+#include "styles/bluish.h"   // raygui style: bluish
+#include "styles/candy.h"    // raygui style: candy
+#include "styles/cherry.h"   // raygui style: cherry
+#include "styles/cyber.h"    // raygui style: cyber
+#include "styles/dark.h"     // raygui style: dark
+#include "styles/enefete.h"  // raygui style: enefete
+#include "styles/genesis.h"  // raygui style: genesis
+#include "styles/jungle.h"   // raygui style: jungle
+#include "styles/lavanda.h"  // raygui style: lavanda
+#include "styles/light.h"    // raygui style: default
+#include "styles/rltech.h"   // raygui style: rltech
+#include "styles/sunny.h"    // raygui style: sunny
+#include "styles/terminal.h" // raygui style: terminal
 
 #include "db/user_db.h"
 #include "global/globals.h"

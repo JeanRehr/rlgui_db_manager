@@ -182,11 +182,7 @@ int medication_db_get(
  * @return SQLITE_OK on success, SQLITE_NOTFOUND if the record doesn't exist, or other SQLite error code
  *
  */
-int medication_db_get_by_id(
-    database *db,
-    const int id,
-    struct medication *medication
-);
+int medication_db_get_by_id(database *db, const int id, struct medication *medication);
 
 /**
  * @brief Gets the count of registered medication in the database

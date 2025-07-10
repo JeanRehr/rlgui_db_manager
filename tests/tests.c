@@ -21,7 +21,6 @@
 #include "db/user_db.h"
 #include "utils/utils_hash.h"
 #include "utils/utilsfn.h"
-#include "utils/logger.h"
 
 // Global context structure
 struct test_cleanup_ctx {
@@ -849,7 +848,6 @@ static void test_foodbatch_db_insert(void) {
 }
 
 static void test_foodbatch_db_retrieve(void) {
-
     const char *test_foodbatch_filename = "test_foodbatch_db.db";
     database test_foodbatch_db;
     db_init_with_tbl(&test_foodbatch_db, test_foodbatch_filename, foodbatch_db_create_table, NULL);
@@ -1962,7 +1960,7 @@ static void test_user_db_get_all(void) {
 
 // TEST DB USER END
 
-// TEST DB CLOTHES END
+// TEST DB CLOTHES START
 
 static void test_clothes_db_create_table(void) {
     const char *test_clothesdb_filename = "test_clothes_db.db";
@@ -3934,8 +3932,6 @@ static void test_supplies_db_get_all(void) {
 
 // TEST DB TASKS START
 
-// TEST DB TASKS START
-
 static void test_tasks_db_create_table(void) {
     const char *test_tasksdb_filename = "test_tasks_db.db";
     database test_tasks_db;
@@ -4123,7 +4119,17 @@ static void test_tasks_db_get_all_format_old(void) {
     setup_cleanup(test_tasksdb_filename, &test_tasks_db);
 
     // Insert a few tasks
-    tasks_db_upsert(&test_tasks_db, 0, "Restock Milk", "Restock milk on area area_name", "2025-05-01", TSK_NORMAL, TSK_DONE, "Alice", "2025-06-02 16:37:26");
+    tasks_db_upsert(
+        &test_tasks_db,
+        0,
+        "Restock Milk",
+        "Restock milk on area area_name",
+        "2025-05-01",
+        TSK_NORMAL,
+        TSK_DONE,
+        "Alice",
+        "2025-06-02 16:37:26"
+    );
     tasks_db_upsert(&test_tasks_db, 0, "oldB", "desc", "2025-06-01", 1, 1, NULL, NULL);
 
     char *formatted = tasks_db_get_all_format_old(&test_tasks_db);
@@ -4136,11 +4142,9 @@ static void test_tasks_db_get_all_format_old(void) {
     printf("tasks_db_get_all_format_old test passed successfully.\n");
 }
 
-
-
 // TASKS DB END
 
-// UTILS_HASH TESTS
+// UTILS_HASH TESTS START
 
 // Helper function to count non-null bytes in a string
 static int count_non_null_bytes(const char *str, size_t len) {
@@ -4328,7 +4332,7 @@ static void test_edge_cases(void) {
 
 // UTILS_HASH TESTS END
 
-// UTILSFN TESTS
+// UTILSFN TESTS START
 
 static void test_flag_macros(void) {
     printf("Testing flag macros...\n");

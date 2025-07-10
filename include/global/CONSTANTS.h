@@ -84,6 +84,6 @@
   * @example 2025-06-02 15:04:53
   * 
   */
-#define DATETIME_LEN 20 
+#define DATETIME_LEN 20
 
 #endif // CONSTANTS_H

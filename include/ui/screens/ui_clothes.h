@@ -9,7 +9,6 @@
 #ifndef UI_CLOTHES_H
 #define UI_CLOTHES_H
 
-#include "entities/clothing.h"
 #include "ui/components/button.h"
 #include "ui/components/dropdownbox.h"
 #include "ui/components/intbox.h"

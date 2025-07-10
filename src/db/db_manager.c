@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "global/error_handling.h"
-
 int db_init(database *db, const char *filename, struct logger *logger) {
     if (!db || !filename) {
         fprintf(stderr, "Database variable or string filename is NULL!\n");

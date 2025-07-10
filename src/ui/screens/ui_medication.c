@@ -196,24 +196,32 @@ void ui_medication_init(struct ui_medication *ui) {
     ui->butn_insert = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Insert");
 
     ui->butn_remove = button_init(
-        (Rectangle) { ui->butn_insert.bounds.x + ui->butn_insert.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (
+            Rectangle
+        ) { ui->butn_insert.bounds.x + ui->butn_insert.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Remove Quantity"
     );
 
     ui->butn_delete_entry = button_init(
-        (Rectangle) { ui->butn_remove.bounds.x + ui->butn_remove.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (
+            Rectangle
+        ) { ui->butn_remove.bounds.x + ui->butn_remove.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Delete Entry"
     );
 
     ui->butn_remove_by_id = button_init(
-        (Rectangle
-        ) { ui->butn_delete_entry.bounds.x + ui->butn_delete_entry.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_delete_entry.bounds.x + ui->butn_delete_entry.bounds.width + 10,
+                      (float)window_height - 60,
+                      100,
+                      30 },
         "Remove Quantity by ID"
     );
 
     ui->butn_delete_entry_by_id = button_init(
-        (Rectangle
-        ) { ui->butn_remove_by_id.bounds.x + ui->butn_remove_by_id.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_remove_by_id.bounds.x + ui->butn_remove_by_id.bounds.width + 10,
+                      (float)window_height - 60,
+                      100,
+                      30 },
         "Delete Entry by ID"
     );
 
@@ -490,9 +498,10 @@ static void ui_medication_update_positions(struct ui_base *base) {
     ui->butn_delete_entry.bounds.y = (float)window_height - 60;
     ui->butn_remove_by_id.bounds.y = (float)window_height - 60;
     ui->butn_delete_entry_by_id.bounds.y = (float)window_height - 60;
-    ui->butn_view_all.bounds.y =(float) window_height - 60;
+    ui->butn_view_all.bounds.y = (float)window_height - 60;
 
-    ui->sp_table_view.panel_bounds.width = (float)window_width - (ui->tb_notes.bounds.x + ui->tb_notes.bounds.width + 20);
+    ui->sp_table_view.panel_bounds.width =
+        (float)window_width - (ui->tb_notes.bounds.x + ui->tb_notes.bounds.width + 20);
     ui->sp_table_view.panel_bounds.height = (float)window_height - 100;
 }
 

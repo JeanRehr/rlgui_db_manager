@@ -122,16 +122,18 @@ void ui_create_user_init(struct ui_create_user *ui) {
     ui->butn_create_user = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Create User");
 
     ui->butn_reset_password = button_init(
-        (
-            Rectangle
-        ) { ui->butn_create_user.bounds.x + ui->butn_create_user.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_create_user.bounds.x + ui->butn_create_user.bounds.width + 10,
+                      (float)window_height - 60,
+                      100,
+                      30 },
         "Reset Password"
     );
 
     ui->butn_update_adm_stat = button_init(
-        (
-            Rectangle
-        ) { ui->butn_reset_password.bounds.x + ui->butn_reset_password.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_reset_password.bounds.x + ui->butn_reset_password.bounds.width + 10,
+                      (float)window_height - 60,
+                      100,
+                      30 },
         "Update Admin Status"
     );
 
@@ -144,7 +146,9 @@ void ui_create_user_init(struct ui_create_user *ui) {
     );
 
     ui->butn_get_all = button_init(
-        (Rectangle) { ui->butn_delete.bounds.x + ui->butn_delete.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (
+            Rectangle
+        ) { ui->butn_delete.bounds.x + ui->butn_delete.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Retrieve Users"
     );
 

@@ -127,7 +127,8 @@ void ui_resident_init(struct ui_resident *ui) {
         "Health Status:"
     );
     ui->tb_needs = textbox_init(
-        (Rectangle
+        (
+            Rectangle
         ) { 20, ui->tb_health_status.bounds.y + ui->tb_health_status.bounds.height + (FONT_SIZE * 2), 300, 30 },
         "Needs:"
     );
@@ -152,7 +153,8 @@ void ui_resident_init(struct ui_resident *ui) {
         "Retrieve"
     );
     ui->butn_delete = button_init(
-        (Rectangle
+        (
+            Rectangle
         ) { ui->butn_retrieve.bounds.x + ui->butn_retrieve.bounds.width + 10, ui->butn_submit.bounds.y, 100, 30 },
         "Delete"
     );

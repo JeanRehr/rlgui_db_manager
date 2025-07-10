@@ -164,26 +164,32 @@ void ui_supplies_init(struct ui_supplies *ui) {
     ui->butn_insert = button_init((Rectangle) { 20, (float)window_height - 60, 100, 30 }, "Insert");
 
     ui->butn_remove = button_init(
-        (Rectangle) { ui->butn_insert.bounds.x + ui->butn_insert.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (
+            Rectangle
+        ) { ui->butn_insert.bounds.x + ui->butn_insert.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Remove Quantity"
     );
 
     ui->butn_delete_entry = button_init(
-        (Rectangle) { ui->butn_remove.bounds.x + ui->butn_remove.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (
+            Rectangle
+        ) { ui->butn_remove.bounds.x + ui->butn_remove.bounds.width + 10, (float)window_height - 60, 100, 30 },
         "Delete Entry"
     );
 
     ui->butn_remove_by_id = button_init(
-        (
-            Rectangle
-        ) { ui->butn_delete_entry.bounds.x + ui->butn_delete_entry.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_delete_entry.bounds.x + ui->butn_delete_entry.bounds.width + 10,
+                      (float)window_height - 60,
+                      100,
+                      30 },
         "Remove Quantity by ID"
     );
 
     ui->butn_delete_entry_by_id = button_init(
-        (
-            Rectangle
-        ) { ui->butn_remove_by_id.bounds.x + ui->butn_remove_by_id.bounds.width + 10, (float)window_height - 60, 100, 30 },
+        (Rectangle) { ui->butn_remove_by_id.bounds.x + ui->butn_remove_by_id.bounds.width + 10,
+                      (float)window_height - 60,
+                      100,
+                      30 },
         "Delete Entry by ID"
     );
 
@@ -437,7 +443,8 @@ static void ui_supplies_update_positions(struct ui_base *base) {
     ui->butn_delete_entry_by_id.bounds.y = (float)window_height - 60;
     ui->butn_view_all.bounds.y = (float)window_height - 60;
 
-    ui->sp_table_view.panel_bounds.width = (float)window_width - (ui->tb_notes.bounds.x + ui->tb_notes.bounds.width + 20);
+    ui->sp_table_view.panel_bounds.width =
+        (float)window_width - (ui->tb_notes.bounds.x + ui->tb_notes.bounds.width + 20);
     ui->sp_table_view.panel_bounds.height = (float)window_height - 100;
 }
 
@@ -642,14 +649,16 @@ static void handle_insert_button(struct ui_supplies *ui, enum error_code *error,
     }
 
     if (supplies_db_upsert(
-        supplies_db,
-        ui->tb_name.input,
-        ui->tb_category.input,
-        ui->tb_size.input,
-        ui->tb_unit.input,
-        ui->ib_stock.input,
-        ui->tb_notes.input
-    ) != SQLITE_OK) {
+            supplies_db,
+            ui->tb_name.input,
+            ui->tb_category.input,
+            ui->tb_size.input,
+            ui->tb_unit.input,
+            ui->ib_stock.input,
+            ui->tb_notes.input
+        )
+        != SQLITE_OK)
+    {
         SET_FLAG(&ui->flag, FLAG_SUPPLIES_GENERIC_ERROR);
         fprintf(stderr, "Database error.");
         return;
@@ -690,7 +699,6 @@ static void handle_view_all_button(struct ui_supplies *ui, database *supplies_db
         ui->str_table_content = NULL;
     }
 
-    
     int total_supplies = supplies_db_get_count(supplies_db);
     if (total_supplies == -1) {
         fprintf(stderr, "Failed to get total count.\n");

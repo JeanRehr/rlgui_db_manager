@@ -3,6 +3,7 @@
  * @brief Checkbox implementation
  */
 #include "ui/components/checkbox.h"
+
 #include <stddef.h>
 
 #include <external/raylib/raygui.h>

@@ -132,7 +132,14 @@ int medication_db_upsert(
 
     if (rc == SQLITE_OK) {
         if (db->logger) {
-            logger_log(db->logger, "Inserted Medication name: [%s], form: [%s], strength: [%s] by quantity [%d].", name, form, strength, stock);
+            logger_log(
+                db->logger,
+                "Inserted Medication name: [%s], form: [%s], strength: [%s] by quantity [%d].",
+                name,
+                form,
+                strength,
+                stock
+            );
         }
     }
 
