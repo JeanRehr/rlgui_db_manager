@@ -121,13 +121,36 @@ $(OUT_DIR)/%.o: $(SRC_DIR)/*/%.c
 $(OUT_DIR)/%.o: $(SRC_DIR)/*/*/%.c
 	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
-# Special rule for sqlite3.c (disable unused warnings)
-$(OUT_DIR)/sqlite3.o: $(SRC_DIR)/external/sqlite3/sqlite3.c
-	$(CC) $(CFLAGS) -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable $(INCLUDE_FLAGS) -c $< -o $@
+# Disable warnings for style header files 
+$(OUT_DIR)/%.o: $(SRC_DIR)/%.c
+	@if grep -q '#include.*styles/' $<; then \
+		$(CC) $(CFLAGS) -Wno-sign-conversion $(INCLUDE_FLAGS) -c $< -o $@; \
+	else \
+		$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@; \
+	fi
 
-# Add a special rule for raygui.h (disable unused warnings)
+# Repeat for nested directories
+$(OUT_DIR)/%.o: $(SRC_DIR)/*/%.c
+	@if grep -q '#include.*styles/' $<; then \
+		$(CC) $(CFLAGS) -Wno-sign-conversion $(INCLUDE_FLAGS) -c $< -o $@; \
+	else \
+		$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@; \
+	fi
+
+$(OUT_DIR)/%.o: $(SRC_DIR)/*/*/%.c
+	@if grep -q '#include.*styles/' $<; then \
+		$(CC) $(CFLAGS) -Wno-sign-conversion $(INCLUDE_FLAGS) -c $< -o $@; \
+	else \
+		$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@; \
+	fi
+
+# Special rule for sqlite3.c (disable warnings)
+$(OUT_DIR)/sqlite3.o: $(SRC_DIR)/external/sqlite3/sqlite3.c
+	$(CC) $(CFLAGS) -w $(INCLUDE_FLAGS) -c $< -o $@
+
+# Add a special rule for raygui.h (disable warnings)
 $(OUT_DIR)/raygui.o: $(SRC_DIR)/external/raylib/raygui.c
-	$(CC) $(CFLAGS) -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable $(INCLUDE_FLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -w $(INCLUDE_FLAGS) -c $< -o $@
 
 # For test files in tests/
 $(OUT_DIR)/%.o: $(TEST_DIR)/%.c
