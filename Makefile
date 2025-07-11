@@ -154,7 +154,11 @@ app:
 clean:
 	rm -rf $(OUT_DIR)/*.o $(BUILD_DIR)/*
 
-.PHONY: release debug san run run-san test test-san app clean
+# Delete only .o files
+del-obj:
+	rm -rf $(OUT_DIR)/*.o
+
+.PHONY: release debug san run run-san test test-san app clean del-obj
 
 # Build main application targets
 $(RELEASE_MAIN_TARGET): $(MAIN_OUT_FILES)
