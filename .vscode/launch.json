@@ -4,6 +4,34 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        /*** CLEAN-ONLY CONFIGURATIONS ***/
+        {
+            "name": "!! Clean All Artifacts !!",
+            "type": "lldb",
+            "request": "launch",
+            "program": "/bin/true",  // Dummy value
+            "preLaunchTask": "make clean",
+            "noDebug": true,
+            "console": "internalConsole",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "name": "!! Clean Object Files Only !!",
+            "type": "lldb",
+            "request": "launch",
+            "program": "/bin/true",  // Dummy value
+            "preLaunchTask": "make del-obj",
+            "noDebug": true,
+            "console": "internalConsole",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+
         /*** DEBUG CONFIGURATIONS ***/
         {
             "name": "Debug Main",
