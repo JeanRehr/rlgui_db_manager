@@ -50,14 +50,6 @@
             "detail": "Builds with sanitizers (not to be used with debuggers)"
         },
         {
-            "label": "make clean",
-            "type": "shell",
-            "command": "make",
-            "args": ["clean"],
-            "problemMatcher": [],
-            "detail": "Cleans all build artifacts"
-        },
-        {
             "label": "clean and debug",
             "type": "shell",
             "command": "make",
