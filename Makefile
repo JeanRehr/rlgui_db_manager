@@ -21,6 +21,24 @@ INCLUDE_DIR = include
 # lib directory
 LIB_DIR = lib
 
+# All possible sanitizers, as far as I searched:
+#-fsanitize=address
+#-fsanitize=leak
+#-fsanitize=undefined
+#-fsanitize=memory
+#-fsanitize=thread
+#-fsanitize=integer  # Integer overflow
+#-fsanitize=null  # Null pointer dereference
+#-fsanitize=return  # Non-void function returns without value
+#-fsanitize=signed-integer-overflow  # Signed integer overflow
+#-fsanitize=bounds  # Array bounds violations
+#-fsanitize=alignment  # Misaligned pointers
+#-fsanitize=object-size  # Out of bounds accesses
+#-fsanitize=float-divide-by-zero  # Floating point division by zero
+#-fsanitize=float-cast-overflow  # Floating point conversion overflow
+#-fsanitize=nonnull-attribute  # Violations of nonnull attributes
+#-fsanitize=vla-bound  # Variable length array bound violations
+
 # Compiler and linker flags per OS
 ifeq ($(UNAME_S),Linux)
 	CC = clang
@@ -50,13 +68,22 @@ MAIN_OUT_FILES = $(addprefix $(OUT_DIR)/,$(notdir $(SRC_FILES:.c=.o)))
 # Object files for test suite (test files + src files except main.c)
 TEST_OUT_FILES = $(addprefix $(OUT_DIR)/,$(notdir $(TEST_FILES:.c=.o))) $(filter-out $(OUT_DIR)/main.o, $(MAIN_OUT_FILES))
 
-# Compiler and linker flags
-# -ferror-limit=0 -Weverything -Wno-padded -Wno-reserved-macro-identifier -Wno-declaration-after-statement -Wno-unsafe-buffer-usage -Wno-bad-function-cast -Wno-reserved-identifier -Wno-float-equal -Wno-vla -Wno-pre-c11-compat
-RELEASE_CFLAGS = -O3 -Wall -Wextra -Wpedantic -Werror -std=c11
-DEBUG_CFLAGS = -ggdb3 -Wno-switch-default -Wall -Wextra -Wpedantic -Werror -Wshadow -Wconversion -Wcast-qual -Wformat -Wnull-dereference -std=c11 $(SAN_FLAGS)
+# Compiler flags
+RELEASE_CFLAGS = -O3 -Wall -Wextra -Wpedantic -Werror -std=c11 -fno-sanitize=all
+DEBUG_CFLAGS = -g3 -O0 -std=c11 -Wpedantic -Wall -Wextra -Werror -Wshadow -Wconversion -Wcast-qual -Wformat -Wnull-dereference -Wno-switch-default -fno-sanitize=all
+SANITIZER_CFLAGS = $(DEBUG_CFLAGS) $(SAN_FLAGS)
 
+# More possible warnings for clang:
+#-ferror-limit=0 -Weverything
+
+# Some warnings that are not really errors:
+#-Wno-padded -Wno-reserved-macro-identifier -Wno-declaration-after-statement -Wno-unsafe-buffer-usage
+#-Wno-bad-function-cast -Wno-reserved-identifier -Wno-float-equal -Wno-vla -Wno-pre-c11-compat
+
+# Linker flags
 RELEASE_LDFLAGS = $(BASE_LDFLAGS)
-DEBUG_LDFLAGS = $(BASE_LDFLAGS) $(SAN_FLAGS)
+DEBUG_LDFLAGS = $(BASE_LDFLAGS)
+SANITIZER_LDFLAGS = $(BASE_LDFLAGS) $(SAN_FLAGS)
 
 INCLUDE_FLAGS = -I$(INCLUDE_DIR)
 
@@ -96,17 +123,26 @@ debug: CFLAGS = $(DEBUG_CFLAGS)
 debug: LDFLAGS = $(DEBUG_LDFLAGS)
 debug: $(BUILD_DIR) $(DEBUG_MAIN_TARGET) $(DEBUG_TEST_TARGET)
 
+# Build sanitizer version
+san: CFLAGS = $(SANITIZER_CFLAGS)
+san: LDFLAGS = $(SANITIZER_LDFLAGS)
+san: $(BUILD_DIR) $(SANITIZER_MAIN_TARGET) $(SANITIZER_TEST_TARGET)
+
 # Build debug and run app
 run: debug
-	./$(MAIN_TARGET)
+	./$(DEBUG_MAIN_TARGET)
+
+# Build sanitizer and run app
+run-san: san
+	./$(SANITIZER_MAIN_TARGET)
 
 # Build debug and run test
 test: debug
-	./$(TEST_TARGET)
+	./$(DEBUG_TEST_TARGET)
 
-# Clean up build artifacts
-clean:
-	rm -rf $(OUT_DIR)/*.o $(MAIN_TARGET) $(TEST_TARGET)
+# Build sanitizer and run test
+test-san: san
+	./$(SANITIZER_TEST_TARGET)
 
 # Clean, build release and run app
 app:
@@ -127,6 +163,9 @@ $(RELEASE_MAIN_TARGET): $(MAIN_OUT_FILES)
 $(DEBUG_MAIN_TARGET): $(MAIN_OUT_FILES)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
+$(SANITIZER_MAIN_TARGET): $(MAIN_OUT_FILES)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
 # Build test targets
 $(RELEASE_TEST_TARGET): $(TEST_OUT_FILES)
 	$(CC) $^ -o $@ $(LDFLAGS)
@@ -134,8 +173,7 @@ $(RELEASE_TEST_TARGET): $(TEST_OUT_FILES)
 $(DEBUG_TEST_TARGET): $(TEST_OUT_FILES)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
-# Build tests
-$(TEST_TARGET): $(TEST_OUT_FILES)
+$(SANITIZER_TEST_TARGET): $(TEST_OUT_FILES)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 # Rules to compile source files from various locations into flat out directory
