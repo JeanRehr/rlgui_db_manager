@@ -67,41 +67,6 @@
             "preLaunchTask": "clean and debug",
             "environment": [],
             "externalConsole": false
-        },
-
-        /*** SANITIZER CONFIGURATIONS ***/
-        {
-            "name": "Sanitize Main",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/main-sanitizer${input:binaryExtension}",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "make san",
-            "environment": [],
-            "externalConsole": false
-        },
-        {
-            "name": "Sanitize Tests",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/tests-sanitizer${input:binaryExtension}",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "make san",
-            "environment": [],
-            "externalConsole": false
-        },
-        {
-            "name": "Clean -> Sanitize Main",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/main-sanitizer${input:binaryExtension}",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "clean and san",
-            "environment": [],
-            "externalConsole": false
         }
     ],
     "inputs": [
