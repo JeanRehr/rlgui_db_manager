@@ -12,6 +12,9 @@ TEST_DIR = tests
 # output directory for object files
 OUT_DIR = out
 
+# build directory for final binaries
+BUILD_DIR = build
+
 # The include/ subdirectories are hardcoded into the source files
 INCLUDE_DIR = include
 
@@ -57,27 +60,41 @@ DEBUG_LDFLAGS = $(BASE_LDFLAGS) $(SAN_FLAGS)
 
 INCLUDE_FLAGS = -I$(INCLUDE_DIR)
 
-# Targets
+# Binary names with build type suffix
 ifeq ($(UNAME_S),Linux)
-	MAIN_TARGET = main.out
-	TEST_TARGET = tests.out
+	RELEASE_MAIN_TARGET = $(BUILD_DIR)/main-release.out
+	DEBUG_MAIN_TARGET = $(BUILD_DIR)/main-debug.out
+	SANITIZER_MAIN_TARGET = $(BUILD_DIR)/main-sanitizer.out
+
+	RELEASE_TEST_TARGET = $(BUILD_DIR)/tests-release.out
+	DEBUG_TEST_TARGET = $(BUILD_DIR)/tests-debug.out
+	SANITIZER_TEST_TARGET = $(BUILD_DIR)/tests-sanitizer.out
 else
-	MAIN_TARGET = main.exe
-	TEST_TARGET = tests.exe
+	RELEASE_MAIN_TARGET = $(BUILD_DIR)/main-release.exe
+	DEBUG_MAIN_TARGET = $(BUILD_DIR)/main-debug.exe
+	SANITIZER_MAIN_TARGET = $(BUILD_DIR)/main-sanitizer.exe
+
+	RELEASE_TEST_TARGET = $(BUILD_DIR)/tests-release.exe
+	DEBUG_TEST_TARGET = $(BUILD_DIR)/tests-debug.exe
+	SANITIZER_TEST_TARGET = $(BUILD_DIR)/tests-sanitizer.exe
 endif
 
 # Set default target to debug
 .DEFAULT_GOAL := debug
 
+# Create build directory if it doesn't exist (not crossplatform I think)
+#$(BUILD_DIR):
+#	mkdir -p $(BUILD_DIR)
+
 # Build release version
 release: CFLAGS = $(RELEASE_CFLAGS)
 release: LDFLAGS = $(RELEASE_LDFLAGS)
-release: $(MAIN_TARGET) $(TEST_TARGET)
+release: $(BUILD_DIR) $(RELEASE_MAIN_TARGET) $(RELEASE_TEST_TARGET)
 
 # Build debug version
 debug: CFLAGS = $(DEBUG_CFLAGS)
 debug: LDFLAGS = $(DEBUG_LDFLAGS)
-debug: $(MAIN_TARGET) $(TEST_TARGET)
+debug: $(BUILD_DIR) $(DEBUG_MAIN_TARGET) $(DEBUG_TEST_TARGET)
 
 # Build debug and run app
 run: debug
@@ -95,12 +112,26 @@ clean:
 app:
 	$(MAKE) clean
 	$(MAKE) release
-	./$(MAIN_TARGET)
+	./$(RELEASE_MAIN_TARGET)
 
-.PHONY: release debug test run app clean
+# Clean up build artifacts
+clean:
+	rm -rf $(OUT_DIR)/*.o $(BUILD_DIR)/*
 
-# Build main application
-$(MAIN_TARGET): $(MAIN_OUT_FILES)
+.PHONY: release debug san run run-san test test-san app clean
+
+# Build main application targets
+$(RELEASE_MAIN_TARGET): $(MAIN_OUT_FILES)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+$(DEBUG_MAIN_TARGET): $(MAIN_OUT_FILES)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+# Build test targets
+$(RELEASE_TEST_TARGET): $(TEST_OUT_FILES)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+$(DEBUG_TEST_TARGET): $(TEST_OUT_FILES)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 # Build tests
@@ -110,21 +141,21 @@ $(TEST_TARGET): $(TEST_OUT_FILES)
 # Rules to compile source files from various locations into flat out directory
 
 # For files directly in src/
-$(OUT_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
+#$(OUT_DIR)/%.o: $(SRC_DIR)/%.c
+#	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 # For files in src/subdir/
-$(OUT_DIR)/%.o: $(SRC_DIR)/*/%.c
-	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
+#$(OUT_DIR)/%.o: $(SRC_DIR)/*/%.c
+#	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 # For files in src/subdir/subsubdir/
-$(OUT_DIR)/%.o: $(SRC_DIR)/*/*/%.c
-	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
+#$(OUT_DIR)/%.o: $(SRC_DIR)/*/*/%.c
+#	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
-# Disable warnings for style header files 
+# Disable warnings for style header files (specific for raygui)
 $(OUT_DIR)/%.o: $(SRC_DIR)/%.c
 	@if grep -q '#include.*styles/' $<; then \
-		$(CC) $(CFLAGS) -Wno-sign-conversion $(INCLUDE_FLAGS) -c $< -o $@; \
+		$(CC) $(CFLAGS) -w $(INCLUDE_FLAGS) -c $< -o $@; \
 	else \
 		$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@; \
 	fi
@@ -132,14 +163,15 @@ $(OUT_DIR)/%.o: $(SRC_DIR)/%.c
 # Repeat for nested directories
 $(OUT_DIR)/%.o: $(SRC_DIR)/*/%.c
 	@if grep -q '#include.*styles/' $<; then \
-		$(CC) $(CFLAGS) -Wno-sign-conversion $(INCLUDE_FLAGS) -c $< -o $@; \
+		$(CC) $(CFLAGS) -w $(INCLUDE_FLAGS) -c $< -o $@; \
 	else \
 		$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@; \
 	fi
 
+# Repeat for nested directories
 $(OUT_DIR)/%.o: $(SRC_DIR)/*/*/%.c
 	@if grep -q '#include.*styles/' $<; then \
-		$(CC) $(CFLAGS) -Wno-sign-conversion $(INCLUDE_FLAGS) -c $< -o $@; \
+		$(CC) $(CFLAGS) -w $(INCLUDE_FLAGS) -c $< -o $@; \
 	else \
 		$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@; \
 	fi
