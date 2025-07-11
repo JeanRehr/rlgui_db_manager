@@ -20,30 +20,34 @@ Requires `make`, a C compiler (`clang` for Linux or `gcc` on Windows+MinGW), and
 ### Build Targets
 
 ```bash
-make debug       # Debug build with sanitizers (on linux) 
+make debug       # Build with debug info for debuggers
 make release     # Optimized (-O3) release build  
+make san         # Build with sanitizers enabled (only for linux)
 make clean       # Remove build artifacts
 ```
+
+Binaries are put in the build/ directory, each target will produce a different binary name
 
 To run, double click the .exe or .out, or run on the terminal with
 
 ```bash
-./main.exe
-./tests.exe
+# for example
+./build/main-release.exe
+./tests-sanitizer.exe
 # or for linux
-./main.out
-./tests.out
+./main-debug.out
+./tests-debug.out
 ```
 
 ## Run Targets
 
 ```bash
-make run         # Build and run the application (debug)  
-make test        # Run test suite  
-make app         # Clean, build release, and run application
+make run         # Build and run the application (debug)
+make run-san     # Run the application with sanitizers
+make test        # Run test suite (debug)
+make test-san    # Run test suite with sanitizers
+make app         # Clean object files and build directory, build release, and run application
 ```
-
-Binaries are created in the root directory, object files are placed in `out/`.
 
 ## Documentation
 
