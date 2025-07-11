@@ -4,20 +4,18 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        /*** DEBUG CONFIGURATIONS ***/
         {
             "name": "Debug Main",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/main.out",
+            "program": "${workspaceFolder}/build/main-debug${input:binaryExtension}",
             "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "make debug",
             "environment": [],
-            "externalConsole": false,
-            "windows": {
-                "type": "lldb",
-                "program": "${workspaceFolder}\\main.exe"
-            }
+            "externalConsole": false
+
         },
         {
             "name": "Debug Tests",
@@ -29,11 +27,65 @@
             "preLaunchTask": "make debug",
             "postDebugTask": "run tests only",
             "environment": [],
-            "externalConsole": false,
-            "windows": {
-                "type": "lldb",
-                "program": "${workspaceFolder}\\tests.exe"
-            }
+            "externalConsole": false
+        },
+        {
+            "name": "Clean -> Debug Main",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/main-debug${input:binaryExtension}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "clean and debug",
+            "environment": [],
+            "externalConsole": false
+        },
+
+        /*** SANITIZER CONFIGURATIONS ***/
+        {
+            "name": "Sanitize Main",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/main-sanitizer${input:binaryExtension}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "make san",
+            "environment": [],
+            "externalConsole": false
+        },
+        {
+            "name": "Sanitize Tests",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests-sanitizer${input:binaryExtension}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "make san",
+            "environment": [],
+            "externalConsole": false
+        },
+        {
+            "name": "Clean -> Sanitize Main",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/main-sanitizer${input:binaryExtension}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "clean and san",
+            "environment": [],
+            "externalConsole": false
+        }
+    ],
+    "inputs": [
+        {
+            "id": "binaryExtension",
+            "type": "pickString",
+            "description": "Select binary extension for current OS",
+            "options": [
+                { "value": ".out", "label": "Linux/MacOS (.out)" },
+                { "value": ".exe", "label": "Windows (.exe)" }
+            ],
+            "default": ".out"
         }
     ]
 }

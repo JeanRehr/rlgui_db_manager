@@ -8,7 +8,7 @@
             "command": "bear",
             "args": ["--", "make", "debug"],
             "problemMatcher": [],
-            "detail": "Generates compile_commands.json",
+            "detail": "Generates compile_commands.json for clangd server (bear on linux compiledb on windows",
             "linux": {
                 "command": "bear",
                 "args": ["--", "make", "debug"]
@@ -31,7 +31,7 @@
                 "isDefault": true
             },
             "problemMatcher": ["$gcc"],
-            "detail": "Builds the debug version using make"
+            "detail": "Builds the debug version with symbols"
         },
         {
             "label": "make release",
@@ -39,7 +39,15 @@
             "command": "make",
             "args": ["release"],
             "problemMatcher": ["$gcc"],
-            "detail": "Builds the release version using make"
+            "detail": "Builds optimized release version"
+        },
+        {
+            "label": "make san",
+            "type": "shell",
+            "command": "make",
+            "args": ["san"],
+            "problemMatcher": ["$gcc"],
+            "detail": "Builds with sanitizers (not to be used with debuggers)"
         },
         {
             "label": "make clean",
@@ -47,7 +55,24 @@
             "command": "make",
             "args": ["clean"],
             "problemMatcher": [],
-            "detail": "Cleans build artifacts"
+            "detail": "Cleans all build artifacts"
+        },
+        {
+            "label": "clean and debug",
+            "type": "shell",
+            "command": "make",
+            "args": ["clean", "debug"],
+            "dependsOn": ["generate compile_commands.json"],
+            "problemMatcher": ["$gcc"],
+            "detail": "Full clean before debug build"
+        },
+        {
+            "label": "clean and san",
+            "type": "shell",
+            "command": "make",
+            "args": ["clean", "san"],
+            "problemMatcher": ["$gcc"],
+            "detail": "Full clean before sanitizer build"
         }
     ]
 }
