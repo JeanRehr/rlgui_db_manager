@@ -24,6 +24,7 @@ make debug       # Build with debug info for debuggers
 make release     # Optimized (-O3) release build  
 make san         # Build with sanitizers enabled (only for linux)
 make clean       # Remove build artifacts
+make del-obj     # Remove objects (/out/*.o) files only
 ```
 
 Binaries are put in the build/ directory, each target will produce a different binary name
@@ -33,10 +34,10 @@ To run, double click the .exe or .out, or run on the terminal with
 ```bash
 # for example
 ./build/main-release.exe
-./tests-sanitizer.exe
+./build/tests-sanitizer.exe
 # or for linux
-./main-debug.out
-./tests-debug.out
+./build/main-debug.out
+./build/tests-debug.out
 ```
 
 ## Run Targets
